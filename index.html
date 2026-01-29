@@ -9,13 +9,19 @@
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
         .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
         
-        /* HEADER INFO BAR */
-        .info-bar { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #f1f3f5; padding: 12px 15px; border-radius: 12px; 
-            margin-bottom: 20px; font-size: 12px; font-weight: 700; 
-            color: #2c3e50; border: 1px solid #dee2e6; 
+        /* CONNECTION BAR */
+        #connectionStatus {
+            position: absolute; top: -10px; left: 0; width: 100%; 
+            padding: 5px; font-size: 10px; font-weight: bold; color: white;
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            display: none; /* Hidden default */
         }
+        .status-online { background: #27ae60; }
+        .status-offline { background: #c0392b; }
+        .status-sync { background: #f39c12; }
+
+        /* HEADER INFO BAR */
+        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 12px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 12px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; margin-top: 10px; }
         
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
@@ -41,11 +47,12 @@
 <body oncontextmenu="return false;"> 
 
     <div class="container">
+        
+        <div id="connectionStatus"></div>
+
         <div class="info-bar">
             <div id="dateDisplay">--/--/--</div>
-            
             <div id="clockDisplay" style="color:#1e3c72; font-size:13px;">--:--</div>
-            
             <div id="hijriDisplay" style="color:#27ae60;">-- --- ----</div>
         </div>
 
@@ -94,20 +101,20 @@
             <button onclick="loadSenarai()" style="border:none; bg:none; cursor:pointer; font-size:18px;">🔄</button>
         </div>
         <div class="list-container" id="senarai">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:15px;">v16.0 Compact Date</p>
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v17.0 Offline Mode</p>
     </div>
 
 <script>
     // =========================================================================
     // 🔧 RUANG EDIT - MASUKKAN LINK APPS SCRIPT CIKGU
     // =========================================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyFKH2dDghrQWA0QTku-4KxXNSAgcbtzieazRcv0-tDj_GJ2D_WZmpzZ5Jzwo3kJKS1/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyUhQwc3yxu_ybC1r5eF1Psztr2tNNVDW21tIpSd4R9Vs37yg42aUei3EHbm_G6nCgB/exec'; 
     
     const NAMA_ATAS = "E-HADIR";
     const NAMA_BAWAH = "SK SELAMA (K)";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
-    const RADIUS_METER = 100000; 
+    const RADIUS_METER = 1000; 
     const PASSCODE_RAHSIA = "101010"; 
     // =========================================================================
 
@@ -116,88 +123,83 @@
     let currentKat = null;
     let jamConfig = {}; 
     let watchId = null;
+    let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || [];
 
     window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
+        
         startClock(); startRadar(); checkLocalSession(); loadSenarai(); fetchConfig(); getHijriDate();
+        
+        // Monitor Internet
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus(); // Cek semasa mula
     };
 
-    function fetchConfig() {
+    // --- LOGIC OFFLINE/ONLINE ---
+    function updateOnlineStatus() {
+        let statusDiv = document.getElementById('connectionStatus');
+        if (navigator.onLine) {
+            statusDiv.style.display = "none";
+            syncOfflineData(); // Auto Sync bila online
+        } else {
+            statusDiv.innerText = "📡 TIADA INTERNET - MODE OFFLINE";
+            statusDiv.className = "status-offline";
+            statusDiv.style.display = "block";
+        }
+    }
+
+    function syncOfflineData() {
+        if(offlineQueue.length === 0) return;
+
+        let statusDiv = document.getElementById('connectionStatus');
+        statusDiv.innerText = "🔄 MENYINKRON DATA (" + offlineQueue.length + ")...";
+        statusDiv.className = "status-sync";
+        statusDiv.style.display = "block";
+
+        // Ambil satu persatu dan hantar
+        let item = offlineQueue[0];
+        
         fetch(API_URL, {
             method: "POST", redirect: "follow",
-            body: JSON.stringify({ action: "GET_CONFIG", passcode: PASSCODE_RAHSIA })
+            body: JSON.stringify(item)
         })
         .then(res => res.json())
-        .then(data => { jamConfig = data; console.log("Config OK", data); })
-        .catch(err => console.log("Config Error", err));
-    }
-
-    // --- FUNGSI TARIKH ISLAM (SINGKATAN) ---
-    function getHijriDate() {
-        let today = new Date();
-        // Dapatkan format panjang: "10 Syaaban 1447"
-        let options = { day: 'numeric', month: 'long', year: 'numeric', calendar: 'islamic-umalqura' };
-        try {
-            let fullHijri = new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura', options).format(today);
+        .then(res => {
+            // Jika berjaya, buang dari queue
+            offlineQueue.shift();
+            localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
             
-            // Proses Singkatan
-            // Pecahkan: ["10", "Syaaban", "1447"]
-            let parts = fullHijri.replace('AH', '').trim().split(' ');
-            
-            if(parts.length >= 3) {
-                let day = parts[0];
-                let month = parts[1];
-                let year = parts[2];
-
-                // Singkatkan Bulan (Ambil 3 huruf pertama)
-                let shortMonth = month.substring(0, 3);
-                
-                // Papar: 10 Sya 1447
-                document.getElementById('hijriDisplay').innerText = `🌙 ${day} ${shortMonth} ${year}`;
+            if(offlineQueue.length > 0) {
+                syncOfflineData(); // Ulang sampai habis
             } else {
-                document.getElementById('hijriDisplay').innerText = fullHijri;
+                statusDiv.style.display = "none";
+                alert("✅ Data Offline Telah Dihantar!");
+                loadSenarai();
             }
-        } catch (e) {
-            document.getElementById('hijriDisplay').innerText = "🌙 --";
+        })
+        .catch(err => {
+            statusDiv.innerText = "❌ Gagal Sync. Cuba lagi nanti.";
+        });
+    }
+
+    function simpanOffline(payload) {
+        offlineQueue.push(payload);
+        localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
+        alert("⚠️ TIADA INTERNET. Data disimpan dalam telefon. Ia akan dihantar automatik bila ada internet.");
+        
+        // Update UI seolah-olah berjaya
+        if(payload.action === "MASUK") {
+            localStorage.setItem('ehadir_session', JSON.stringify({nama: payload.nama, kategori: payload.kategori, date: new Date().toISOString().slice(0,10)}));
+            location.reload();
+        } else if(payload.action === "KELUAR") {
+            localStorage.removeItem('ehadir_session');
+            location.reload();
         }
     }
 
-    // --- FUNGSI JAM & TARIKH MASIHI (SINGKATAN) ---
-    function startClock() {
-        setInterval(() => {
-            let now = new Date();
-            
-            // Jam: 7:45:00 AM (Contoh)
-            let timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            
-            // Tarikh: 29/1/26
-            let day = now.getDate();
-            let month = now.getMonth() + 1; // Jan = 0, so +1
-            let year = now.getFullYear().toString().substr(-2); // Ambil 2 digit belakang (2026 -> 26)
-            let shortDate = `${day}/${month}/${year}`;
-
-            document.getElementById('clockDisplay').innerText = "⏰ " + timeStr;
-            document.getElementById('dateDisplay').innerText = "📅 " + shortDate;
-        }, 1000);
-    }
-
-    function parseTime(timeStr) {
-        if(!timeStr || typeof timeStr !== 'string') return null;
-        var d = new Date();
-        var parts = timeStr.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
-        if (parts) {
-            var hours = parseInt(parts[1], 10);
-            var minutes = parseInt(parts[2], 10);
-            var amp = parts[3].toUpperCase();
-            if (amp == "PM" && hours < 12) hours += 12;
-            if (amp == "AM" && hours == 12) hours = 0;
-            d.setHours(hours, minutes, 0, 0);
-            return d;
-        }
-        return null;
-    }
-
+    // --- HANTAR MASUK (UPDATED) ---
     function hantarMasuk() {
         if(!isInZone) { alert("Luar Kawasan!"); return; }
         
@@ -234,14 +236,22 @@
         
         if(kat === "PELAWAT") alasan = tujuan || "PELAWAT";
 
+        let payload = { 
+            action: "MASUK", passcode: PASSCODE_RAHSIA, 
+            nama: nama, kategori: kat, plat: plat, alasan: alasan 
+        };
+
+        // CEK INTERNET
+        if (!navigator.onLine) {
+            simpanOffline(payload);
+            return;
+        }
+
         let btn = document.getElementById('btnSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
 
         fetch(API_URL, {
             method: "POST", redirect: "follow",
-            body: JSON.stringify({ 
-                action: "MASUK", passcode: PASSCODE_RAHSIA, 
-                nama: nama, kategori: kat, plat: plat, alasan: alasan 
-            })
+            body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(res => {
@@ -249,9 +259,13 @@
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
             location.reload();
         })
-        .catch(err => { alert("Ralat Server: " + err); btn.disabled = false; });
+        .catch(err => { 
+            // Kalau fetch gagal (internet putus tiba2), simpan offline
+            simpanOffline(payload);
+        });
     }
 
+    // --- HANTAR KELUAR (UPDATED) ---
     function hantarKeluar() {
         let alasan = "";
         try {
@@ -269,19 +283,41 @@
             }
         } catch(e) { console.log(e); }
 
+        let payload = { action: "KELUAR", passcode: PASSCODE_RAHSIA, nama: currentUser, alasan: alasan };
+
+        if (!navigator.onLine) {
+            simpanOffline(payload);
+            return;
+        }
+
         let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳..."; btn.disabled = true;
         
         fetch(API_URL, {
             method: "POST", redirect: "follow",
-            body: JSON.stringify({ action: "KELUAR", passcode: PASSCODE_RAHSIA, nama: currentUser, alasan: alasan })
+            body: JSON.stringify(payload)
         })
-        .then(res => res.json()).then(res => {
+        .then(res => res.json())
+        .then(res => {
             alert(res.msg + "\nStatus: " + (res.status || "OK"));
             localStorage.removeItem('ehadir_session'); location.reload();
+        })
+        .catch(err => {
+             simpanOffline(payload);
         });
     }
 
-    // --- UTILS ---
+    // --- STANDARD UTILS ---
+    function fetchConfig() {
+        if(!navigator.onLine) return; // Skip kalau offline
+        fetch(API_URL, {
+            method: "POST", redirect: "follow",
+            body: JSON.stringify({ action: "GET_CONFIG", passcode: PASSCODE_RAHSIA })
+        })
+        .then(res => res.json())
+        .then(data => { jamConfig = data; })
+        .catch(err => console.log("Offline Config"));
+    }
+
     function checkLocalSession() {
         let today = new Date().toISOString().slice(0, 10);
         let data = JSON.parse(localStorage.getItem('ehadir_session'));
@@ -292,6 +328,50 @@
             document.getElementById('sessionNama').innerText = currentUser;
         }
     }
+
+    function getHijriDate() {
+        let today = new Date();
+        let options = { day: 'numeric', month: 'long', year: 'numeric', calendar: 'islamic-umalqura' };
+        try {
+            let fullHijri = new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura', options).format(today);
+            let parts = fullHijri.replace('AH', '').trim().split(' ');
+            if(parts.length >= 3) {
+                let day = parts[0];
+                let month = parts[1].substring(0, 3);
+                let year = parts[2];
+                document.getElementById('hijriDisplay').innerText = `🌙 ${day} ${month} ${year}`;
+            } else { document.getElementById('hijriDisplay').innerText = fullHijri; }
+        } catch (e) { document.getElementById('hijriDisplay').innerText = "🌙 --"; }
+    }
+
+    function startClock() {
+        setInterval(() => {
+            let now = new Date();
+            let timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            let day = now.getDate();
+            let month = now.getMonth() + 1;
+            let year = now.getFullYear().toString().substr(-2);
+            document.getElementById('clockDisplay').innerText = "⏰ " + timeStr;
+            document.getElementById('dateDisplay').innerText = "📅 " + day + "/" + month + "/" + year;
+        }, 1000);
+    }
+
+    function parseTime(timeStr) {
+        if(!timeStr || typeof timeStr !== 'string') return null;
+        var d = new Date();
+        var parts = timeStr.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
+        if (parts) {
+            var hours = parseInt(parts[1], 10);
+            var minutes = parseInt(parts[2], 10);
+            var amp = parts[3].toUpperCase();
+            if (amp == "PM" && hours < 12) hours += 12;
+            if (amp == "AM" && hours == 12) hours = 0;
+            d.setHours(hours, minutes, 0, 0);
+            return d;
+        }
+        return null;
+    }
+
     function startRadar() {
         if (navigator.geolocation) {
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
@@ -318,6 +398,7 @@
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
     function loadSenarai() {
+        if(!navigator.onLine) return;
         fetch(API_URL, { method: "POST", redirect: "follow", body: JSON.stringify({ action: "GET_LIST", passcode: PASSCODE_RAHSIA }) })
         .then(res => res.json()).then(list => {
             document.getElementById('liveCount').innerText = list.length;
