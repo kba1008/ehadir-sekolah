@@ -3,165 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Terkunci</title>
+    <title>E-Hadir SK Selama (K)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* GAYA UMUM */
-        body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; overflow-x: hidden; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
         
-        /* OVERLAY KUNCI (PASSWORD SCREEN) */
-        #lockScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; color: #0f0; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .lock-icon { font-size: 50px; margin-bottom: 20px; }
-        .pass-input { 
-            background: #000; border: 2px solid #0f0; color: #0f0; 
-            padding: 10px; font-size: 20px; text-align: center; letter-spacing: 5px; outline: none;
-        }
-        .unlock-btn {
-            margin-top: 20px; padding: 10px 30px; background: #0f0; color: #000; 
-            border: none; font-weight: bold; cursor: pointer; font-size: 16px;
-        }
-
-        /* APP CONTAINER (HIDDEN MULA-MULA) */
-        #appContainer { display: none; padding: 20px; justify-content: center; min-height: 100vh; }
-        
-        .main-box { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; position: relative; }
+        .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
         
         /* HEADER */
         .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 12px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; }
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
         
-        /* FORM COMPONENTS */
-        .input-group { margin-bottom: 12px; text-align: left; }
-        label { font-size: 11px; font-weight: 700; color: #666; margin-left: 5px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 14px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; font-family: inherit; font-size: 14px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn:disabled { background: #bdc3c7; }
-        .btn-keluar { background: #c0392b; }
-
         /* RADAR */
         .radar-box { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
-        .radar-status { font-weight: bold; font-size: 13px; }
+        .radar-info { text-align: left; }
+        .radar-status { font-weight: bold; font-size: 13px; display: block; }
+        .radar-dist { background: #2c3e50; color: white; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .gps-btn { background: #fff; border: 1px solid #ccc; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
+        .gps-btn:active { transform: scale(0.9); background: #eee; }
+
+        /* INPUTS */
+        .input-group { margin-bottom: 12px; text-align: left; }
+        label { font-size: 11px; font-weight: 700; color: #666; margin-left: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: 0.3s; }
+        input:focus, select:focus { border-color: #1e3c72; outline: none; box-shadow: 0 0 8px rgba(30, 60, 114, 0.2); }
+        
+        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .btn-keluar { background: #c0392b; }
+
+        /* SESSION BOX */
+        #activeSessionBox { display: none; background: #d4edda; border: 2px solid #c3e6cb; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        .session-name { font-size: 20px; font-weight: 800; color: #155724; display: block; margin-bottom: 5px; }
         
         /* LIST */
         .list-container { max-height: 300px; overflow-y: auto; text-align: left; margin-top: 10px; }
         .user-card { background: white; border-left: 5px solid #ccc; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; }
-        
         .border-GURU { border-left-color: #3498db; }
         .border-AKP { border-left-color: #1abc9c; }
         .border-KEBERSIHAN { border-left-color: #f1c40f; }
         .border-PELAWAT { border-left-color: #e74c3c; }
-
     </style>
 </head>
-<body oncontextmenu="return false;"> <div id="lockScreen">
-        <div class="lock-icon">🔒</div>
-        <h2>SISTEM TERKUNCI</h2>
-        <p>Masukkan Kod Akses:</p>
-        <input type="password" id="passcode" class="pass-input" maxlength="6">
-        <button class="unlock-btn" onclick="unlockSystem()">BUKA SISTEM</button>
-        <p id="lockMsg" style="color:red; font-size:12px; margin-top:10px;"></p>
-    </div>
-
-    <div id="appContainer">
-        <div class="main-box">
-            <div class="info-bar">
-                <div id="dateDisplay">📅 --/--</div>
-                <div id="clockDisplay">⏰ --:--</div>
-            </div>
-
-            <h1 id="tajukUtama">LOADING...</h1>
-            <h3 id="tajukKecil">...</h3>
-
-            <div class="radar-box" id="radarBox">
-                <span class="radar-status" id="statusText">📡 Mencari GPS...</span>
-                <span id="distText">-- m</span>
-                <button onclick="startRadar()" style="border:none; bg:none; cursor:pointer;">🔄</button>
-            </div>
-
-            <div id="mainForm">
-                <div class="input-group">
-                    <label>Kategori</label>
-                    <select id="kategori" onchange="checkPelawat()">
-                        <option value="" disabled selected>-- PILIH --</option>
-                        <option value="GURU">GURU</option>
-                        <option value="AKP">AKP</option>
-                        <option value="KEBERSIHAN">KEBERSIHAN</option>
-                        <option value="PELAWAT">PELAWAT</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Nama Penuh</label>
-                    <input type="text" id="nama" placeholder="NAMA ANDA" style="text-transform:uppercase">
-                </div>
-                
-                <div id="extraPelawat" style="display:none;">
-                    <input type="text" id="plat" placeholder="No Plat" style="text-transform:uppercase; margin-bottom:5px; width:100%; padding:10px; border-radius:5px; border:1px solid #ccc;">
-                    <input type="text" id="tujuan" placeholder="Tujuan" style="text-transform:uppercase; width:100%; padding:10px; border-radius:5px; border:1px solid #ccc;">
-                </div>
-
-                <button id="btnSubmit" class="btn" onclick="hantarMasuk()" disabled>DI LUAR KAWASAN</button>
-            </div>
-
-            <div id="activeSessionBox" style="display:none; background:#d4edda; padding:20px; border-radius:10px; margin-bottom:20px;">
-                <h2 style="color:#155724; margin:0;" id="sessionNama">--</h2>
-                <p style="margin:5px 0;">✅ TELAH DAFTAR MASUK</p>
-                <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
-                <p style="font-size:11px; margin-top:10px; cursor:pointer; text-decoration:underline; color:red;" onclick="resetSesi()">Reset Sesi</p>
-            </div>
-
-            <div style="text-align:left; margin-top:20px; border-bottom:1px solid #eee;">
-                <b>📋 Senarai Dalam Sekolah (<span id="count">0</span>)</b>
-                <button onclick="loadSenarai()" style="float:right; border:none; cursor:pointer;">🔄</button>
-            </div>
-            <div class="list-container" id="senarai">Loading...</div>
-            <p style="font-size:10px; color:#aaa; margin-top:15px;">v7.0 Locked & Intelligent</p>
+<body oncontextmenu="return false;"> <div class="container">
+        <div class="info-bar">
+            <div id="dateDisplay">📅 --/--</div>
+            <div id="clockDisplay">⏰ --:--</div>
+            <div id="tempDisplay" style="color:#e67e22;">☁️ --°C</div>
         </div>
+
+        <h1 id="tajukUtama">LOADING...</h1>
+        <h3 id="tajukKecil">...</h3>
+
+        <div class="radar-box" id="radarBox">
+            <div class="radar-info">
+                <span class="radar-status" id="statusText">📡 Mencari GPS...</span>
+                <span class="radar-dist" id="distText">-- m</span>
+            </div>
+            <button class="gps-btn" onclick="manualRefreshGPS()" title="Refresh Signal GPS">🔄</button>
+        </div>
+
+        <div id="mainForm">
+            <div class="input-group">
+                <label>Kategori</label>
+                <select id="kategori" onchange="checkPelawat()">
+                    <option value="" disabled selected>-- PILIH --</option>
+                    <option value="GURU">GURU</option>
+                    <option value="AKP">AKP</option>
+                    <option value="KEBERSIHAN">KEBERSIHAN</option>
+                    <option value="PELAWAT">PELAWAT</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Nama Penuh</label>
+                <input type="text" id="nama" placeholder="NAMA ANDA" style="text-transform:uppercase">
+            </div>
+            
+            <div id="extraPelawat" style="display:none; background:#f9f9f9; padding:10px; border-radius:10px; border:1px dashed #ccc;">
+                <div class="input-group">
+                    <label>No Plat</label>
+                    <input type="text" id="plat" placeholder="CONTOH: ABC 1234" style="text-transform:uppercase">
+                </div>
+                <div class="input-group">
+                    <label>Tujuan (Pilihan)</label>
+                    <input type="text" id="tujuan" placeholder="CONTOH: JUMPA GB" style="text-transform:uppercase">
+                </div>
+            </div>
+
+            <button id="btnSubmit" class="btn" onclick="hantarMasuk()" disabled>DI LUAR KAWASAN</button>
+        </div>
+
+        <div id="activeSessionBox">
+            <h2 style="color:#155724; margin:0;" id="sessionNama">--</h2>
+            <p style="margin:5px 0;">✅ TELAH DAFTAR MASUK</p>
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
+            <p style="font-size:11px; margin-top:10px; cursor:pointer; text-decoration:underline; color:red;" onclick="resetSesi()">⚠️ Reset Sesi</p>
+        </div>
+
+        <div style="text-align:left; margin-top:20px; border-bottom:1px solid #eee;">
+            <b>📋 Dalam Sekolah (<span id="count">0</span>)</b>
+            <button onclick="loadSenarai()" style="float:right; border:none; background:none; cursor:pointer; font-size:18px;">🔄</button>
+        </div>
+        <div class="list-container" id="senarai">Loading...</div>
+        
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v8.0 Unlocked</p>
     </div>
 
 <script>
     // ================= CONFIG =================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbypU9wne8upQdaNLkdFmyJxsOGrKYrfOSbXHGfE2q3E6INnv115aPFCJtrVSxNKQaR2/exec'; 
+    // LETAK LINK APPS SCRIPT CIKGU DI SINI
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzKiOBWvJr0YzMHsfsyJQceHDByNccV7nA91r9KrMjnSY5GNGfAhRWoZiGT3ZWixcyD/exec'; 
+    
     const NAMA_ATAS = "E-HADIR";
     const NAMA_BAWAH = "SK SELAMA (K)";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
-    const PASSCODE_RAHSIA = "101010";
+    
+    // PASSWORD INI DIHANTAR SENYAP-SENYAP KE BACKEND
+    const PASSCODE_RAHSIA = "101010"; 
     // ==========================================
 
     let isInZone = false;
     let currentUser = null;
-    let jamConfig = {}; // Simpan data masa dari sheet
+    let jamConfig = {}; 
+    let watchId = null;
 
-    // --- 1. SYSTEM LOCK ---
-    function unlockSystem() {
-        let input = document.getElementById('passcode').value;
-        if(input === PASSCODE_RAHSIA) {
-            document.getElementById('lockScreen').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            initSystem();
-        } else {
-            document.getElementById('lockMsg').innerText = "KOD SALAH!";
-        }
-    }
-
-    function initSystem() {
+    // --- INIT ---
+    window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
         startClock(); 
         startRadar(); 
         checkLocalSession(); 
         loadSenarai();
-        fetchConfig(); // Tarik masa dari sheet JAM
-    }
+        fetchConfig();
+    };
 
-    // --- 2. CONFIG JAM ---
     function fetchConfig() {
         fetch(API_URL, {
             method: "POST", redirect: "follow",
@@ -171,7 +151,7 @@
         .then(data => { jamConfig = data; });
     }
 
-    // --- 3. LOGIC MASUK (MERAH IF LEWAT) ---
+    // --- LOGIC MASUK ---
     function hantarMasuk() {
         if(!isInZone) { alert("Luar Kawasan!"); return; }
         
@@ -182,23 +162,22 @@
 
         if(!nama || !kat) { alert("Isi Nama & Kategori"); return; }
 
-        // CEK LEWAT (Client Side Check)
         let isLewat = false;
         let alasan = "";
         
         if (kat !== "PELAWAT" && jamConfig[kat]) {
-            let limitStr = jamConfig[kat].masuk; // "7.45 AM"
+            let limitStr = jamConfig[kat].masuk; 
             let limitTime = parseTime(limitStr);
             let now = new Date();
             
             if(now > limitTime) {
                 isLewat = true;
                 alasan = prompt("Anda LEWAT (" + limitStr + "). Sila nyatakan ALASAN:");
-                if(!alasan) return; // Cancel
+                if(!alasan) return; 
             }
         }
         
-        if(kat === "PELAWAT") alasan = tujuan;
+        if(kat === "PELAWAT") alasan = tujuan || "PELAWAT";
 
         let btn = document.getElementById('btnSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
 
@@ -206,7 +185,7 @@
             method: "POST", redirect: "follow",
             body: JSON.stringify({ 
                 action: "MASUK", 
-                passcode: PASSCODE_RAHSIA, // Hantar kunci
+                passcode: PASSCODE_RAHSIA, 
                 nama: nama, kategori: kat, plat: plat, 
                 isLewat: isLewat, alasan: alasan 
             })
@@ -219,24 +198,10 @@
         });
     }
 
-    // --- 4. LOGIC KELUAR (MERAH IF AWAL) ---
+    // --- LOGIC KELUAR ---
     function hantarKeluar() {
-        // Cek Balik Awal (Client Side Check)
-        // Kita tak paksa alasan di sini, backend akan handle status OT/AWAL
-        // Tapi kalau user nak tambah feature prompt alasan balik awal, boleh tambah sini.
-        // Buat masa ni, ikut request: Balik awal -> Merah + Alasan
-        
-        // Kita perlu tarik balik config sbb user mungkin refresh page
-        // Tapi untuk simple, kita terus hantar request. 
-        // Backend akan kira OT atau Awal.
-        // Cuma request minta "Balik awal kena bagi alasan".
-        
-        // Logic Balik Awal UI Prompt
-        // Susah nak buat di UI sbb kita tak tahu kategori user ni apa (disimpan dalam localStorage nama je)
-        // Jadi kita buat prompt sentiasa keluar "Sila masukkan catatan (jika perlu)"
-        
         let alasan = prompt("Sila masukkan catatan/alasan (Jika balik awal/OT):");
-        if(alasan === null) return; // Cancel
+        if(alasan === null) return; 
 
         let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳..."; btn.disabled = true;
         
@@ -246,7 +211,7 @@
                 action: "KELUAR", 
                 passcode: PASSCODE_RAHSIA,
                 nama: currentUser,
-                alasan: alasan //(Optional, backend boleh guna kalau nak)
+                alasan: alasan 
             })
         })
         .then(res => res.json())
@@ -257,7 +222,44 @@
         });
     }
 
-    // --- UTILS ---
+    // --- UTILS & GPS ---
+    function startRadar() {
+        if (navigator.geolocation) {
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+            watchId = navigator.geolocation.watchPosition(updatePosition, showError, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+        } else {
+            document.getElementById('statusText').innerText = "❌ GPS Tidak Disokong";
+        }
+    }
+
+    function manualRefreshGPS() {
+        document.getElementById('statusText').innerText = "📡 Mencari Semula...";
+        startRadar();
+    }
+
+    function updatePosition(pos) {
+        let dist = calcDist(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
+        document.getElementById('distText').innerText = Math.round(dist) + " m";
+        let btn = document.getElementById('btnSubmit');
+        if(dist <= RADIUS_METER) {
+            isInZone = true;
+            document.getElementById('statusText').innerText = "✅ DALAM KAWASAN";
+            document.getElementById('statusText').style.color = "green";
+            btn.disabled = false; btn.innerText = "DAFTAR MASUK";
+        } else {
+            isInZone = false;
+            document.getElementById('statusText').innerText = "🚫 LUAR KAWASAN";
+            document.getElementById('statusText').style.color = "red";
+            btn.disabled = true; btn.innerText = "MASUK KAWASAN DULU";
+        }
+    }
+
+    function showError(error) {
+        let msg = "❌ GPS Error";
+        if(error.code == 1) msg = "❌ Sila Benarkan GPS";
+        document.getElementById('statusText').innerText = msg;
+    }
+
     function parseTime(timeStr) {
         var d = new Date();
         var parts = timeStr.match(/(\d+)[.:](\d+)\s*(AM|PM)/i);
@@ -288,25 +290,6 @@
             document.getElementById('activeSessionBox').style.display = 'block';
             document.getElementById('sessionNama').innerText = currentUser;
         }
-    }
-
-    function startRadar() {
-        navigator.geolocation.watchPosition(pos => {
-            let dist = calcDist(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
-            document.getElementById('distText').innerText = Math.round(dist) + " m";
-            let btn = document.getElementById('btnSubmit');
-            if(dist <= RADIUS_METER) {
-                isInZone = true;
-                document.getElementById('statusText').innerText = "✅ DALAM KAWASAN";
-                document.getElementById('statusText').style.color = "green";
-                btn.disabled = false; btn.innerText = "DAFTAR MASUK";
-            } else {
-                isInZone = false;
-                document.getElementById('statusText').innerText = "🚫 LUAR KAWASAN";
-                document.getElementById('statusText').style.color = "red";
-                btn.disabled = true; btn.innerText = "MASUK KAWASAN DULU";
-            }
-        }, err => console.log(err), {enableHighAccuracy: true});
     }
 
     function calcDist(lat1, lon1, lat2, lon2) {
