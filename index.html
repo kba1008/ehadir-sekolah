@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Hadir Secure</title>
+    <title>E-Hadir Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
@@ -26,8 +26,14 @@
         .session-name { font-size: 20px; font-weight: 800; color: #155724; display: block; margin-bottom: 5px; }
         .session-status { font-size: 12px; color: #155724; background: #c3e6cb; padding: 3px 8px; border-radius: 5px; }
         .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); margin-top: 15px; }
-        .list-header { margin-top: 35px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        /* HEADER SENARAI BARU */
+        .list-header-box { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .list-title { font-weight: 700; color: #2c3e50; font-size: 15px; text-transform: uppercase; }
+        
+        /* BADGE BILANGAN ORANG */
+        .live-count { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-left: 5px; }
+        
         .refresh-btn { font-size: 18px; cursor: pointer; background: #f1f1f1; border: none; padding: 5px 10px; border-radius: 5px; }
         .list-container { max-height: 350px; overflow-y: auto; padding-right: 5px; }
         .user-card { background: white; border-left: 5px solid #ccc; padding: 12px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; text-align: left; border: 1px solid #f0f0f0; }
@@ -93,15 +99,17 @@
         </p>
     </div>
 
-    <div class="list-header">
-        <span class="list-title">📋 Senarai Kehadiran</span>
+    <div class="list-header-box">
+        <div class="list-title">
+            📋 Senarai Dalam Sekolah
+            <span id="liveCount" class="live-count">0</span> </div>
         <button class="refresh-btn" onclick="loadSenarai()" title="Refresh">🔄</button>
     </div>
 
     <div class="list-container" id="senarai">
         <p style="color:#888; font-size:13px; margin-top:20px;">Memuat turun data...</p>
     </div>
-    <p style="font-size:10px; color:#aaa; margin-top:15px;">v5.2 Auto-Uppercase | 1000m</p>
+    <p style="font-size:10px; color:#aaa; margin-top:15px;">v6.0 Multi-Sheet | 1000m</p>
 </div>
 
 <script>
@@ -113,7 +121,7 @@
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwlCMR0WOFE-yly3MuMLaO0H1fk2aHUYt24BbYsyOKIkSNw_8tcHgpj8_yXXXKS70CN/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx5VYC_pn2NalrvXEfLijVItPGMqgPTrfRrv9Y9wTAtcmtHvAkwP1NscdNgLaBSTYlK/exec'; 
     // =========================================================================
 
     let isInZone = false;
@@ -129,7 +137,7 @@
         let today = new Date().toISOString().slice(0, 10);
         let storedData = JSON.parse(localStorage.getItem('ehadir_session'));
         if (storedData && storedData.date === today) {
-            currentUser = storedData.nama; // Nama dah siap Uppercase dari save sebelum ni
+            currentUser = storedData.nama; 
             document.getElementById('mainForm').style.display = 'none';
             document.getElementById('activeSessionBox').style.display = 'block';
             document.getElementById('sessionNama').innerText = currentUser;
@@ -194,7 +202,6 @@
 
     function hantarMasuk() {
         if(!isInZone) { alert("Anda di luar kawasan!"); return; }
-        // UBAH: AUTO UPPERCASE DI SINI
         let nama = document.getElementById('nama').value.trim().toUpperCase();
         let kat = document.getElementById('kategori').value;
         let plat = document.getElementById('plat').value.toUpperCase();
@@ -217,7 +224,6 @@
         })
         .then(res => res.json()).then(res => {
             alert(res.msg);
-            // SIMPAN NAMA HURUF BESAR
             let sessionData = { nama: nama, date: new Date().toISOString().slice(0, 10) };
             localStorage.setItem('ehadir_session', JSON.stringify(sessionData));
             location.reload();
@@ -230,7 +236,6 @@
 
         fetch(API_URL, {
             method: "POST", redirect: "follow",
-            // CURRENTUSER DAH MEMANG UPPERCASE SEBAB DIAMBIL DARI LOCALSTORAGE YG DAH UPPERCASE
             body: JSON.stringify({ action: "KELUAR", nama: currentUser }), 
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         })
@@ -257,6 +262,9 @@
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         })
         .then(res => res.json()).then(list => {
+            // UPDATE COUNTER
+            document.getElementById('liveCount').innerText = list.length;
+            
             let html = "";
             if(list.length === 0) { html = "<div style='padding:20px; color:#999; font-size:13px;'>📭 Tiada sesiapa di sekolah buat masa ini.</div>"; } 
             else {
@@ -264,7 +272,8 @@
                     html += `
                     <div class="user-card border-${item.kategori}">
                         <div class="user-info">
-                            <strong>${item.nama}</strong> <span class="badge bg-${item.kategori}">${item.kategori}</span>
+                            <strong>${item.nama}</strong>
+                            <span class="badge bg-${item.kategori}">${item.kategori}</span>
                         </div>
                     </div>`;
                 });
