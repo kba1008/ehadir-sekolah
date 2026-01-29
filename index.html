@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Hadir SK Selama (K)</title>
+  <style>
+    body { font-family: sans-serif; background: #eef2f3; text-align: center; padding: 20px; }
+    .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    h2 { color: #2c3e50; text-transform: uppercase; margin-bottom: 5px; }
+    .subtitle { font-size: 12px; color: #777; margin-bottom: 20px; }
+    input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+    .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .btn-keluar { background: #dc3545; }
+    .card { background: #f8f9fa; border-left: 5px solid #007bff; padding: 10px; margin: 5px 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; }
+    .hidden { display: none; }
+    .loader { color: #666; font-size: 12px; margin: 10px 0; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🏫 E-HADIR SK SELAMA (K)</h2>
+  <p class="subtitle">Sistem Kehadiran Digital</p>
+
+  <div id="viewMasuk">
+    <input type="text" id="nama" placeholder="NAMA SINGKATAN (Contoh: ALI)" style="text-transform:uppercase">
+    <input type="email" id="email" placeholder="Emel (Wajib untuk Staf)">
+    
+    <select id="kategori" onchange="checkPelawat()">
+      <option value="" disabled selected>-- PILIH KATEGORI --</option>
+      <option value="GURU">GURU</option>
+      <option value="AKP">AKP</option>
+      <option value="KEBERSIHAN">KEBERSIHAN</option>
+      <option value="PELAWAT">PELAWAT</option>
+    </select>
+
+    <div id="extraPelawat" class="hidden">
+      <input type="text" id="plat" placeholder="No. Plat Kereta" style="text-transform:uppercase">
+      <input type="text" id="tujuan" placeholder="Tujuan Masuk">
+    </div>
+
+    <button class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
+  </div>
+
+  <div id="loading" class="loader">📡 Sedang berhubung dengan Google...</div>
+  <hr>
+
+  <div style="text-align:left;">
+    <h4>📋 Ada di Sekolah:</h4>
+    <div id="senarai"></div>
+  </div>
+  
+  <p id="geoStatus" style="font-size:10px; color:#999; margin-top:20px;">GPS Sedia</p>
+</div>
+
+<script>
+  // =======================================================
+  // 1. MASUKKAN LINK APPS SCRIPT ANDA DI BAWAH INI (DALAM ' ')
+  // =======================================================
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwnOOk5R5xAZzobObsfNFQ5auQEnWsz4IzFeqG9B4skmm9B21zXhzviv5RlPdpSrc_3/exec'; 
+
+  let userLoc = "SEKOLAH"; 
+
+  // Auto Load Senarai
+  window.onload = function() { 
+    dapatkanLokasi();
+    loadSenarai(); 
+  };
+
+  function dapatkanLokasi() {
+    if(navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        userLoc = pos.coords.latitude + "," + pos.coords.longitude;
+        document.getElementById('geoStatus').innerText = "✅ GPS: " + userLoc;
+      });
+    }
+  }
+
+  function checkPelawat() {
+    let kat = document.getElementById('kategori').value;
+    document.getElementById('extraPelawat').style.display = (kat === 'PELAWAT') ? 'block' : 'none';
+  }
+
+  function hantarMasuk() {
+    let nama = document.getElementById('nama').value.trim();
+    let email = document.getElementById('email').value.trim();
+    let kat = document.getElementById('kategori').value;
+    let plat = document.getElementById('plat').value;
+    let tujuan = document.getElementById('tujuan').value;
+    let alasan = "";
+
+    if(!nama || !kat) { alert("Sila isi Nama & Kategori"); return; }
+    if(kat !== "PELAWAT" && !email) { alert("Sila isi Emel!"); return; }
+
+    // Logik Masa Lewat
+    let now = new Date();
+    let jam = now.getHours(); let min = now.getMinutes();
+    let isLewat = false;
+    
+    if(kat === 'GURU' && (jam > 7 || (jam==7 && min>=45))) isLewat = true;
+    if((kat === 'AKP' || kat === 'KEBERSIHAN') && (jam > 8 || (jam==8 && min>=5))) isLewat = true;
+
+    if(isLewat) {
+      alasan = prompt("Anda LEWAT. Sila nyatakan sebab:");
+      if(!alasan) { alert("Wajib isi alasan!"); return; }
+    }
+
+    let data = { action: "MASUK", nama: nama, email: email, kategori: kat, plat: plat, tujuan: tujuan, alasan: alasan };
+    
+    hantarKeServer(data);
+  }
+
+  function hantarKeluar(nama) {
+    if(!confirm("Daftar Keluar " + nama + "?")) return;
+    hantarKeServer({ action: "KELUAR", nama: nama, lokasi: userLoc });
+  }
+
+  function hantarKeServer(jsonData) {
+    document.getElementById('loading').style.display = 'block';
+    
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(jsonData)
+    })
+    .then(response => response.json())
+    .then(result => {
+      alert(result.msg || "Berjaya!");
+      document.getElementById('loading').style.display = 'none';
+      if(result.result === "success") {
+        document.getElementById('nama').value = "";
+        loadSenarai();
+      }
+    })
+    .catch(error => {
+      alert("Ralat sambungan!");
+      document.getElementById('loading').style.display = 'none';
+    });
+  }
+
+  function loadSenarai() {
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "GET_LIST" }) })
+    .then(res => res.json())
+    .then(list => {
+      let html = "";
+      list.forEach(item => {
+        html += `<div class="card" onclick="hantarKeluar('${item.nama}')">
+                   <strong>${item.nama} <small>(${item.kategori})</small></strong>
+                   <span>🚪</span>
+                 </div>`;
+      });
+      document.getElementById('senarai').innerHTML = html || "<p style='font-size:12px; color:#999'>Tiada rekod.</p>";
+    });
+  }
+</script>
+
+</body>
+</html>
