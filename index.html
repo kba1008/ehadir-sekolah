@@ -6,9 +6,8 @@
     <title>E-Hadir SK Selama (K)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* GAYA UMUM */
+        /* GAYA ASAS */
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
-        
         .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
         
         /* HEADER */
@@ -39,6 +38,9 @@
         .session-name { font-size: 20px; font-weight: 800; color: #155724; display: block; margin-bottom: 5px; }
         
         /* LIST */
+        .list-header-box { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .list-title { font-weight: 700; color: #2c3e50; font-size: 15px; text-transform: uppercase; }
+        .live-count { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-left: 5px; }
         .list-container { max-height: 300px; overflow-y: auto; text-align: left; margin-top: 10px; }
         .user-card { background: white; border-left: 5px solid #ccc; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; }
         .border-GURU { border-left-color: #3498db; }
@@ -47,7 +49,9 @@
         .border-PELAWAT { border-left-color: #e74c3c; }
     </style>
 </head>
-<body oncontextmenu="return false;"> <div class="container">
+<body oncontextmenu="return false;"> 
+
+    <div class="container">
         <div class="info-bar">
             <div id="dateDisplay">📅 --/--</div>
             <div id="clockDisplay">⏰ --:--</div>
@@ -102,18 +106,19 @@
             <p style="font-size:11px; margin-top:10px; cursor:pointer; text-decoration:underline; color:red;" onclick="resetSesi()">⚠️ Reset Sesi</p>
         </div>
 
-        <div style="text-align:left; margin-top:20px; border-bottom:1px solid #eee;">
-            <b>📋 Dalam Sekolah (<span id="count">0</span>)</b>
-            <button onclick="loadSenarai()" style="float:right; border:none; background:none; cursor:pointer; font-size:18px;">🔄</button>
+        <div class="list-header-box">
+            <div class="list-title">
+                📋 Dalam Sekolah <span id="liveCount" class="live-count">0</span>
+            </div>
+            <button class="refresh-btn" onclick="loadSenarai()" title="Refresh">🔄</button>
         </div>
         <div class="list-container" id="senarai">Loading...</div>
         
-        <p style="font-size:10px; color:#aaa; margin-top:15px;">v8.0 Unlocked</p>
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v10.0 Direct Access</p>
     </div>
 
 <script>
     // ================= CONFIG =================
-    // LETAK LINK APPS SCRIPT CIKGU DI SINI
     const API_URL = 'https://script.google.com/macros/s/AKfycbzKiOBWvJr0YzMHsfsyJQceHDByNccV7nA91r9KrMjnSY5GNGfAhRWoZiGT3ZWixcyD/exec'; 
     
     const NAMA_ATAS = "E-HADIR";
@@ -122,7 +127,7 @@
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
     
-    // PASSWORD INI DIHANTAR SENYAP-SENYAP KE BACKEND
+    // KUNCI INI DIHANTAR SECARA AUTOMATIK (SENYAP)
     const PASSCODE_RAHSIA = "101010"; 
     // ==========================================
 
@@ -131,7 +136,7 @@
     let jamConfig = {}; 
     let watchId = null;
 
-    // --- INIT ---
+    // --- AUTO START TANPA PASSWORD PROMPT ---
     window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
@@ -151,7 +156,6 @@
         .then(data => { jamConfig = data; });
     }
 
-    // --- LOGIC MASUK ---
     function hantarMasuk() {
         if(!isInZone) { alert("Luar Kawasan!"); return; }
         
@@ -185,7 +189,7 @@
             method: "POST", redirect: "follow",
             body: JSON.stringify({ 
                 action: "MASUK", 
-                passcode: PASSCODE_RAHSIA, 
+                passcode: PASSCODE_RAHSIA, // Kunci automatik di sini
                 nama: nama, kategori: kat, plat: plat, 
                 isLewat: isLewat, alasan: alasan 
             })
@@ -198,7 +202,6 @@
         });
     }
 
-    // --- LOGIC KELUAR ---
     function hantarKeluar() {
         let alasan = prompt("Sila masukkan catatan/alasan (Jika balik awal/OT):");
         if(alasan === null) return; 
@@ -209,7 +212,7 @@
             method: "POST", redirect: "follow",
             body: JSON.stringify({ 
                 action: "KELUAR", 
-                passcode: PASSCODE_RAHSIA,
+                passcode: PASSCODE_RAHSIA, // Kunci automatik di sini
                 nama: currentUser,
                 alasan: alasan 
             })
@@ -222,7 +225,6 @@
         });
     }
 
-    // --- UTILS & GPS ---
     function startRadar() {
         if (navigator.geolocation) {
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
@@ -305,7 +307,7 @@
             body: JSON.stringify({ action: "GET_LIST", passcode: PASSCODE_RAHSIA })
         })
         .then(res => res.json()).then(list => {
-            document.getElementById('count').innerText = list.length;
+            document.getElementById('liveCount').innerText = list.length;
             let html = "";
             list.forEach(item => {
                 html += `<div class="user-card border-${item.kategori}"><strong>${item.nama}</strong><span>${item.kategori}</span></div>`;
