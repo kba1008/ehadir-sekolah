@@ -10,12 +10,10 @@
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
         .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
         
-        /* HEADER */
         .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 12px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; }
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
         
-        /* RADAR */
         .radar-box { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
         .radar-info { text-align: left; }
         .radar-status { font-weight: bold; font-size: 13px; display: block; }
@@ -23,7 +21,6 @@
         .gps-btn { background: #fff; border: 1px solid #ccc; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
         .gps-btn:active { transform: scale(0.9); background: #eee; }
 
-        /* INPUTS */
         .input-group { margin-bottom: 12px; text-align: left; }
         label { font-size: 11px; font-weight: 700; color: #666; margin-left: 5px; text-transform: uppercase; }
         input, select { width: 100%; padding: 14px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: 0.3s; }
@@ -33,11 +30,9 @@
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .btn-keluar { background: #c0392b; }
 
-        /* SESSION BOX */
         #activeSessionBox { display: none; background: #d4edda; border: 2px solid #c3e6cb; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .session-name { font-size: 20px; font-weight: 800; color: #155724; display: block; margin-bottom: 5px; }
         
-        /* LIST */
         .list-header-box { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .list-title { font-weight: 700; color: #2c3e50; font-size: 15px; text-transform: uppercase; }
         .live-count { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-left: 5px; }
@@ -114,37 +109,32 @@
         </div>
         <div class="list-container" id="senarai">Loading...</div>
         
-        <p style="font-size:10px; color:#aaa; margin-top:15px;">v10.0 Direct Access</p>
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v11.0 Logik Jam Tepat</p>
     </div>
 
 <script>
-    // ================= CONFIG =================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzKiOBWvJr0YzMHsfsyJQceHDByNccV7nA91r9KrMjnSY5GNGfAhRWoZiGT3ZWixcyD/exec'; 
-    
+    // =========================================================================
+    // 🔧 RUANG EDIT - MASUKKAN LINK APPS SCRIPT CIKGU
+    // =========================================================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxMwQy4qNAwjyUiUdlnw_i-3ggnbRFFpcNjml4OAg8TW3zvxvv6CEuXneNeOwBVC7H2/exec'; 
     const NAMA_ATAS = "E-HADIR";
     const NAMA_BAWAH = "SK SELAMA (K)";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
-    const RADIUS_METER = 1000; 
-    
-    // KUNCI INI DIHANTAR SECARA AUTOMATIK (SENYAP)
+    const RADIUS_METER = 100000000; 
     const PASSCODE_RAHSIA = "101010"; 
-    // ==========================================
+    // =========================================================================
 
     let isInZone = false;
     let currentUser = null;
+    let currentKat = null; // Simpan kategori user utk check jam keluar
     let jamConfig = {}; 
     let watchId = null;
 
-    // --- AUTO START TANPA PASSWORD PROMPT ---
     window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
-        startClock(); 
-        startRadar(); 
-        checkLocalSession(); 
-        loadSenarai();
-        fetchConfig();
+        startClock(); startRadar(); checkLocalSession(); loadSenarai(); fetchConfig();
     };
 
     function fetchConfig() {
@@ -152,10 +142,10 @@
             method: "POST", redirect: "follow",
             body: JSON.stringify({ action: "GET_CONFIG", passcode: PASSCODE_RAHSIA })
         })
-        .then(res => res.json())
-        .then(data => { jamConfig = data; });
+        .then(res => res.json()).then(data => { jamConfig = data; });
     }
 
+    // --- DAFTAR MASUK ---
     function hantarMasuk() {
         if(!isInZone) { alert("Luar Kawasan!"); return; }
         
@@ -169,12 +159,25 @@
         let isLewat = false;
         let alasan = "";
         
+        // Logik Masuk (OT Pagi / Lewat)
         if (kat !== "PELAWAT" && jamConfig[kat]) {
             let limitStr = jamConfig[kat].masuk; 
-            let limitTime = parseTime(limitStr);
+            let limitKeluarStr = jamConfig[kat].keluar;
+            let limitMasuk = parseTime(limitStr);
+            let limitKeluar = parseTime(limitKeluarStr);
             let now = new Date();
-            
-            if(now > limitTime) {
+            let jam = now.getHours();
+
+            // 1. OT PAGI (00:00 - 04:59) - Tak perlu alasan
+            if (jam < 5) {
+                // OT Pagi
+            }
+            // 2. OT PETANG (Masuk selepas waktu keluar) - Tak perlu alasan
+            else if (now > limitKeluar) {
+                // OT Petang
+            }
+            // 3. LEWAT (Masuk selepas masa tetapkan) - WAJIB ALASAN
+            else if (now > limitMasuk) {
                 isLewat = true;
                 alasan = prompt("Anda LEWAT (" + limitStr + "). Sila nyatakan ALASAN:");
                 if(!alasan) return; 
@@ -188,142 +191,116 @@
         fetch(API_URL, {
             method: "POST", redirect: "follow",
             body: JSON.stringify({ 
-                action: "MASUK", 
-                passcode: PASSCODE_RAHSIA, // Kunci automatik di sini
+                action: "MASUK", passcode: PASSCODE_RAHSIA, 
                 nama: nama, kategori: kat, plat: plat, 
                 isLewat: isLewat, alasan: alasan 
             })
         })
-        .then(res => res.json())
-        .then(res => {
+        .then(res => res.json()).then(res => {
             alert(res.msg);
-            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, date: new Date().toISOString().slice(0,10)}));
+            // Simpan Nama DAN Kategori untuk guna masa keluar nanti
+            localStorage.setItem('ehadir_session', JSON.stringify({
+                nama: nama, 
+                kategori: kat,
+                date: new Date().toISOString().slice(0,10)
+            }));
             location.reload();
         });
     }
 
+    // --- DAFTAR KELUAR (LOGIK BARU) ---
     function hantarKeluar() {
-        let alasan = prompt("Sila masukkan catatan/alasan (Jika balik awal/OT):");
-        if(alasan === null) return; 
+        let alasan = "";
+        
+        // Semak Kategori User
+        if (currentKat && currentKat !== "PELAWAT" && jamConfig[currentKat]) {
+            let limitKeluarStr = jamConfig[currentKat].keluar;
+            let limitKeluar = parseTime(limitKeluarStr);
+            let now = new Date();
+
+            // JIKA BALIK AWAL: WAJIB ALASAN
+            if (now < limitKeluar) {
+                alasan = prompt("Anda BALIK AWAL (" + limitKeluarStr + "). Sila nyatakan SEBAB:");
+                if (!alasan) return; // Kalau cancel, tak jadi keluar
+            }
+            // JIKA OT/BIASA: TAK PERLU ALASAN
+        }
 
         let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳..."; btn.disabled = true;
         
         fetch(API_URL, {
             method: "POST", redirect: "follow",
             body: JSON.stringify({ 
-                action: "KELUAR", 
-                passcode: PASSCODE_RAHSIA, // Kunci automatik di sini
+                action: "KELUAR", passcode: PASSCODE_RAHSIA,
                 nama: currentUser,
-                alasan: alasan 
+                alasan: alasan // Hantar alasan kalau ada
             })
         })
-        .then(res => res.json())
-        .then(res => {
-            alert(res.msg + "\nStatus: " + res.status);
+        .then(res => res.json()).then(res => {
+            alert(res.msg);
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
     }
 
-    function startRadar() {
-        if (navigator.geolocation) {
-            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-            watchId = navigator.geolocation.watchPosition(updatePosition, showError, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
-        } else {
-            document.getElementById('statusText').innerText = "❌ GPS Tidak Disokong";
-        }
-    }
-
-    function manualRefreshGPS() {
-        document.getElementById('statusText').innerText = "📡 Mencari Semula...";
-        startRadar();
-    }
-
-    function updatePosition(pos) {
-        let dist = calcDist(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
-        document.getElementById('distText').innerText = Math.round(dist) + " m";
-        let btn = document.getElementById('btnSubmit');
-        if(dist <= RADIUS_METER) {
-            isInZone = true;
-            document.getElementById('statusText').innerText = "✅ DALAM KAWASAN";
-            document.getElementById('statusText').style.color = "green";
-            btn.disabled = false; btn.innerText = "DAFTAR MASUK";
-        } else {
-            isInZone = false;
-            document.getElementById('statusText').innerText = "🚫 LUAR KAWASAN";
-            document.getElementById('statusText').style.color = "red";
-            btn.disabled = true; btn.innerText = "MASUK KAWASAN DULU";
-        }
-    }
-
-    function showError(error) {
-        let msg = "❌ GPS Error";
-        if(error.code == 1) msg = "❌ Sila Benarkan GPS";
-        document.getElementById('statusText').innerText = msg;
-    }
-
-    function parseTime(timeStr) {
-        var d = new Date();
-        var parts = timeStr.match(/(\d+)[.:](\d+)\s*(AM|PM)/i);
-        if (parts) {
-            var hours = parseInt(parts[1]);
-            var minutes = parseInt(parts[2]);
-            if(parts[3].toUpperCase() == "PM" && hours < 12) hours+=12;
-            if(parts[3].toUpperCase() == "AM" && hours == 12) hours=0;
-            d.setHours(hours, minutes, 0, 0);
-        }
-        return d;
-    }
-
-    function startClock() {
-        setInterval(() => {
-            let now = new Date();
-            document.getElementById('clockDisplay').innerText = "⏰ " + now.toLocaleTimeString();
-            document.getElementById('dateDisplay').innerText = "📅 " + now.toLocaleDateString();
-        }, 1000);
-    }
-
+    // --- UTILS ---
     function checkLocalSession() {
         let today = new Date().toISOString().slice(0, 10);
         let data = JSON.parse(localStorage.getItem('ehadir_session'));
         if(data && data.date === today) {
             currentUser = data.nama;
+            currentKat = data.kategori; // Ambil kategori juga
             document.getElementById('mainForm').style.display = 'none';
             document.getElementById('activeSessionBox').style.display = 'block';
             document.getElementById('sessionNama').innerText = currentUser;
         }
     }
 
+    function startRadar() {
+        if (navigator.geolocation) {
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+            watchId = navigator.geolocation.watchPosition(updatePosition, showError, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+        } else { document.getElementById('statusText').innerText = "❌ GPS Error"; }
+    }
+    function manualRefreshGPS() { document.getElementById('statusText').innerText = "📡 ..."; startRadar(); }
+    function updatePosition(pos) {
+        let dist = calcDist(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
+        document.getElementById('distText').innerText = Math.round(dist) + " m";
+        let btn = document.getElementById('btnSubmit');
+        if(dist <= RADIUS_METER) {
+            isInZone = true; document.getElementById('statusText').innerText = "✅ DALAM KAWASAN";
+            document.getElementById('statusText').style.color = "green"; btn.disabled = false; btn.innerText = "DAFTAR MASUK";
+        } else {
+            isInZone = false; document.getElementById('statusText').innerText = "🚫 LUAR KAWASAN";
+            document.getElementById('statusText').style.color = "red"; btn.disabled = true; btn.innerText = "MASUK KAWASAN DULU";
+        }
+    }
+    function showError() { document.getElementById('statusText').innerText = "❌ Benarkan GPS"; }
+    function parseTime(timeStr) {
+        var d = new Date(); var parts = timeStr.match(/(\d+)[.:](\d+)\s*(AM|PM)/i);
+        if (parts) {
+            var hours = parseInt(parts[1]); var minutes = parseInt(parts[2]);
+            if(parts[3].toUpperCase() == "PM" && hours < 12) hours+=12;
+            if(parts[3].toUpperCase() == "AM" && hours == 12) hours=0;
+            d.setHours(hours, minutes, 0, 0);
+        } return d;
+    }
+    function startClock() { setInterval(() => { let now = new Date(); document.getElementById('clockDisplay').innerText = "⏰ " + now.toLocaleTimeString(); document.getElementById('dateDisplay').innerText = "📅 " + now.toLocaleDateString(); }, 1000); }
     function calcDist(lat1, lon1, lat2, lon2) {
-        var R = 6371e3; 
-        var φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180, Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180;
+        var R = 6371e3; var φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180, Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180;
         var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
-
     function loadSenarai() {
-        fetch(API_URL, {
-            method: "POST", redirect: "follow",
-            body: JSON.stringify({ action: "GET_LIST", passcode: PASSCODE_RAHSIA })
-        })
+        fetch(API_URL, { method: "POST", redirect: "follow", body: JSON.stringify({ action: "GET_LIST", passcode: PASSCODE_RAHSIA }) })
         .then(res => res.json()).then(list => {
             document.getElementById('liveCount').innerText = list.length;
-            let html = "";
-            list.forEach(item => {
-                html += `<div class="user-card border-${item.kategori}"><strong>${item.nama}</strong><span>${item.kategori}</span></div>`;
-            });
+            let html = ""; list.forEach(item => { html += `<div class="user-card border-${item.kategori}"><strong>${item.nama}</strong><span>${item.kategori}</span></div>`; });
             document.getElementById('senarai').innerHTML = html;
         });
     }
-
-    function checkPelawat() {
-        let v = document.getElementById('kategori').value;
-        document.getElementById('extraPelawat').style.display = (v==='PELAWAT')?'block':'none';
-    }
-    
-    function resetSesi() {
-        if(confirm("Reset sesi?")) { localStorage.removeItem('ehadir_session'); location.reload(); }
-    }
+    function checkPelawat() { document.getElementById('extraPelawat').style.display = (document.getElementById('kategori').value==='PELAWAT')?'block':'none'; }
+    function resetSesi() { if(confirm("Reset sesi?")) { localStorage.removeItem('ehadir_session'); location.reload(); } }
 </script>
 </body>
 </html>
