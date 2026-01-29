@@ -10,7 +10,12 @@
         .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
         
         /* HEADER INFO BAR */
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 11px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; }
+        .info-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: #f1f3f5; padding: 12px 15px; border-radius: 12px; 
+            margin-bottom: 20px; font-size: 12px; font-weight: 700; 
+            color: #2c3e50; border: 1px solid #dee2e6; 
+        }
         
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
@@ -37,9 +42,11 @@
 
     <div class="container">
         <div class="info-bar">
-            <div id="dateDisplay">📅 --/--</div>
-            <div id="clockDisplay" style="font-size:14px; color:#1e3c72;">⏰ --:--</div>
-            <div id="hijriDisplay" style="color:#27ae60;">🌙 --/--</div>
+            <div id="dateDisplay">--/--/--</div>
+            
+            <div id="clockDisplay" style="color:#1e3c72; font-size:13px;">--:--</div>
+            
+            <div id="hijriDisplay" style="color:#27ae60;">-- --- ----</div>
         </div>
 
         <h1 id="tajukUtama">LOADING...</h1>
@@ -87,7 +94,7 @@
             <button onclick="loadSenarai()" style="border:none; bg:none; cursor:pointer; font-size:18px;">🔄</button>
         </div>
         <div class="list-container" id="senarai">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:15px;">v15.0 Hijri Display</p>
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v16.0 Compact Date</p>
     </div>
 
 <script>
@@ -126,19 +133,53 @@
         .catch(err => console.log("Config Error", err));
     }
 
-    // --- FUNGSI TARIKH ISLAM ---
+    // --- FUNGSI TARIKH ISLAM (SINGKATAN) ---
     function getHijriDate() {
-        // Guna format tempatan untuk kalendar Islam
         let today = new Date();
-        let options = { year: 'numeric', month: 'short', day: 'numeric', calendar: 'islamic-umalqura' };
+        // Dapatkan format panjang: "10 Syaaban 1447"
+        let options = { day: 'numeric', month: 'long', year: 'numeric', calendar: 'islamic-umalqura' };
         try {
-            let hijri = new Intl.DateTimeFormat('ms-MY-u-ca-islamic', options).format(today);
-            // Bersihkan format (buang "AH")
-            hijri = hijri.replace('AH', '').trim();
-            document.getElementById('hijriDisplay').innerText = "🌙 " + hijri;
+            let fullHijri = new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura', options).format(today);
+            
+            // Proses Singkatan
+            // Pecahkan: ["10", "Syaaban", "1447"]
+            let parts = fullHijri.replace('AH', '').trim().split(' ');
+            
+            if(parts.length >= 3) {
+                let day = parts[0];
+                let month = parts[1];
+                let year = parts[2];
+
+                // Singkatkan Bulan (Ambil 3 huruf pertama)
+                let shortMonth = month.substring(0, 3);
+                
+                // Papar: 10 Sya 1447
+                document.getElementById('hijriDisplay').innerText = `🌙 ${day} ${shortMonth} ${year}`;
+            } else {
+                document.getElementById('hijriDisplay').innerText = fullHijri;
+            }
         } catch (e) {
             document.getElementById('hijriDisplay').innerText = "🌙 --";
         }
+    }
+
+    // --- FUNGSI JAM & TARIKH MASIHI (SINGKATAN) ---
+    function startClock() {
+        setInterval(() => {
+            let now = new Date();
+            
+            // Jam: 7:45:00 AM (Contoh)
+            let timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            
+            // Tarikh: 29/1/26
+            let day = now.getDate();
+            let month = now.getMonth() + 1; // Jan = 0, so +1
+            let year = now.getFullYear().toString().substr(-2); // Ambil 2 digit belakang (2026 -> 26)
+            let shortDate = `${day}/${month}/${year}`;
+
+            document.getElementById('clockDisplay').innerText = "⏰ " + timeStr;
+            document.getElementById('dateDisplay').innerText = "📅 " + shortDate;
+        }, 1000);
     }
 
     function parseTime(timeStr) {
@@ -219,6 +260,7 @@
                 if(limitStr && limitStr !== "BEBAS") {
                     let limitKeluar = parseTime(limitStr);
                     let now = new Date();
+                    
                     if (limitKeluar && now < limitKeluar) {
                         alasan = prompt("Anda BALIK AWAL (" + limitStr + "). Sila nyatakan SEBAB:");
                         if (!alasan) return; 
@@ -270,7 +312,6 @@
         }
     }
     function showError() { document.getElementById('statusText').innerText = "❌ Benarkan GPS"; }
-    function startClock() { setInterval(() => { let now = new Date(); document.getElementById('clockDisplay').innerText = "⏰ " + now.toLocaleTimeString(); document.getElementById('dateDisplay').innerText = "📅 " + now.toLocaleDateString(); }, 1000); }
     function calcDist(lat1, lon1, lat2, lon2) {
         var R = 6371e3; var φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180, Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180;
         var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
