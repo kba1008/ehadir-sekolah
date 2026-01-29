@@ -8,7 +8,10 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
         .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 12px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; }
+        
+        /* HEADER INFO BAR */
+        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 11px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; }
+        
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
         .radar-box { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
@@ -35,8 +38,8 @@
     <div class="container">
         <div class="info-bar">
             <div id="dateDisplay">📅 --/--</div>
-            <div id="clockDisplay">⏰ --:--</div>
-            <div id="tempDisplay" style="color:#e67e22;">☁️ --°C</div>
+            <div id="clockDisplay" style="font-size:14px; color:#1e3c72;">⏰ --:--</div>
+            <div id="hijriDisplay" style="color:#27ae60;">🌙 --/--</div>
         </div>
 
         <h1 id="tajukUtama">LOADING...</h1>
@@ -84,12 +87,12 @@
             <button onclick="loadSenarai()" style="border:none; bg:none; cursor:pointer; font-size:18px;">🔄</button>
         </div>
         <div class="list-container" id="senarai">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:15px;">v14.0 No OT Logic</p>
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v15.0 Hijri Display</p>
     </div>
 
 <script>
     // =========================================================================
-    // 🔧 RUANG EDIT - PASTIKAN LINK APPS SCRIPT ANDA DI SINI
+    // 🔧 RUANG EDIT - MASUKKAN LINK APPS SCRIPT CIKGU
     // =========================================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyFKH2dDghrQWA0QTku-4KxXNSAgcbtzieazRcv0-tDj_GJ2D_WZmpzZ5Jzwo3kJKS1/exec'; 
     
@@ -97,7 +100,7 @@
     const NAMA_BAWAH = "SK SELAMA (K)";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
-    const RADIUS_METER = 100000; 
+    const RADIUS_METER = 1000; 
     const PASSCODE_RAHSIA = "101010"; 
     // =========================================================================
 
@@ -110,7 +113,7 @@
     window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
-        startClock(); startRadar(); checkLocalSession(); loadSenarai(); fetchConfig();
+        startClock(); startRadar(); checkLocalSession(); loadSenarai(); fetchConfig(); getHijriDate();
     };
 
     function fetchConfig() {
@@ -121,6 +124,21 @@
         .then(res => res.json())
         .then(data => { jamConfig = data; console.log("Config OK", data); })
         .catch(err => console.log("Config Error", err));
+    }
+
+    // --- FUNGSI TARIKH ISLAM ---
+    function getHijriDate() {
+        // Guna format tempatan untuk kalendar Islam
+        let today = new Date();
+        let options = { year: 'numeric', month: 'short', day: 'numeric', calendar: 'islamic-umalqura' };
+        try {
+            let hijri = new Intl.DateTimeFormat('ms-MY-u-ca-islamic', options).format(today);
+            // Bersihkan format (buang "AH")
+            hijri = hijri.replace('AH', '').trim();
+            document.getElementById('hijriDisplay').innerText = "🌙 " + hijri;
+        } catch (e) {
+            document.getElementById('hijriDisplay').innerText = "🌙 --";
+        }
     }
 
     function parseTime(timeStr) {
@@ -162,10 +180,6 @@
                     let limitKeluar = parseTime(limitKeluarStr);
                     let now = new Date();
 
-                    // LOGIK BARU: 
-                    // Hanya minta alasan jika SELEPAS waktu masuk TAPI SEBELUM waktu keluar.
-                    // Jika datang malam (selepas waktu keluar), TIDAK DIKIRA LEWAT.
-                    
                     if (limitMasuk && limitKeluar) {
                         if (now > limitMasuk && now < limitKeluar) {
                             isLewat = true;
@@ -205,13 +219,10 @@
                 if(limitStr && limitStr !== "BEBAS") {
                     let limitKeluar = parseTime(limitStr);
                     let now = new Date();
-                    
-                    // BALIK AWAL: WAJIB ALASAN
                     if (limitKeluar && now < limitKeluar) {
                         alasan = prompt("Anda BALIK AWAL (" + limitStr + "). Sila nyatakan SEBAB:");
                         if (!alasan) return; 
                     }
-                    // BALIK LEBIH MASA: TAK ADA APA-APA (NORMAL)
                 }
             }
         } catch(e) { console.log(e); }
@@ -228,7 +239,7 @@
         });
     }
 
-    // --- STANDARD UTILS ---
+    // --- UTILS ---
     function checkLocalSession() {
         let today = new Date().toISOString().slice(0, 10);
         let data = JSON.parse(localStorage.getItem('ehadir_session'));
