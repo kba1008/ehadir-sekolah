@@ -15,17 +15,21 @@
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
         
-        /* RADAR & FORM */
+        /* RADAR BOX (ADA BUTANG REFRESH) */
         .radar-box { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
-        .radar-status { font-weight: bold; font-size: 13px; }
-        .radar-dist { background: #2c3e50; color: white; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .radar-info { text-align: left; }
+        .radar-status { font-weight: bold; font-size: 13px; display: block; }
+        .radar-dist { background: #2c3e50; color: white; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
         
+        /* BUTANG REFRESH GPS */
+        .gps-btn { background: #fff; border: 1px solid #ccc; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
+        .gps-btn:active { transform: scale(0.9); background: #eee; }
+
         .input-group { margin-bottom: 12px; text-align: left; }
         label { font-size: 11px; font-weight: 700; color: #666; margin-left: 5px; text-transform: uppercase; }
         input, select { width: 100%; padding: 14px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: 0.3s; }
         input:focus, select:focus { border-color: #1e3c72; outline: none; box-shadow: 0 0 8px rgba(30, 60, 114, 0.2); }
         
-        /* SESSION & LIST */
         #activeSessionBox { display: none; background: #d4edda; border: 2px solid #c3e6cb; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .session-name { font-size: 20px; font-weight: 800; color: #155724; display: block; margin-bottom: 5px; }
         .session-status { font-size: 12px; color: #155724; background: #c3e6cb; padding: 3px 8px; border-radius: 5px; }
@@ -64,12 +68,16 @@
     <h3 id="tajukKecil">...</h3>
 
     <div class="radar-box" id="radarBox">
-        <div class="radar-status" id="statusText">📡 Mencari GPS...</div>
-        <div class="radar-dist" id="distText">-- m</div>
+        <div class="radar-info">
+            <span class="radar-status" id="statusText">📡 Mencari GPS...</span>
+            <span class="radar-dist" id="distText">-- m</span>
+        </div>
+        <button class="gps-btn" onclick="manualRefreshGPS()" title="Refresh Signal GPS">
+            🔄
+        </button>
     </div>
 
     <div id="mainForm">
-        
         <div class="input-group">
             <label>Kategori</label>
             <select id="kategori" onchange="checkPelawat()">
@@ -92,7 +100,8 @@
                 <input type="text" id="plat" placeholder="CONTOH: ABC 1234" style="text-transform:uppercase">
             </div>
             <div class="input-group">
-                <label>Tujuan (Pilihan)</label> <input type="text" id="tujuan" placeholder="CONTOH: JUMPA GURU BESAR" style="text-transform:uppercase">
+                <label>Tujuan (Pilihan)</label>
+                <input type="text" id="tujuan" placeholder="CONTOH: JUMPA GURU BESAR" style="text-transform:uppercase">
             </div>
         </div>
 
@@ -121,7 +130,7 @@
     <div class="list-container" id="senarai">
         <p style="color:#888; font-size:13px; margin-top:20px;">Memuat turun data...</p>
     </div>
-    <p style="font-size:10px; color:#aaa; margin-top:15px;">v6.2 Visitor Optional | 1000m</p>
+    <p style="font-size:10px; color:#aaa; margin-top:15px;">v6.3 GPS Refresh | 1000m</p>
 </div>
 
 <script>
@@ -133,11 +142,12 @@
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx5VYC_pn2NalrvXEfLijVItPGMqgPTrfRrv9Y9wTAtcmtHvAkwP1NscdNgLaBSTYlK/exec'; 
+    const API_URL = 'LETAK_LINK_APPS_SCRIPT_DISINI'; 
     // =========================================================================
 
     let isInZone = false;
     let currentUser = null;
+    let watchId = null; // ID untuk GPS Watcher
 
     window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_SISTEM_ATAS;
@@ -178,134 +188,41 @@
         }).catch(err => { document.getElementById('tempDisplay').innerText = "☁️ --°C"; });
     }
 
+    // --- FUNGSI GPS BARU DENGAN AUTO DETECT & REFRESH ---
     function startRadar() {
         if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                let dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
-                document.getElementById('distText').innerText = Math.round(dist) + " m";
-                let btn = document.getElementById('btnSubmit');
-                let btnOut = document.getElementById('btnKeluar');
-                let status = document.getElementById('statusText');
-                let box = document.getElementById('radarBox');
-                if (dist <= RADIUS_METER) {
-                    isInZone = true;
-                    status.innerText = "✅ DALAM KAWASAN"; status.style.color = "#27ae60"; box.style.borderColor = "#27ae60";
-                    btn.innerText = "DAFTAR MASUK"; btn.disabled = false; btnOut.disabled = false;
-                } else {
-                    isInZone = false;
-                    status.innerText = "🚫 LUAR KAWASAN"; status.style.color = "#c0392b"; box.style.borderColor = "#c0392b";
-                    btn.innerText = "SILA MASUK KAWASAN"; btn.disabled = true; btnOut.disabled = true;
-                }
-            }, err => { document.getElementById('statusText').innerText = "❌ GPS ERROR"; }, { enableHighAccuracy: true });
+            // Jika ada watcher lama, matikan dulu supaya tak berlaga
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            // Mula Watcher Baru (Auto Detect)
+            watchId = navigator.geolocation.watchPosition(updatePosition, showError, { 
+                enableHighAccuracy: true, 
+                maximumAge: 0, // Jangan guna cache lama
+                timeout: 10000 // Tunggu max 10 saat
+            });
+        } else {
+            document.getElementById('statusText').innerText = "❌ GPS Tidak Disokong";
         }
     }
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        var R = 6371e3; var φ1 = lat1 * Math.PI/180; var φ2 = lat2 * Math.PI/180;
-        var Δφ = (lat2-lat1) * Math.PI/180; var Δλ = (lon2-lon1) * Math.PI/180;
-        var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    function manualRefreshGPS() {
+        document.getElementById('statusText').innerText = "📡 Mencari Semula...";
+        document.getElementById('statusText').style.color = "#333";
+        document.getElementById('radarBox').style.borderColor = "#dee2e6";
+        startRadar(); // Panggil semula fungsi startRadar
     }
 
-    function checkPelawat() {
-        let val = document.getElementById('kategori').value;
-        document.getElementById('extraPelawat').style.display = (val === 'PELAWAT') ? 'block' : 'none';
-    }
-
-    function hantarMasuk() {
-        if(!isInZone) { alert("Anda di luar kawasan!"); return; }
-        let nama = document.getElementById('nama').value.trim().toUpperCase();
-        let kat = document.getElementById('kategori').value;
-        let plat = "", tujuan = "";
-
-        if(!nama || !kat) { alert("Sila isi Kategori dan Nama!"); return; }
-
-        if (kat === 'PELAWAT') {
-            plat = document.getElementById('plat').value.trim().toUpperCase();
-            tujuan = document.getElementById('tujuan').value.trim().toUpperCase();
-            // VALIDASI DIBUANG: Plat & Tujuan kini pilihan (boleh kosong)
-        } 
-
-        let now = new Date(); let jam = now.getHours(); let min = now.getMinutes();
-        let isLewat = false;
-        if(kat === 'GURU' && (jam > 7 || (jam==7 && min>=45))) isLewat = true;
-        if((kat === 'AKP' || kat === 'KEBERSIHAN') && (jam > 8 || (jam==8 && min>=5))) isLewat = true;
-        let alasan = "";
+    function updatePosition(pos) {
+        let dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
+        document.getElementById('distText').innerText = Math.round(dist) + " m";
         
-        if(isLewat && kat !== 'PELAWAT') { 
-            alasan = prompt("Anda LEWAT. Sila nyatakan sebab:"); 
-            if(!alasan) return; 
-        }
+        let btn = document.getElementById('btnSubmit');
+        let btnOut = document.getElementById('btnKeluar');
+        let status = document.getElementById('statusText');
+        let box = document.getElementById('radarBox');
 
-        if(kat === 'PELAWAT') { 
-            alasan = tujuan || "PELAWAT"; // Kalau tujuan kosong, letak default
-        }
-
-        let btn = document.getElementById('btnSubmit'); btn.innerText = "⏳ SEDANG HANTAR..."; btn.disabled = true;
-
-        fetch(API_URL, {
-            method: "POST", redirect: "follow",
-            body: JSON.stringify({ action: "MASUK", nama: nama, kategori: kat, plat: plat, alasan: alasan, tujuan: tujuan }),
-            headers: { "Content-Type": "text/plain;charset=utf-8" }
-        })
-        .then(res => res.json()).then(res => {
-            alert(res.msg);
-            let sessionData = { nama: nama, date: new Date().toISOString().slice(0, 10) };
-            localStorage.setItem('ehadir_session', JSON.stringify(sessionData));
-            location.reload();
-        }).catch(err => { alert("Ralat Internet!"); btn.disabled = false; btn.innerText = "CUBA LAGI"; });
-    }
-
-    function hantarKeluar() {
-        if(!confirm("Adakah anda ingin daftar keluar?")) return;
-        let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳ MEMPROSES..."; btn.disabled = true;
-
-        fetch(API_URL, {
-            method: "POST", redirect: "follow",
-            body: JSON.stringify({ action: "KELUAR", nama: currentUser }), 
-            headers: { "Content-Type": "text/plain;charset=utf-8" }
-        })
-        .then(res => res.json()).then(res => {
-            if(res.result === "error") {
-                alert(res.msg); btn.disabled = false; btn.innerText = "DAFTAR KELUAR";
-            } else {
-                if(res.status === "AWAL") alert("PULANG AWAL direkodkan."); else alert(res.msg);
-                localStorage.removeItem('ehadir_session'); location.reload();
-            }
-        });
-    }
-
-    function resetSesi() {
-        if(confirm("Adakah anda pasti mahu batalkan sesi ini? Anda perlu daftar masuk semula.")) {
-            localStorage.removeItem('ehadir_session'); location.reload();
-        }
-    }
-
-    function loadSenarai() {
-        fetch(API_URL, {
-            method: "POST", redirect: "follow",
-            body: JSON.stringify({ action: "GET_LIST" }),
-            headers: { "Content-Type": "text/plain;charset=utf-8" }
-        })
-        .then(res => res.json()).then(list => {
-            document.getElementById('liveCount').innerText = list.length;
-            let html = "";
-            if(list.length === 0) { html = "<div style='padding:20px; color:#999; font-size:13px;'>📭 Tiada sesiapa di sekolah buat masa ini.</div>"; } 
-            else {
-                list.forEach(item => {
-                    html += `
-                    <div class="user-card border-${item.kategori}">
-                        <div class="user-info">
-                            <strong>${item.nama}</strong>
-                            <span class="badge bg-${item.kategori}">${item.kategori}</span>
-                        </div>
-                    </div>`;
-                });
-            }
-            document.getElementById('senarai').innerHTML = html;
-        }).catch(err => { document.getElementById('senarai').innerHTML = "<div style='color:red; padding:10px;'>Ralat sambungan.</div>"; });
-    }
-</script>
-
-</body>
-</html>
+        if (dist <= RADIUS_METER) {
+            isInZone = true;
+            status.innerText = "✅ DALAM KAWASAN"; status.style.color = "#27ae60"; box.style.borderColor = "#2
