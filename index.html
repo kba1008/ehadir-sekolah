@@ -3,99 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Hadir Personal</title>
+    <title>E-Hadir Secure</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            color: #333;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        /* INFO BAR */
-        .info-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px;
-            font-size: 12px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6;
-        }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #333; min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+        .container { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 100%; max-width: 420px; text-align: center; margin-top: 10px; position: relative; }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-size: 12px; font-weight: 700; color: #2c3e50; border: 1px solid #dee2e6; }
         .temp-badge { color: #e67e22; }
-
-        /* TAJUK */
         h1 { margin: 0; color: #1e3c72; font-weight: 800; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.1; }
         h3 { margin: 5px 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 15px; line-height: 1.1; }
-
-        /* RADAR */
-        .radar-box {
-            background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px;
-            border: 2px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;
-        }
+        .radar-box { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
         .radar-status { font-weight: bold; font-size: 13px; }
         .radar-dist { background: #2c3e50; color: white; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-
-        /* INPUT */
         .input-group { margin-bottom: 12px; text-align: left; }
         label { font-size: 11px; font-weight: 700; color: #666; margin-left: 5px; text-transform: uppercase; }
-        input, select {
-            width: 100%; padding: 14px; margin-top: 5px; border: 2px solid #e0e0e0;
-            border-radius: 10px; background: #fff; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: 0.3s;
-        }
+        input, select { width: 100%; padding: 14px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: 0.3s; }
         input:focus, select:focus { border-color: #1e3c72; outline: none; box-shadow: 0 0 8px rgba(30, 60, 114, 0.2); }
-
-        .btn {
-            width: 100%; padding: 16px; background: linear-gradient(to right, #1e3c72, #2a5298); color: white; border: none; border-radius: 10px;
-            font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3); transition: transform 0.2s;
-        }
+        .btn { width: 100%; padding: 16px; background: linear-gradient(to right, #1e3c72, #2a5298); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3); transition: transform 0.2s; }
         .btn:active { transform: scale(0.98); }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
-
-        /* ACTIVE SESSION BOX (KOTAK HIJAU BILA DAH MASUK) */
-        #activeSessionBox {
-            display: none;
-            background: #d4edda; border: 2px solid #c3e6cb;
-            padding: 20px; border-radius: 15px; margin-bottom: 20px;
-        }
+        #activeSessionBox { display: none; background: #d4edda; border: 2px solid #c3e6cb; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .session-name { font-size: 20px; font-weight: 800; color: #155724; display: block; margin-bottom: 5px; }
         .session-status { font-size: 12px; color: #155724; background: #c3e6cb; padding: 3px 8px; border-radius: 5px; }
         .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); margin-top: 15px; }
-
-        /* LIST */
         .list-header { margin-top: 35px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .list-title { font-weight: 700; color: #2c3e50; font-size: 15px; text-transform: uppercase; }
         .refresh-btn { font-size: 18px; cursor: pointer; background: #f1f1f1; border: none; padding: 5px 10px; border-radius: 5px; }
         .list-container { max-height: 350px; overflow-y: auto; padding-right: 5px; }
-
-        /* CARD (READ ONLY) */
-        .user-card {
-            background: white; border-left: 5px solid #ccc; padding: 12px; margin-bottom: 8px; border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;
-            text-align: left; border: 1px solid #f0f0f0;
-        }
+        .user-card { background: white; border-left: 5px solid #ccc; padding: 12px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; text-align: left; border: 1px solid #f0f0f0; }
         .user-info strong { display: block; font-size: 14px; color: #333; }
         .badge { font-size: 10px; padding: 3px 6px; border-radius: 4px; color: white; font-weight: bold; }
-        
         .border-GURU { border-left-color: #3498db; } .bg-GURU { background: #3498db; }
         .border-AKP { border-left-color: #1abc9c; } .bg-AKP { background: #1abc9c; }
         .border-KEBERSIHAN { border-left-color: #f1c40f; } .bg-KEBERSIHAN { background: #f1c40f; color: #333; }
         .border-PELAWAT { border-left-color: #e74c3c; } .bg-PELAWAT { background: #e74c3c; }
-
     </style>
 </head>
 <body>
@@ -146,6 +87,10 @@
         <br><br>
         <small style="color:#555">Sila tekan butang di bawah untuk daftar keluar.</small>
         <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()" disabled>DAFTAR KELUAR</button>
+        <p style="margin-top:15px; border-top:1px solid #ccc; padding-top:10px;">
+            <small style="color:red;">Ada Masalah?</small><br>
+            <span style="font-size:11px; color:#c0392b; text-decoration:underline; cursor:pointer;" onclick="resetSesi()">⚠️ Klik sini untuk Reset / Batal Sesi</span>
+        </p>
     </div>
 
     <div class="list-header">
@@ -156,8 +101,7 @@
     <div class="list-container" id="senarai">
         <p style="color:#888; font-size:13px; margin-top:20px;">Memuat turun data...</p>
     </div>
-    
-    <p style="font-size:10px; color:#aaa; margin-top:15px;">v5.0 Device Binding | 1000m</p>
+    <p style="font-size:10px; color:#aaa; margin-top:15px;">v5.2 Auto-Uppercase | 1000m</p>
 </div>
 
 <script>
@@ -169,7 +113,7 @@
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyuv5Ajsaal0q5FyzX-saQlJ3T4BK5LSpkLjJObZbk2R6R46PlD6T5Nh4tMc2eBXkHZ/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwlCMR0WOFE-yly3MuMLaO0H1fk2aHUYt24BbYsyOKIkSNw_8tcHgpj8_yXXXKS70CN/exec'; 
     // =========================================================================
 
     let isInZone = false;
@@ -178,28 +122,19 @@
     window.onload = function() {
         document.getElementById('tajukUtama').innerText = NAMA_SISTEM_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_SISTEM_BAWAH;
-        startClock();      
-        getWeather();      
-        checkLocalSession(); // Cek ada tak orang login dalam fon ni
-        startRadar();      
-        loadSenarai();     
+        startClock(); getWeather(); checkLocalSession(); startRadar(); loadSenarai();     
     };
 
-    // --- FUNGSI "DEVICE BINDING" ---
     function checkLocalSession() {
-        // Tengok memori telefon, ada tak nama tersimpan hari ni
         let today = new Date().toISOString().slice(0, 10);
         let storedData = JSON.parse(localStorage.getItem('ehadir_session'));
-
         if (storedData && storedData.date === today) {
-            // Kalau ada, sembunyikan borang masuk, tunjuk butang keluar
-            currentUser = storedData.nama;
+            currentUser = storedData.nama; // Nama dah siap Uppercase dari save sebelum ni
             document.getElementById('mainForm').style.display = 'none';
             document.getElementById('activeSessionBox').style.display = 'block';
             document.getElementById('sessionNama').innerText = currentUser;
         } else {
-            // Kalau tiada (atau tarikh lama), tunjuk borang masuk
-            localStorage.removeItem('ehadir_session'); // Clear data lama
+            localStorage.removeItem('ehadir_session');
             document.getElementById('mainForm').style.display = 'block';
             document.getElementById('activeSessionBox').style.display = 'none';
         }
@@ -217,12 +152,10 @@
 
     function getWeather() {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${SCHOOL_LAT}&longitude=${SCHOOL_LNG}&current_weather=true`)
-        .then(res => res.json())
-        .then(data => {
+        .then(res => res.json()).then(data => {
             let temp = Math.round(data.current_weather.temperature);
             document.getElementById('tempDisplay').innerText = "☁️ " + temp + "°C";
-        })
-        .catch(err => { document.getElementById('tempDisplay').innerText = "☁️ --°C"; });
+        }).catch(err => { document.getElementById('tempDisplay').innerText = "☁️ --°C"; });
     }
 
     function startRadar() {
@@ -230,38 +163,25 @@
             navigator.geolocation.watchPosition(pos => {
                 let dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
                 document.getElementById('distText').innerText = Math.round(dist) + " m";
-                
                 let btn = document.getElementById('btnSubmit');
                 let btnOut = document.getElementById('btnKeluar');
                 let status = document.getElementById('statusText');
                 let box = document.getElementById('radarBox');
-
                 if (dist <= RADIUS_METER) {
                     isInZone = true;
-                    status.innerText = "✅ DALAM KAWASAN";
-                    status.style.color = "#27ae60";
-                    box.style.borderColor = "#27ae60";
-                    btn.innerText = "DAFTAR MASUK";
-                    btn.disabled = false;
-                    btnOut.disabled = false;
+                    status.innerText = "✅ DALAM KAWASAN"; status.style.color = "#27ae60"; box.style.borderColor = "#27ae60";
+                    btn.innerText = "DAFTAR MASUK"; btn.disabled = false; btnOut.disabled = false;
                 } else {
                     isInZone = false;
-                    status.innerText = "🚫 LUAR KAWASAN";
-                    status.style.color = "#c0392b";
-                    box.style.borderColor = "#c0392b";
-                    btn.innerText = "SILA MASUK KAWASAN";
-                    btn.disabled = true;
-                    btnOut.disabled = true;
+                    status.innerText = "🚫 LUAR KAWASAN"; status.style.color = "#c0392b"; box.style.borderColor = "#c0392b";
+                    btn.innerText = "SILA MASUK KAWASAN"; btn.disabled = true; btnOut.disabled = true;
                 }
-            }, err => {
-                document.getElementById('statusText').innerText = "❌ GPS ERROR";
-            }, { enableHighAccuracy: true });
+            }, err => { document.getElementById('statusText').innerText = "❌ GPS ERROR"; }, { enableHighAccuracy: true });
         }
     }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
-        var R = 6371e3; 
-        var φ1 = lat1 * Math.PI/180; var φ2 = lat2 * Math.PI/180;
+        var R = 6371e3; var φ1 = lat1 * Math.PI/180; var φ2 = lat2 * Math.PI/180;
         var Δφ = (lat2-lat1) * Math.PI/180; var Δλ = (lon2-lon1) * Math.PI/180;
         var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
@@ -274,74 +194,60 @@
 
     function hantarMasuk() {
         if(!isInZone) { alert("Anda di luar kawasan!"); return; }
-        let nama = document.getElementById('nama').value.trim();
+        // UBAH: AUTO UPPERCASE DI SINI
+        let nama = document.getElementById('nama').value.trim().toUpperCase();
         let kat = document.getElementById('kategori').value;
-        let plat = document.getElementById('plat').value;
+        let plat = document.getElementById('plat').value.toUpperCase();
         
         if(!nama || !kat) { alert("Sila lengkapkan maklumat!"); return; }
 
-        let now = new Date();
-        let jam = now.getHours(); let min = now.getMinutes();
+        let now = new Date(); let jam = now.getHours(); let min = now.getMinutes();
         let isLewat = false;
         if(kat === 'GURU' && (jam > 7 || (jam==7 && min>=45))) isLewat = true;
         if((kat === 'AKP' || kat === 'KEBERSIHAN') && (jam > 8 || (jam==8 && min>=5))) isLewat = true;
-        
         let alasan = "";
-        if(isLewat) {
-            alasan = prompt("Anda LEWAT. Sila nyatakan sebab:");
-            if(!alasan) return;
-        }
+        if(isLewat) { alasan = prompt("Anda LEWAT. Sila nyatakan sebab:"); if(!alasan) return; }
 
-        let btn = document.getElementById('btnSubmit');
-        btn.innerText = "⏳ SEDANG HANTAR...";
-        btn.disabled = true;
+        let btn = document.getElementById('btnSubmit'); btn.innerText = "⏳ SEDANG HANTAR..."; btn.disabled = true;
 
         fetch(API_URL, {
             method: "POST", redirect: "follow",
             body: JSON.stringify({ action: "MASUK", nama: nama, kategori: kat, plat: plat, alasan: alasan }),
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         })
-        .then(res => res.json())
-        .then(res => {
+        .then(res => res.json()).then(res => {
             alert(res.msg);
-            // SIMPAN SESI DALAM TELEFON
-            let sessionData = { 
-                nama: nama, 
-                date: new Date().toISOString().slice(0, 10) 
-            };
+            // SIMPAN NAMA HURUF BESAR
+            let sessionData = { nama: nama, date: new Date().toISOString().slice(0, 10) };
             localStorage.setItem('ehadir_session', JSON.stringify(sessionData));
             location.reload();
-        })
-        .catch(err => { alert("Ralat Internet!"); btn.disabled = false; btn.innerText = "CUBA LAGI"; });
+        }).catch(err => { alert("Ralat Internet!"); btn.disabled = false; btn.innerText = "CUBA LAGI"; });
     }
 
     function hantarKeluar() {
         if(!confirm("Adakah anda ingin daftar keluar?")) return;
-        
-        let btn = document.getElementById('btnKeluar');
-        btn.innerText = "⏳ MEMPROSES...";
-        btn.disabled = true;
+        let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳ MEMPROSES..."; btn.disabled = true;
 
         fetch(API_URL, {
             method: "POST", redirect: "follow",
+            // CURRENTUSER DAH MEMANG UPPERCASE SEBAB DIAMBIL DARI LOCALSTORAGE YG DAH UPPERCASE
             body: JSON.stringify({ action: "KELUAR", nama: currentUser }), 
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         })
-        .then(res => res.json())
-        .then(res => {
+        .then(res => res.json()).then(res => {
             if(res.result === "error") {
-                alert(res.msg); 
-                btn.disabled = false;
-                btn.innerText = "DAFTAR KELUAR";
+                alert(res.msg); btn.disabled = false; btn.innerText = "DAFTAR KELUAR";
             } else {
-                if(res.status === "AWAL") alert("PULANG AWAL direkodkan.");
-                else alert(res.msg);
-                
-                // PADAM SESI DARI TELEFON
-                localStorage.removeItem('ehadir_session');
-                location.reload();
+                if(res.status === "AWAL") alert("PULANG AWAL direkodkan."); else alert(res.msg);
+                localStorage.removeItem('ehadir_session'); location.reload();
             }
         });
+    }
+
+    function resetSesi() {
+        if(confirm("Adakah anda pasti mahu batalkan sesi ini? Anda perlu daftar masuk semula.")) {
+            localStorage.removeItem('ehadir_session'); location.reload();
+        }
     }
 
     function loadSenarai() {
@@ -350,27 +256,21 @@
             body: JSON.stringify({ action: "GET_LIST" }),
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         })
-        .then(res => res.json())
-        .then(list => {
+        .then(res => res.json()).then(list => {
             let html = "";
-            if(list.length === 0) {
-                html = "<div style='padding:20px; color:#999; font-size:13px;'>📭 Tiada sesiapa di sekolah buat masa ini.</div>";
-            } else {
+            if(list.length === 0) { html = "<div style='padding:20px; color:#999; font-size:13px;'>📭 Tiada sesiapa di sekolah buat masa ini.</div>"; } 
+            else {
                 list.forEach(item => {
                     html += `
                     <div class="user-card border-${item.kategori}">
                         <div class="user-info">
-                            <strong>${item.nama}</strong>
-                            <span class="badge bg-${item.kategori}">${item.kategori}</span>
+                            <strong>${item.nama}</strong> <span class="badge bg-${item.kategori}">${item.kategori}</span>
                         </div>
-                        </div>`;
+                    </div>`;
                 });
             }
             document.getElementById('senarai').innerHTML = html;
-        })
-        .catch(err => {
-            document.getElementById('senarai').innerHTML = "<div style='color:red; padding:10px;'>Ralat sambungan.</div>";
-        });
+        }).catch(err => { document.getElementById('senarai').innerHTML = "<div style='color:red; padding:10px;'>Ralat sambungan.</div>"; });
     }
 </script>
 
