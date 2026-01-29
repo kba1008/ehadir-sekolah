@@ -84,20 +84,20 @@
             <button onclick="loadSenarai()" style="border:none; bg:none; cursor:pointer; font-size:18px;">🔄</button>
         </div>
         <div class="list-container" id="senarai">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:15px;">v13.0 Smart Time Fix</p>
+        <p style="font-size:10px; color:#aaa; margin-top:15px;">v14.0 No OT Logic</p>
     </div>
 
 <script>
     // =========================================================================
     // 🔧 RUANG EDIT - PASTIKAN LINK APPS SCRIPT ANDA DI SINI
     // =========================================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzshqyvpTu6B48cKSZOM-5Ed6YQLin4AJjJEvsv5MYRTwBMXNcL90Q6L8a869hoOY9k/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyFKH2dDghrQWA0QTku-4KxXNSAgcbtzieazRcv0-tDj_GJ2D_WZmpzZ5Jzwo3kJKS1/exec'; 
     
     const NAMA_ATAS = "E-HADIR";
     const NAMA_BAWAH = "SK SELAMA (K)";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
-    const RADIUS_METER = 1000; 
+    const RADIUS_METER = 100000; 
     const PASSCODE_RAHSIA = "101010"; 
     // =========================================================================
 
@@ -123,13 +123,10 @@
         .catch(err => console.log("Config Error", err));
     }
 
-    // --- SMART TIME PARSER (FRONTEND) ---
     function parseTime(timeStr) {
         if(!timeStr || typeof timeStr !== 'string') return null;
         var d = new Date();
-        // Regex yang lebih fleksibel: Boleh baca "7:50:00 AM" atau "7.45 AM"
         var parts = timeStr.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
-        
         if (parts) {
             var hours = parseInt(parts[1], 10);
             var minutes = parseInt(parts[2], 10);
@@ -158,18 +155,23 @@
         try {
             if (kat !== "PELAWAT" && jamConfig && jamConfig[kat]) {
                 let limitStr = jamConfig[kat].masuk; 
+                let limitKeluarStr = jamConfig[kat].keluar;
+
                 if(limitStr && limitStr !== "BEBAS") {
                     let limitMasuk = parseTime(limitStr);
+                    let limitKeluar = parseTime(limitKeluarStr);
                     let now = new Date();
-                    let jam = now.getHours();
 
-                    // Logic: Jika bukan OT Pagi (jam<5), dan masa > limit
-                    if (jam >= 5 && limitMasuk && now > limitMasuk) {
-                        // Semak juga jika bukan OT Petang (akan dihandle backend sepenuhnya)
-                        // Utk frontend, kita prompt je alasan kalau nampak lewat
-                        isLewat = true;
-                        alasan = prompt("Anda LEWAT (" + limitStr + "). Sila nyatakan ALASAN:");
-                        if(!alasan) return; 
+                    // LOGIK BARU: 
+                    // Hanya minta alasan jika SELEPAS waktu masuk TAPI SEBELUM waktu keluar.
+                    // Jika datang malam (selepas waktu keluar), TIDAK DIKIRA LEWAT.
+                    
+                    if (limitMasuk && limitKeluar) {
+                        if (now > limitMasuk && now < limitKeluar) {
+                            isLewat = true;
+                            alasan = prompt("Anda LEWAT (" + limitStr + "). Sila nyatakan ALASAN:");
+                            if(!alasan) return; 
+                        }
                     }
                 }
             }
@@ -203,10 +205,13 @@
                 if(limitStr && limitStr !== "BEBAS") {
                     let limitKeluar = parseTime(limitStr);
                     let now = new Date();
+                    
+                    // BALIK AWAL: WAJIB ALASAN
                     if (limitKeluar && now < limitKeluar) {
                         alasan = prompt("Anda BALIK AWAL (" + limitStr + "). Sila nyatakan SEBAB:");
                         if (!alasan) return; 
                     }
+                    // BALIK LEBIH MASA: TAK ADA APA-APA (NORMAL)
                 }
             }
         } catch(e) { console.log(e); }
