@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem E-Hadir SK Selama</title>
+    <title>E-HADIR SK SELAMA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -12,32 +12,29 @@
         body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
         .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 40px; }
         
-        /* HEADER INFO BAR */
+        /* HEADER - HURUF BESAR */
         .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 800; font-size: 11px; border: 1px solid #ddd; text-transform: uppercase; }
-        .masihi-date { text-align: left; color: #2c3e50; }
-        .hijri-date { text-align: right; color: #27ae60; }
         
         h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; }
         select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
         
-        /* KOTAK ALASAN (PENTING) */
+        /* KOTAK ALASAN */
         .reason-box { display: none; background: #fff5f5; padding: 15px; border: 2px solid #e74c3c; border-radius: 15px; margin-bottom: 15px; text-align: left; }
         .reason-label { color: #c0392b; font-size: 11px; font-weight: bold; margin-bottom: 8px; display: block; text-transform: uppercase; }
 
-        /* USER CARD & LIST */
-        .user-card { background: #fdfdfd; padding: 15px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: flex-start; text-align: left; border-left: 8px solid #eee; }
+        /* LIST CARD & TIMER */
+        .user-card { background: #fdfdfd; padding: 15px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: flex-start; text-align: left; border-left: 8px solid #eee; position: relative; }
         .user-header { display: flex; justify-content: space-between; width: 100%; align-items: center; }
-        .user-name { font-weight: 900; font-size: 16px; color: #2c3e50; text-transform: uppercase; flex: 1; }
+        .user-name { font-weight: 900; font-size: 16px; color: #2c3e50; text-transform: uppercase; flex: 1; margin-right: 5px; }
         
-        /* TIMER & ICONS */
-        .action-row { display: flex; align-items: center; gap: 8px; }
+        .action-row { display: flex; align-items: center; gap: 6px; }
         .timer-box { background: #1e3c72; color: white; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; min-width: 65px; text-align: center; }
-        .icon-btn { border: 1px solid #eee; background: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .icon-out { color: #e11d48; background: #fff1f2; }
+        .icon-btn { border: 1px solid #eee; background: white; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .icon-out { color: #e11d48; background: #fff1f2; border-color: #fecaca; }
 
         .badge-info { background: #3498db; color: white; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
         .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 5px; }
-        .btn-keluar { background: #c0392b; }
+        .btn-camera { background: #34495e; margin-bottom: 10px; display: block; }
         
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; text-transform: uppercase; }
         #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
@@ -47,7 +44,7 @@
 <body>
 
 <script>
-    /* === KONFIGURASI UTAMA === */
+    /* === KONFIGURASI === */
     const TAJUK_UTAMA  = "E-HADIR";
     const TAJUK_SUB    = "SK SELAMA (K)";
     const API_URL      = "https://script.google.com/macros/s/AKfycbzSSv8OlV6gadrKWWjGuKw8e39Fl0fTw1U_9-WnLKy114gWBlUWX0qMUl2LJjZ46GRE/exec";
@@ -59,16 +56,11 @@
     let isInZone = false; let jamConfig = {}; let lastLat, lastLng;
 
     window.onload = function() {
-        initUI(); startClock(); startRadar(); checkSession(); loadList(); fetchConfig(); getHijriDate();
+        startClock(); startRadar(); checkSession(); loadList(); fetchConfig(); getHijriDate();
         setInterval(updateLiveTimers, 60000); 
     };
 
-    function initUI() {
-        document.getElementById('txtTitleMain').innerText = TAJUK_UTAMA;
-        document.getElementById('txtTitleSub').innerText = TAJUK_SUB;
-    }
-
-    // 1. LIVE TIMER & PARSING
+    // 1. FUNGSI TIMER (DIBAIKI UNTUK FORMAT SHEET)
     function parseTime(t) {
         if(!t || t === "BEBAS" || t.includes("undefined")) return null;
         let d = new Date();
@@ -96,13 +88,40 @@
         });
     }
 
-    // 2. DAFTAR MASUK & KELUAR (ALASAN)
+    // 2. FUNGSI KAMERA PELAWAT
+    function processImage(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('previewImg').style.display = 'block';
+                document.getElementById('base64Foto').value = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function hantarPelawat() {
+        let n = document.getElementById('namaPelawat').value.toUpperCase();
+        let f = document.getElementById('base64Foto').value;
+        if(!n || !f) return alert("Sila isi nama & ambil gambar!");
+        
+        fetch(API_URL,{method:"POST",body:JSON.stringify({action:"MASUK",passcode:PASSWORD,kategori:"PELAWAT",nama:n,fotoBase64:f})})
+        .then(()=>{ alert("Daftar Pelawat Berjaya!"); location.reload(); });
+    }
+
+    // 3. LOGIK MASUK & KELUAR (ALASAN)
     function startHantarMasuk() {
         if(!isInZone) return alert("⛔ LUAR KAWASAN!");
         let kat = document.getElementById('kategori').value;
         let nama = document.getElementById('nama').value;
         if(!kat || !nama) return alert("Isi Nama & Kategori!");
-        if(kat === "PELAWAT") { showPelawatForm(); return; }
+        if(kat === "PELAWAT") { 
+            document.getElementById('namaPelawat').value = nama;
+            document.getElementById('defaultForm').style.display = 'none';
+            document.getElementById('pelawatPanel').style.display = 'block';
+            return; 
+        }
 
         let limit = parseTime(jamConfig[kat]?.masuk);
         if(limit && new Date() > limit) {
@@ -140,11 +159,7 @@
         });
     }
 
-    function quickOut(n) {
-        if(confirm(`Keluar ${n}?`)) fetch(API_URL,{method:"POST",body:JSON.stringify({action:"KELUAR",passcode:PASSWORD,nama:n,alasan:"PANTAS"})}).then(()=>location.reload());
-    }
-
-    // 3. SENARAI & UI
+    // 4. DISPLAY LIST
     function loadList() {
         fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSWORD})})
         .then(r=>r.json()).then(l=>{
@@ -172,18 +187,16 @@
         });
     }
 
-    // UTILS
+    /* UTILS - GPS, CLOCK, HIJRI */
     function startClock(){ setInterval(()=>{ let n=new Date(); document.getElementById('clockDisplay').innerText=n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); document.getElementById('dateDisplay').innerText=n.toLocaleDateString('ms-MY'); },1000); }
     function startRadar(){ if(navigator.geolocation) navigator.geolocation.watchPosition(p=>{ lastLat=p.coords.latitude; lastLng=p.coords.longitude; let d=calcDist(lastLat,lastLng,LATITUD,LONGITUD); isInZone=(d<=RADIUS_METER); document.getElementById('warningBox').style.display=isInZone?'none':'block'; },null,{enableHighAccuracy:true}); }
     function calcDist(a,b,c,d){let R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)**2+Math.cos(x)*Math.cos(y)*Math.sin(l/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
     function getHijriDate() { let today = new Date(); let formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {day:'numeric', month:'numeric', year:'numeric'}); let parts = formatter.formatToParts(today); let d, m, y; parts.forEach(p => { if(p.type=='day') d=p.value; if(p.type=='month') m=parseInt(p.value); if(p.type=='year') y=p.value; }); const bulanIslam = ["MUHARRAM","SAFAR","RABIULAWAL","RABIULAKHIR","JAMADILAWAL","JAMADILAKHIR","REJAB","SYAABAN","RAMADAN","SYAWAL","ZULKAEDAH","ZULHIJJAH"]; if(d && m && y) document.getElementById('hijriDisplay').innerText = `🌙 ${d} ${bulanIslam[m-1]} ${y}`; }
     function fetchConfig(){ fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_CONFIG",passcode:PASSWORD})}).then(r=>r.json()).then(d=>jamConfig=d); }
     function checkSession(){ let s=JSON.parse(localStorage.getItem('ehadir_session')); if(s && s.date==new Date().toLocaleDateString()){ document.getElementById('defaultForm').style.display='none'; document.getElementById('dashboardPanel').style.display='block'; document.getElementById('sessionName').innerText=s.nama; } }
-    function showPelawatForm(){ document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
     function openImage(u){ document.getElementById('modalImg').src=u; document.getElementById('imageModal').style.display='flex'; }
     function closeImage(){ document.getElementById('imageModal').style.display='none'; }
-    function processImage(i){ if(i.files[0]){ let r=new FileReader(); r.onload=e=>{ document.getElementById('previewImg').src=e.target.result; document.getElementById('previewImg').style.display='block'; document.getElementById('base64Foto').value=e.target.result; }; r.readAsDataURL(i.files[0]); } }
-    function hantarPelawat(){ let f=document.getElementById('base64Foto').value; let t=document.getElementById('tujuan').value; if(!f)return alert("Ambil gambar!"); fetch(API_URL,{method:"POST",body:JSON.stringify({action:"MASUK",passcode:PASSWORD,kategori:"PELAWAT",nama:t,fotoBase64:f})}).then(()=>{alert("Berjaya!");location.reload();}); }
+    function quickOut(n){ if(confirm(`Keluar ${n}?`)) fetch(API_URL,{method:"POST",body:JSON.stringify({action:"KELUAR",passcode:PASSWORD,nama:n,alasan:"PANTAS"})}).then(()=>location.reload()); }
 </script>
 
     <div id="imageModal" onclick="closeImage()"><img id="modalImg" src=""></div>
@@ -191,14 +204,20 @@
 
     <div class="container">
         <div class="info-bar">
-            <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
-            <div class="hijri-date" id="hijriDisplay">🌙 LOADING...</div>
+            <div style="text-align:left;"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
+            <div id="hijriDisplay" style="text-align:right; color:#27ae60;">🌙 LOADING...</div>
         </div>
         
-        <h1 id="txtTitleMain">--</h1><h2 id="txtTitleSub">--</h2>
+        <h1 id="txtTitleMain">E-HADIR</h1>
+        <h2 id="txtTitleSub">SK SELAMA (K)</h2>
 
         <div id="defaultForm" style="margin-top:20px;">
-            <select id="kategori"><option value="GURU">GURU</option><option value="AKP">AKP</option><option value="KEBERSIHAN">KEBERSIHAN</option><option value="PELAWAT">👤 PELAWAT</option></select>
+            <select id="kategori">
+                <option value="GURU">GURU</option>
+                <option value="AKP">AKP</option>
+                <option value="KEBERSIHAN">KEBERSIHAN</option>
+                <option value="PELAWAT">👤 PELAWAT</option>
+            </select>
             <input type="text" id="nama" placeholder="NAMA PENUH" style="text-transform:uppercase">
             <div id="boxAlasanMasuk" class="reason-box">
                 <span class="reason-label" id="lblMasuk">⚠️ ALASAN:</span>
@@ -210,28 +229,35 @@
 
         <div id="dashboardPanel" style="display:none; margin-top:20px;">
             <div style="background:#f0f9ff; padding:15px; border-radius:15px; border:1px solid #bae6fd;">
-                <p style="font-weight:bold; margin:0; text-transform:uppercase;">👤 <span id="sessionName">--</span></p>
+                <p style="font-weight:900; margin:0; text-transform:uppercase;">👤 <span id="sessionName">--</span></p>
                 <div id="boxAlasanKeluar" class="reason-box" style="margin-top:10px;">
                     <span class="reason-label" id="lblKeluar">⚠️ SEBAB BALIK AWAL:</span>
                     <textarea id="alasanKeluar" placeholder="Sebab balik awal..."></textarea>
-                    <button class="btn btn-keluar" onclick="confirmKeluar()">SAHKAN KELUAR</button>
+                    <button class="btn" style="background:#c0392b;" onclick="confirmKeluar()">SAHKAN KELUAR</button>
                 </div>
-                <button id="btnTriggerKeluar" class="btn btn-keluar" onclick="startHantarKeluar()">DAFTAR KELUAR</button>
+                <button id="btnTriggerKeluar" class="btn" style="background:#c0392b;" onclick="startHantarKeluar()">DAFTAR KELUAR</button>
             </div>
         </div>
 
-        <div id="pelawatPanel" style="display:none; margin-top:20px;">
-            <h3>📸 FOTO PELAWAT</h3>
-            <input type="text" id="tujuan" placeholder="TUJUAN LAWATAN" style="text-transform:uppercase">
-            <label class="btn" style="background:#34495e;">📷 AMBIL GAMBAR<input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)"></label>
-            <img id="previewImg" style="width:100%; display:none; border-radius:10px; margin:10px 0;">
+        <div id="pelawatPanel" style="display:none; margin-top:20px; border: 2px solid #e74c3c; padding: 15px; border-radius: 15px;">
+            <h3 style="margin-top:0; color:#e74c3c;">📸 FOTO PELAWAT</h3>
+            <input type="text" id="namaPelawat" placeholder="NAMA PELAWAT" readonly style="background:#eee;">
+            
+            <label class="btn btn-camera">
+                📷 BUKA KAMERA
+                <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
+            </label>
+            
+            <img id="previewImg" style="width:100%; display:none; border-radius:10px; margin-bottom:10px; border: 2px solid #333;">
             <input type="hidden" id="base64Foto">
-            <button class="btn" onclick="hantarPelawat()">HANTAR</button>
+            
+            <button class="btn" style="background:#27ae60;" onclick="hantarPelawat()">HANTAR DATA</button>
+            <button class="btn" style="background:#95a5a6; font-size:12px;" onclick="location.reload()">BATAL</button>
         </div>
 
         <div style="margin-top:30px; border-top:2px solid #eee; padding-top:15px; text-align:left;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:900;">📋 REKOD HARI INI: <span id="count">0</span></span>
+                <span style="font-weight:900; text-transform:uppercase;">📋 REKOD HARI INI: <span id="count">0</span></span>
                 <button onclick="loadList()" style="border:none; background:none; cursor:pointer; font-size:20px;">🔄</button>
             </div>
             <div id="listContainer" style="margin-top:15px;"></div>
