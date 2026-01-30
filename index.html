@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Kehadiran Korporat - Jadual Auto</title>
+    <title>Sistem Kehadiran Korporat - Live Update</title>
     <meta name="theme-color" content="#1e293b">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -132,7 +132,7 @@
                         </div>
                     </div>
 
-                    <!-- PENTING: Working Hours Display (JADUAL BERTUGAS) -->
+                    <!-- JADUAL BERTUGAS -->
                     <div id="workingHoursInfo" class="hidden-el bg-slate-800 text-white p-4 rounded-lg shadow-lg border border-slate-700 fade-in transform transition-all">
                         <div class="text-center mb-2 border-b border-slate-600 pb-2">
                             <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">JADUAL BERTUGAS</p>
@@ -161,7 +161,6 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-layer-group text-sm"></i>
                             </div>
-                            <!-- PENTING: onchange akan trigger updateTimeDisplay() -->
                             <select id="kategori" onchange="checkKategori(); updateTimeDisplay(); triggerAlasanMasuk();" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-medium appearance-none transition-colors">
                                 <option value="" disabled selected>Pilih Kategori</option>
                                 <option value="GURU">GURU</option>
@@ -272,14 +271,12 @@
 
 <script>
     // KONFIGURASI SISTEM
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwNSWJX3jH9CDjUiq__3869_ySI4bUTzEbJL1vtKvc2jnAplj7RMpvyuQCguiu2ceKQ/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw0u0qv6g9-Af_cHKNbYJZ9AO8lr6chuWOkIHcBYvyB5k__jkKRu4jk7jyRLEYRlngy/exec'; 
     const PASSCODE = "101010";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
 
-    // Konfigurasi Jadual Asas (Fallback jika API lambat)
-    // Data ini akan dikemaskini oleh API (Google Sheet 'Config') jika ada.
     let jamConfig = {
         "GURU": { masuk: "07:30 AM", keluar: "02:30 PM" },
         "AKP": { masuk: "08:00 AM", keluar: "05:00 PM" },
@@ -298,40 +295,35 @@
         fetchConfig(); 
         getHijriDate();
         setInterval(triggerAlasanKeluar, 5000);
-        setInterval(loadList, 60000);
+        setInterval(loadList, 60000); // Auto reload list every 60s
+        setInterval(updateLiveTimers, 30000); // Update duration text every 30s
     };
 
     function fetchConfig() {
-        // Mengambil data dari Google Sheet (Sheet bernama JAM/Config)
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             if(res.status === "SUCCESS") {
-                // Menggabungkan data sedia ada dengan data dari Google Sheet
                 jamConfig = {...jamConfig, ...res.data};
-                // Kemaskini paparan jika kategori sudah dipilih
                 updateTimeDisplay();
             }
         });
     }
 
-    // FUNGSI BARU: Memaparkan Jadual Bertugas apabila kategori dipilih
     function updateTimeDisplay() {
         let kat = document.getElementById('kategori').value;
         let infoBox = document.getElementById('workingHoursInfo');
         let txtMasuk = document.getElementById('infoMasuk');
         let txtKeluar = document.getElementById('infoKeluar');
 
-        // Jika kategori dipilih & bukan pelawat & data wujud
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
             txtMasuk.innerText = jamConfig[kat].masuk;
             txtKeluar.innerText = jamConfig[kat].keluar;
-            infoBox.classList.remove('hidden-el'); // Tunjuk kotak
+            infoBox.classList.remove('hidden-el');
         } else {
-            infoBox.classList.add('hidden-el'); // Sembunyi kotak
+            infoBox.classList.add('hidden-el');
         }
     }
 
-    // Logik Lewat vs OT
     function triggerAlasanMasuk() {
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
@@ -343,7 +335,6 @@
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
 
-            // 1. Semak jika masuk SELEPAS waktu bekerja tamat (OT)
             if (limitKeluar && now > limitKeluar) {
                 area.classList.add('hidden-el');
                 warn.classList.add('hidden-el');
@@ -351,7 +342,6 @@
                 return;
             }
 
-            // 2. Semak jika masuk SELEPAS waktu mula tetapi SEBELUM waktu tamat (Lewat)
             if (limitMasuk && now > limitMasuk) {
                 area.classList.remove('hidden-el');
                 warn.classList.remove('hidden-el');
@@ -359,8 +349,6 @@
                 return;
             }
         }
-        
-        // Normal (Tepat masa)
         area.classList.add('hidden-el');
         warn.classList.add('hidden-el');
         otNote.classList.add('hidden-el');
@@ -373,7 +361,6 @@
         
         if (s && jamConfig[s.kategori]) {
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
-            // Jika keluar sebelum masa yang ditetapkan
             if (limitKeluar && new Date() < limitKeluar) {
                 area.classList.remove('hidden-el');
                 warn.classList.remove('hidden-el');
@@ -393,12 +380,10 @@
 
         if (!nama || !kat) { alert("Sila lengkapkan butiran Nama & Kategori."); return; }
         
-        // Validasi Alasan hanya jika kotak alasan 'visible'
         if (!document.getElementById('alasanMasuk').classList.contains('hidden-el') && alasan.trim() === "") {
             alert("Sila nyatakan alasan kelewatan anda."); return;
         }
 
-        // Jika OT (kotak alasan hidden), set alasan auto
         if (document.getElementById('alasanMasuk').classList.contains('hidden-el') && !document.getElementById('overtimeNote').classList.contains('hidden-el')) {
             alasan = "KERJA LEBIH MASA (OT)";
         }
@@ -434,9 +419,12 @@
 
     function forceCheckoutPelawat(nama) {
         if(!confirm("Daftar keluar pelawat ini (" + nama + ")?")) return;
-        document.getElementById('listContainer').innerHTML = '<div class="text-center py-4 text-slate-400"><i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...</div>';
+        // Tunjuk loading sementara
+        let listContainer = document.getElementById('listContainer');
+        listContainer.innerHTML = '<div class="text-center py-4 text-slate-400"><i class="fa-solid fa-circle-notch fa-spin"></i> Memproses Pendaftaran Keluar...</div>';
+        
         sendData({ action: "KELUAR", passcode: PASSCODE, nama: nama, alasan: "PELAWAT CHECKOUT", lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() }, () => {
-            loadList();
+            loadList(); // Refresh list selepas berjaya
         });
     }
 
@@ -466,23 +454,47 @@
         } return null;
     }
 
+    // FUNGSI KIRA MASA (REAL TIME)
     function calcDuration(timeStr) {
         if (!timeStr) return "-";
+        
         let now = new Date();
         let entry = new Date();
+        
+        // Regex untuk tangkap jam:minit (format 12 jam atau 24 jam)
         let parts = timeStr.match(/(\d+):(\d+)/);
         if (!parts) return "-";
+        
         let h = parseInt(parts[1]);
         let m = parseInt(parts[2]);
+        
+        // Handle AM/PM jika ada dalam string
         if (timeStr.toUpperCase().includes('PM') && h < 12) h += 12;
         if (timeStr.toUpperCase().includes('AM') && h === 12) h = 0;
+        
         entry.setHours(h, m, 0, 0);
-        if (entry > now) return "Baru masuk";
+        
+        // Kira perbezaan
         let diffMs = now - entry;
+        
+        // Jika masa depan (error atau jam tak betul), letak 0m
+        if (diffMs < 0) return "0m";
+
         let diffHrs = Math.floor(diffMs / 3600000);
         let diffMins = Math.floor((diffMs % 3600000) / 60000);
+        
         if (diffHrs > 0) return `${diffHrs}j ${diffMins}m`;
         return `${diffMins}m`;
+    }
+
+    // Fungsi update masa secara live pada DOM tanpa reload API
+    function updateLiveTimers() {
+        document.querySelectorAll('.live-timer').forEach(el => {
+            let startTime = el.getAttribute('data-entry');
+            if(startTime) {
+                el.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>${calcDuration(startTime)}`;
+            }
+        });
     }
 
     function showImage(url) {
@@ -555,41 +567,72 @@
             } else {
                 filteredList.forEach(i => { 
                     let masaMasuk = i.jam || i.waktu || i.time || i.masa || '--:--';
-                    let gambarUrl = i.gambar || i.image || i.url || i.foto || ''; 
+                    
+                    // CHECK KOLUM J: Sistem akan cuba cari kunci 'j', 'J', 'colJ', atau fallback ke 'gambar'/'foto'
+                    let gambarUrl = i.j || i.J || i.colJ || i.gambar || i.image || i.url || i.foto || ''; 
+                    
                     let initial = i.nama ? i.nama.charAt(0).toUpperCase() : '?';
-                    let isPelawat = i.kategori === 'PELAWAT';
-                    let bgClass = isPelawat ? 'bg-slate-50 border-l-4 border-l-purple-500' : 'bg-white border-l-4 border-l-blue-500';
-
+                    
+                    // KIRA TEMPOH MASA (Duration)
                     let durationStr = calcDuration(masaMasuk);
                     
-                    let pelawatActions = '';
+                    let isPelawat = i.kategori === 'PELAWAT';
+
+                    // PENENTUAN WARNA & BORDER BERDASARKAN KATEGORI
+                    let borderClass = isPelawat ? 'border-purple-500' : 'border-blue-500';
+                    let bgIcon = isPelawat ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600';
+                    
+                    // BUTANG TINDAKAN KHAS UNTUK PELAWAT
+                    let actionButtons = '';
+                    
                     if(isPelawat) {
-                        let imgBtn = gambarUrl ? 
-                            `<button onclick="showImage('${gambarUrl}')" class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center transition shadow-sm"><i class="fa-regular fa-image"></i></button>` : 
-                            `<span class="w-7 h-7 rounded-full bg-slate-100 text-slate-300 flex items-center justify-center"><i class="fa-solid fa-ban"></i></span>`;
-                        
-                        let delBtn = `<button onclick="forceCheckoutPelawat('${i.nama}')" class="w-7 h-7 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition shadow-sm ml-1"><i class="fa-solid fa-xmark"></i></button>`;
-                        
-                        pelawatActions = `<div class="flex items-center mt-1">${imgBtn}${delBtn}</div>`;
+                        // 1. Icon Gambar (Jika ada URL dari Column J)
+                        if(gambarUrl) {
+                            actionButtons += `
+                            <button onclick="showImage('${gambarUrl}')" class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center transition shadow-sm mr-2">
+                                <i class="fa-regular fa-image"></i>
+                            </button>`;
+                        } else {
+                            // Placeholder jika tiada gambar
+                            actionButtons += `
+                            <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-300 flex items-center justify-center mr-2">
+                                <i class="fa-solid fa-ban text-xs"></i>
+                            </span>`;
+                        }
+
+                        // 2. Icon Pangkah (Daftar Keluar) - Merah
+                        actionButtons += `
+                        <button onclick="forceCheckoutPelawat('${i.nama}')" class="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition shadow-sm">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>`;
                     }
 
+                    // HTML STRUCTURE
                     h += `
-                    <div class="${bgClass} p-3 rounded shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center gap-3 w-full overflow-hidden">
-                            <div class="flex-shrink-0 w-8 h-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
+                    <div class="bg-white ${borderClass} border-l-4 p-3 rounded shadow-sm border-y border-r border-slate-100 flex items-center justify-between mb-2">
+                        <!-- KIRI: Nama & Info -->
+                        <div class="flex items-center gap-3 overflow-hidden flex-grow">
+                            <div class="flex-shrink-0 w-9 h-9 rounded ${bgIcon} flex items-center justify-center text-sm font-bold">
                                 ${initial}
                             </div>
                             <div class="min-w-0">
-                                <h4 class="font-bold text-slate-700 text-xs truncate uppercase">${i.nama}</h4>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">${i.kategori}</p>
-                                    <span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 rounded font-bold tracking-tight"><i class="fa-regular fa-clock mr-1"></i>${durationStr}</span>
+                                <h4 class="font-bold text-slate-700 text-xs truncate uppercase leading-tight">${i.nama}</h4>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">${i.kategori}</span>
+                                    <!-- BADGE TEMPOH MASA (LIVE UPDATE) -->
+                                    <span class="live-timer text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold tracking-tight whitespace-nowrap" data-entry="${masaMasuk}">
+                                        <i class="fa-regular fa-clock mr-1"></i>${durationStr}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-right pl-2 flex-shrink-0 flex flex-col items-end">
-                            <span class="block text-xs font-bold text-slate-800 font-mono">${masaMasuk}</span>
-                            ${pelawatActions}
+
+                        <!-- KANAN: Masa & Actions -->
+                        <div class="flex items-center pl-2 flex-shrink-0">
+                            ${isPelawat ? 
+                                `<div class="flex items-center">${actionButtons}</div>` : 
+                                `<span class="text-xs font-bold text-slate-400 font-mono bg-slate-100 px-2 py-1 rounded">${masaMasuk}</span>`
+                            }
                         </div>
                     </div>`; 
                 }); 
