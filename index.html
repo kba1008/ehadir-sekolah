@@ -11,153 +11,175 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
         .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 40px; }
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #1e3c72; }
-        .clock { font-size: 1.4rem; font-weight: 800; color: #1e3c72; }
-        .date { font-size: 0.85rem; font-weight: 600; color: #555; }
-        h2 { margin-top: 0; color: #1e3c72; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; font-size: 1.5rem; }
-        select, input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 1rem; box-sizing: border-box; transition: 0.3s; font-family: inherit; }
-        select:focus, input:focus { border-color: #1e3c72; outline: none; background: #f8f9ff; }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 12px; border: 1px solid #ddd; }
+        .hijri-date { color: #27ae60; text-align: right; width: 50%; }
+        .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
+        .title-box { margin-bottom: 25px; }
+        h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* 🔥 ASALNYA TERSEMBUNYI, AKAN MUNCUL GUNA JS 🔥 */
-        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #ff7675; }
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
+        
+        /* 🔥 PINDAAN: KOTAK ALASAN TERSEMBUNYI SECARA LALAI 🔥 */
+        textarea { 
+            resize: vertical; 
+            min-height: 80px; 
+            display: none; 
+        }
 
-        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.3s; text-transform: uppercase; margin-top: 10px; }
-        .btn-masuk { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; box-shadow: 0 4px 15px rgba(30,60,114,0.3); }
-        .btn-masuk:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
-        .btn-keluar { background: linear-gradient(135deg, #eb3b5a, #fc5c65); color: white; margin-top: 20px; }
-        .status-tag { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; margin-top: 5px; }
-        .status-online { background: #e3fcef; color: #00b894; }
-        .status-offline { background: #ffeaa7; color: #d63031; }
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #1e3c72; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #gpsStatus { font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; padding: 8px; border-radius: 8px; }
-        .pelawat-panel { display: none; border: 2px dashed #1e3c72; padding: 15px; border-radius: 15px; margin-top: 15px; background: #f8f9ff; }
-        #canvas { display: none; width: 100%; border-radius: 10px; margin-top: 10px; }
-        #video { width: 100%; border-radius: 10px; background: #000; }
+        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .btn-keluar { background: #c0392b; }
+        .btn-pelawat { background: #27ae60; margin-top: 15px; } 
+        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
+        
+        #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
+        .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 5px; display: block;}
+        
+        #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
+        .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
+        .cam-icon { font-size: 24px; margin-bottom: 5px; }
+        #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
+        
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
+        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; }
+        .badge { padding: 3px 8px; border-radius: 10px; font-size: 10px; color: white; font-weight: bold; margin-left: 5px; }
+        .action-group { display: flex; gap: 8px; }
+        .btn-icon { border: none; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-img { background: #3498db; color: white; }
+        .btn-x { background: #e74c3c; color: white; }
+        
+        #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; flex-direction: column; }
+        #modalImg { max-width: 95%; max-height: 70vh; border: 3px solid white; border-radius: 8px; box-shadow: 0 0 30px rgba(255,255,255,0.2); object-fit: contain; }
+        .close-modal { margin-top: 20px; padding: 12px 30px; background: #e74c3c; color: white; border-radius: 50px; border: 2px solid white; font-weight: bold; cursor: pointer; font-size: 16px; }
+        
+        #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
+        .status-offline { background: #c0392b; } .status-sync { background: #f39c12; }
+        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; animation: pulse 1s infinite; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;"> 
 
-<div class="loading-overlay" id="loading">
-    <div class="spinner"></div>
-    <p style="font-weight: 800; margin-top: 15px; color: #1e3c72;">Sila Tunggu...</p>
-</div>
+    <div id="imageModal" onclick="if(event.target.id=='imageModal') closeImage()">
+        <img id="modalImg" src="" referrerpolicy="no-referrer">
+        <button class="close-modal" onclick="closeImage()">TUTUP GAMBAR ❌</button>
+    </div>
 
-<div class="container">
-    <div id="connectionStatus" class="status-tag status-online" style="display:none;">📡 ONLINE</div>
-    
-    <div class="info-bar">
-        <div style="text-align: left;">
-            <div class="date" id="dateDisplay">--/--/----</div>
-            <div class="date" id="hijriDisplay">-- Ramadan ----</div>
+    <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+
+    <div class="container">
+        <div id="connectionStatus"></div>
+        <div class="info-bar">
+            <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
+            <div class="hijri-date" id="hijriDisplay">🌙 Loading...</div>
         </div>
-        <div class="clock" id="clockDisplay">00:00:00</div>
-    </div>
+        <div class="title-box"><h1 id="tajukUtama">...</h1><h2 id="tajukKecil">...</h2></div>
+        <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px;">📡 Mencari GPS...</div>
 
-    <h2>E-Hadir SK Selama</h2>
-    <div id="gpsStatus">Sedang mengesan lokasi...</div>
-
-    <div id="defaultForm">
-        <select id="kategori" onchange="checkKategori()">
-            <option value="">-- PILIH KATEGORI --</option>
-            <option value="GURU">GURU</option>
-            <option value="AKP">AKP</option>
-            <option value="KEBERSIHAN">PEKERJA KEBERSIHAN</option>
-            <option value="PELAWAT">🔴 PELAWAT / KONTRAKTOR</option>
-        </select>
-        <input type="text" id="nama" placeholder="Nama Penuh (Huruf Besar)" oninput="this.value = this.value.toUpperCase()">
-        
-        <textarea id="alasanMasuk" placeholder="Sila nyatakan alasan LEWAT hadir..."></textarea>
-        
-        <button id="btnMasuk" class="btn-masuk" onclick="hantarMasuk()" disabled>Daftar Masuk</button>
-    </div>
-
-    <div id="pelawatPanel" class="pelawat-panel">
-        <h3 style="margin-top:0">Borang Pelawat</h3>
-        <input type="text" id="tujuan" placeholder="Tujuan / Jumpa Siapa">
-        <input type="text" id="noPlat" placeholder="No. Plat Kenderaan">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
-        <button onclick="tangkapGambar()" style="background:#00b894; color:white;">📸 Tangkap Gambar</button>
-        <button onclick="hantarMasuk('PELAWAT')" class="btn-masuk" style="margin-top:10px;">Hantar Rekod Pelawat</button>
-        <button onclick="batalPelawat()" style="background:#ccc; font-size:0.8rem;">Batal</button>
-    </div>
-
-    <div id="dashboardPanel" style="display:none;">
-        <div style="background:#f1f3f5; padding:20px; border-radius:15px; margin-bottom:20px;">
-            <p style="margin:0; font-size:0.9rem; font-weight:600;">Selamat Datang,</p>
-            <h3 id="userNama" style="margin:5px 0; color:#1e3c72;">-</h3>
-            <p id="userKategori" class="status-tag status-online">-</p>
+        <div id="dashboardPanel">
+            <span class="user-welcome">👤 <span id="sessionName">--</span></span>
+            <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERJAYA DAFTAR MASUK</p>
+            
+            <textarea id="alasanKeluar" placeholder="📝 ALASAN BALIK AWAL (JIKA BERKENAAN)"></textarea>
+            
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
+            <p style="font-size:12px; font-weight:bold; color:#2c3e50; margin:0;">PERLU DAFTAR PELAWAT?</p>
+            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ DAFTAR PELAWAT</button>
         </div>
-        
-        <textarea id="alasanKeluar" placeholder="Sila nyatakan alasan BALIK AWAL..."></textarea>
-        
-        <button class="btn-keluar" onclick="hantarKeluar()">Daftar Keluar</button>
-    </div>
 
-    <p style="font-size: 0.7rem; color: #999; margin-top: 25px;">Versi 36.0 (Auto-Reason Logic) &copy; 2024</p>
-</div>
+        <div id="defaultForm">
+            <select id="kategori" onchange="checkKategori()">
+                <option value="" disabled selected>-- PILIH KATEGORI --</option>
+                <option value="GURU">GURU</option>
+                <option value="AKP">AKP</option>
+                <option value="KEBERSIHAN">KEBERSIHAN</option>
+                <option value="PELAWAT">👤 PELAWAT</option>
+            </select>
+            <div id="inputNamaBox"><input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase"></div>
+            
+            <textarea id="alasanMasuk" placeholder="📝 ALASAN LEWAT (JIKA BERKENAAN)"></textarea>
+
+            <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
+        </div>
+
+        <div id="pelawatPanel">
+            <h3 style="color:#27ae60; margin:0;">📸 MOD PELAWAT</h3>
+            <p style="font-size:11px; margin-bottom:10px;">Ambil gambar sebagai bukti kehadiran.</p>
+            <input type="text" id="tujuan" placeholder="TUJUAN (PILIHAN)" style="text-transform:uppercase; font-size:14px;">
+            <div class="cam-grid">
+                <label class="cam-btn"><span class="cam-icon">📸</span>BELAKANG (PLAT)<input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)"></label>
+                <label class="cam-btn" style="background:#e67e22; border-color:#d35400;"><span class="cam-icon">🤳</span>DEPAN (WAJAH)<input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)"></label>
+            </div>
+            <img id="previewImg">
+            <input type="hidden" id="base64Foto">
+            <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA PELAWAT</button>
+            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
+        </div>
+
+        <div class="list-header">
+            <span>📋 Rekod Terkini: <strong id="count">0</strong></span>
+            <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
+        </div>
+        <div id="listContainer" class="list-container">Loading...</div>
+        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v34.0</p>
+    </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyXACAxTAndTr91GvWM1_idtbkNYK4_aCNfz_rDpsX881nWy7bOMMWUcYPNHxHX-vE/exec"; // GANTI DENGAN URL WEB APP ANDA
+    // ===============================================================
+    // 🔧 TETAPAN (KEKALKAN ASAL)
+    // ===============================================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyXACAxTAndTr91GvWM1_idtbkNYK4_aCNfz_rDpsX881nWy7bOMMWUcYPNHxHX-vE/exec'; 
+    const NAMA_ATAS = "E-HADIR"; 
+    const NAMA_BAWAH = "SK SELAMA (K)";
     const PASSCODE = "101010";
-    const SCHOOL_LAT = 5.12345; // Ganti dengan Latitud sekolah anda
-    const SCHOOL_LNG = 100.12345; // Ganti dengan Longitud sekolah anda
-    const ALLOWED_RADIUS = 1000; // 1km
+    const SCHOOL_LAT = 5.227932478937475; 
+    const SCHOOL_LNG = 100.69901604319402; 
+    const RADIUS_METER = 1000; 
+    // ===============================================================
 
-    let userLocation = null;
-    let fotoBase64 = "";
-    let jamConfig = {};
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+
+    let isInZone = false; let currentUser = null; let currentKat = null; let jamConfig = {}; 
     let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || [];
+    let lastLat = 0, lastLng = 0, currentDist = 0;
 
-    window.onload = () => {
-        startClock();
-        checkExistingSesi();
-        getLocation();
-        fetchConfig();
-        updateOnlineStatus();
+    window.onload = function() {
+        document.getElementById('tajukUtama').innerText = NAMA_ATAS;
+        document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
+        startClock(); startRadar(); checkSession(); loadList(); fetchConfig(); getHijriDate();
+        if ("Notification" in window) { Notification.requestPermission(); }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
     };
 
-    function startClock() {
-        setInterval(() => {
-            let n = new Date();
-            document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' });
-            
-            // Logik Automatik Alasan
-            kemaskiniPaparanAlasan();
-        }, 1000);
-    }
-
-    // LOGIK BARU: Tunjukkan kotak alasan hanya jika lewat/awal
-    function kemaskiniPaparanAlasan() {
+    // 🔥 FUNGSI BARU: URUS VISIBILITI KOTAK ALASAN 🔥
+    function urusAlasan() {
         let now = new Date();
-        
-        // 1. Semak Form Daftar Masuk
+
+        // 1. Untuk Borang Masuk
         let kat = document.getElementById('kategori').value;
         let boxMasuk = document.getElementById('alasanMasuk');
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
-            let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-            
-            // Jika dah lepas waktu masuk DAN belum sampai waktu balik
+            let limitMasuk = parseTime(jamConfig[kat].masuk);
+            let limitKeluar = parseTime(jamConfig[kat].keluar);
             if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
                 boxMasuk.style.display = 'block';
             } else {
                 boxMasuk.style.display = 'none';
             }
+        } else {
+            boxMasuk.style.display = 'none';
         }
 
-        // 2. Semak Form Daftar Keluar
-        let session = JSON.parse(localStorage.getItem('ehadir_session'));
+        // 2. Untuk Borang Keluar (Dashboard)
+        let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let boxKeluar = document.getElementById('alasanKeluar');
-        if (session && jamConfig[session.kategori]) {
-            let limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
-            
-            // Jika waktu sekarang masih awal dari waktu balik yang ditetapkan
+        if (s && jamConfig[s.kategori]) {
+            let limitKeluar = parseTime(jamConfig[s.kategori].keluar);
             if (limitKeluar && now < limitKeluar) {
                 boxKeluar.style.display = 'block';
             } else {
@@ -166,212 +188,155 @@
         }
     }
 
-    function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                userLocation = pos.coords;
-                let dist = calculateDistance(SCHOOL_LAT, SCHOOL_LNG, pos.coords.latitude, pos.coords.longitude);
-                let status = document.getElementById('gpsStatus');
-                if (dist <= ALLOWED_RADIUS) {
-                    status.innerHTML = "✅ LOKASI DISAHKAN (DALAM KAWASAN)";
-                    status.style.color = "#00b894";
-                    document.getElementById('btnMasuk').disabled = false;
-                } else {
-                    status.innerHTML = "❌ ANDA DI LUAR KAWASAN (" + Math.round(dist) + "m)";
-                    status.style.color = "#d63031";
-                    document.getElementById('btnMasuk').disabled = true;
-                }
-            }, err => {
-                document.getElementById('gpsStatus').innerText = "⚠️ GPS ERROR: Sila aktifkan lokasi.";
-            }, { enableHighAccuracy: true });
-        }
-    }
-
-    function checkKategori() {
-        let v = document.getElementById('kategori').value;
-        if (v === 'PELAWAT') {
-            showPelawatForm();
-            document.getElementById('kategori').value = "";
-        }
-        kemaskiniPaparanAlasan();
-    }
-
-    function showPelawatForm() {
-        document.getElementById('defaultForm').style.display = 'none';
-        document.getElementById('pelawatPanel').style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(s => {
-            document.getElementById('video').srcObject = s;
-        });
-    }
-
-    function tangkapGambar() {
-        let v = document.getElementById('video');
-        let c = document.getElementById('canvas');
-        c.width = v.videoWidth; c.height = v.videoHeight;
-        c.getContext('2d').drawImage(v, 0, 0);
-        fotoBase64 = c.toDataURL('image/jpeg', 0.5);
-        c.style.display = 'block';
-        v.style.display = 'none';
-    }
-
-    function hantarMasuk(type = "") {
-        let kat = type === "PELAWAT" ? "PELAWAT" : document.getElementById('kategori').value;
-        let nama = document.getElementById('nama').value;
+    function hantarMasuk() {
+        if(!isInZone) { alert("⛔ GAGAL: Anda berada di LUAR KAWASAN sekolah."); return; }
+        let nama = document.getElementById('nama').value.toUpperCase();
+        let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
-        
-        if (!kat || !nama) return alert("Sila lengkapkan maklumat!");
-        
-        // Cek jika alasan wajib (jika kotak alasan sedang dipaparkan)
-        if (document.getElementById('alasanMasuk').style.display === 'block' && !alasan) {
-            return alert("Sila isi alasan lewat!");
+
+        if (!nama || !kat) { alert("Sila isi nama & kategori!"); return; }
+
+        if (document.getElementById('alasanMasuk').style.display === 'block' && alasan.trim() === "") {
+            alert("⚠️ ANDA LEWAT!\nSila isi sebab kelewatan di kotak alasan.");
+            document.getElementById('alasanMasuk').focus();
+            return;
         }
 
-        let payload = {
-            action: "MASUK",
-            passcode: PASSCODE,
-            kategori: kat,
-            nama: nama,
-            alasan: alasan,
-            lat: userLocation ? userLocation.latitude : 0,
-            lng: userLocation ? userLocation.longitude : 0,
-            foto: fotoBase64,
-            tujuan: document.getElementById('tujuan').value || "",
-            noPlat: document.getElementById('noPlat').value || ""
+        let payload = { 
+            action: "MASUK", passcode: PASSCODE, 
+            nama: nama, kategori: kat, alasan: alasan,
+            clientTime: new Date().toISOString(), 
+            deviceId: getDeviceId(),
+            lat: lastLat, lng: lastLng
         };
 
-        prosesHantar(payload, () => {
-            if (kat !== "PELAWAT") {
-                localStorage.setItem('ehadir_session', JSON.stringify({ nama: nama, kategori: kat }));
-                checkExistingSesi();
-            } else {
-                alert("Pendaftaran Pelawat Berjaya!");
-                location.reload();
-            }
-        });
-    }
-
-    function hantarKeluar() {
-        let session = JSON.parse(localStorage.getItem('ehadir_session'));
-        let alasan = document.getElementById('alasanKeluar').value;
-
-        // Cek jika alasan wajib (jika kotak alasan sedang dipaparkan)
-        if (document.getElementById('alasanKeluar').style.display === 'block' && !alasan) {
-            return alert("Sila isi alasan balik awal!");
-        }
-
-        let payload = {
-            action: "KELUAR",
-            passcode: PASSCODE,
-            nama: session.nama,
-            kategori: session.kategori,
-            alasan: alasan,
-            lat: userLocation ? userLocation.latitude : 0,
-            lng: userLocation ? userLocation.longitude : 0
-        };
-
-        prosesHantar(payload, () => {
-            localStorage.removeItem('ehadir_session');
-            alert("Terima Kasih! Rekod Keluar Berjaya.");
+        let btn = document.getElementById('btnMainSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
+        sendData(payload, btn, () => {
+            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
             location.reload();
         });
     }
 
-    function prosesHantar(payload, callback) {
-        document.getElementById('loading').style.display = 'flex';
-        if (!navigator.onLine) {
-            offlineQueue.push(payload);
-            localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
-            document.getElementById('loading').style.display = 'none';
-            alert("Data disimpan (OFFLINE). Akan dihantar bila ada internet.");
-            callback();
+    function hantarKeluar() {
+        if(!confirm("Daftar Keluar sekarang?")) return;
+        
+        let session = JSON.parse(localStorage.getItem('ehadir_session'));
+        let alasan = document.getElementById('alasanKeluar').value;
+        
+        if (document.getElementById('alasanKeluar').style.display === 'block' && alasan.trim() === "") {
+            alert("⚠️ ANDA BALIK AWAL!\nSila isi sebab di kotak alasan.");
+            document.getElementById('alasanKeluar').focus();
             return;
         }
 
-        fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
-        .then(r => r.json())
-        .then(res => {
-            document.getElementById('loading').style.display = 'none';
-            if (res.status === "success") callback();
-            else alert("Error: " + res.message);
-        }).catch(e => {
-            document.getElementById('loading').style.display = 'none';
-            alert("Gagal menyambung ke server.");
+        let payload = { 
+            action: "KELUAR", passcode: PASSCODE, 
+            nama: session.nama, alasan: alasan, 
+            clientTime: new Date().toISOString(),
+            lat: lastLat, lng: lastLng
+        };
+
+        let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳..."; btn.disabled = true;
+        sendData(payload, btn, () => {
+            alert("✅ Berjaya Daftar Keluar!"); 
+            localStorage.removeItem('ehadir_session'); location.reload(); 
         });
     }
 
-    function checkExistingSesi() {
-        let s = localStorage.getItem('ehadir_session');
-        if (s) {
-            let data = JSON.parse(s);
-            document.getElementById('defaultForm').style.display = 'none';
-            document.getElementById('dashboardPanel').style.display = 'block';
-            document.getElementById('userNama').innerText = data.nama;
-            document.getElementById('userKategori').innerText = data.kategori;
-        }
+    // --- FUNGSI LAIN KEKAL SAMA ---
+    function hantarPelawat() {
+        let foto = document.getElementById('base64Foto').value; let tujuan = document.getElementById('tujuan').value;
+        if (!foto) { alert("⚠️ Sila ambil gambar dahulu!"); return; }
+        let payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", fotoBase64: foto, tujuan: tujuan, clientTime: new Date().toISOString(), deviceId: getDeviceId() };
+        let btn = document.getElementById('btnPelawatSubmit'); btn.innerText = "⏳ HANTAR..."; btn.disabled = true;
+        sendData(payload, btn, () => { alert("✅ Pelawat Berjaya Didaftarkan!"); cancelPelawat(); loadList(); });
     }
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        let R = 6371e3;
-        let φ1 = lat1 * Math.PI/180;
-        let φ2 = lat2 * Math.PI/180;
-        let Δφ = (lat2-lat1) * Math.PI/180;
-        let Δλ = (lon2-lon1) * Math.PI/180;
-        let a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    function checkoutVisitor(namaPelawat) {
+        if(!confirm("Daftar keluar untuk " + namaPelawat + "?")) return;
+        let payload = { action:"CHECKOUT_VISITOR", passcode:PASSCODE, nama:namaPelawat };
+        sendData(payload, null, () => { loadList(); });
     }
 
-    function fetchConfig() {
+    function sendData(payload, btn, onSuccess) {
         if(navigator.onLine) {
-            fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "GET_CONFIG", passcode: PASSCODE }) })
-            .then(r => r.json())
-            .then(d => { jamConfig = d; });
-        }
-    }
-
-    function parseTime(t, refDate) {
-        if (!t || t === "BEBAS") return null;
-        let d = new Date(refDate);
-        let p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
-        if (p) {
-            let h = parseInt(p[1]), m = parseInt(p[2]);
-            if (p[3].toUpperCase() == "PM" && h < 12) h += 12;
-            if (p[3].toUpperCase() == "AM" && h == 12) h = 0;
-            d.setHours(h, m, 0, 0);
-            return d;
-        }
-        return null;
-    }
-
-    function updateOnlineStatus() {
-        let st = document.getElementById('connectionStatus');
-        if (navigator.onLine) {
-            st.style.display = "none";
-            if (offlineQueue.length > 0) syncOfflineData();
+            fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
+            .then(res => res.json()).then(res => { if(btn) { btn.disabled = false; btn.innerText = (payload.action=="KELUAR")?"DAFTAR KELUAR":"DAFTAR MASUK"; } onSuccess(); })
+            .catch(e => { alert("Error Server"); if(btn) btn.disabled=false; });
         } else {
-            st.innerText = "📡 TIADA INTERNET (MODE OFFLINE)";
-            st.className = "status-tag status-offline";
-            st.style.display = "block";
+            let q = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || []; q.push(payload);
+            localStorage.setItem('ehadir_offline_queue', JSON.stringify(q));
+            alert("⚠️ Offline. Data disimpan."); onSuccess(); 
         }
     }
 
-    function syncOfflineData() {
-        let item = offlineQueue[0];
-        fetch(API_URL, { method: "POST", body: JSON.stringify(item) })
-        .then(r => r.json())
-        .then(res => {
-            if (res.status === "success") {
-                offlineQueue.shift();
-                localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
-                if (offlineQueue.length > 0) syncOfflineData();
-                else alert("Semua data offline telah berjaya dihantar!");
+    function updatePosition(pos) {
+        lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
+        currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
+        let status = document.getElementById('statusText'); let btn = document.getElementById('btnMainSubmit'); let warningBox = document.getElementById('warningBox');
+        if(currentDist <= RADIUS_METER) {
+            isInZone = true; status.innerText = "✅ DALAM KAWASAN"; status.style.color = "green"; if(btn) btn.disabled = false; warningBox.style.display = "none";
+        } else {
+            isInZone = false; status.innerText = "🚫 LUAR KAWASAN ("+Math.round(currentDist)+"m)"; status.style.color = "red"; 
+            if(btn) btn.disabled = true; 
+            if (currentUser) {
+                 let now = new Date(); let h = now.getHours(); let isWork = (h >= 7 && h < 14);
+                 if (isWork && currentDist > 1000) { warningBox.style.display = "block"; warningBox.innerText = "⚠️ SILA KEMBALI KE SEKOLAH!"; } 
+                 else if (!isWork && currentDist > 2000) { warningBox.style.display = "block"; warningBox.innerHTML = `⚠️ ANDA BELUM KELUAR.<br><u onclick="hantarKeluar()">TEKAN SINI</u>`; } 
+                 else { warningBox.style.display = "none"; }
             }
-        });
+        }
     }
 
-    function batalPelawat() {
-        location.reload();
+    function checkKategori() { 
+        let v=document.getElementById('kategori').value; 
+        if(v==='PELAWAT'){showPelawatForm();document.getElementById('kategori').value="";} 
+        urusAlasan(); // Panggil logik alasan
     }
+    
+    function showPelawatForm() { document.getElementById('dashboardPanel').style.display='none'; document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; document.getElementById('base64Foto').value=""; document.getElementById('previewImg').style.display='none'; document.getElementById('tujuan').value=""; }
+    function cancelPelawat() { document.getElementById('pelawatPanel').style.display='none'; checkSession(); }
+    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let m=new Image();m.src=e.target.result;m.onload=function(){let c=document.createElement("canvas");let x=c.getContext("2d");let max=800;let w=m.width,h=m.height;if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}c.width=w;c.height=h;x.drawImage(m,0,0,w,h);let d=c.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=d;}};r.readAsDataURL(i.files[0]);}}
+    
+    function checkSession() { 
+        let s=JSON.parse(localStorage.getItem('ehadir_session')); 
+        let t=new Date().toISOString().slice(0,10); 
+        if(s&&s.date===t){
+            document.getElementById('defaultForm').style.display='none';
+            document.getElementById('dashboardPanel').style.display='block';
+            document.getElementById('sessionName').innerText=s.nama;
+            currentUser=s.nama;
+        } else {
+            document.getElementById('defaultForm').style.display='block';
+            document.getElementById('dashboardPanel').style.display='none';
+        }
+        document.getElementById('pelawatPanel').style.display='none'; 
+        urusAlasan(); // Panggil logik alasan
+    }
+
+    function loadList(){if(!navigator.onLine)return;fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSCODE})}).then(r=>r.json()).then(l=>{document.getElementById('count').innerText=l.length;let h="";l.forEach(i=>{let c=i.kategori==='GURU'?'#3498db':(i.kategori==='PELAWAT'?'#e74c3c':'#f1c40f');let a='<div class="action-group">';if(i.foto&&i.foto.length>20&&!i.foto.includes("RALAT")){a+=`<button class="btn-icon btn-img" onclick="openImage('${i.foto}')">🖼️</button>`;}if(i.kategori==='PELAWAT'){a+=`<button class="btn-icon btn-x" onclick="checkoutVisitor('${i.nama}')">❌</button>`;}a+='</div>';h+=`<div class="user-card" style="border-left:5px solid ${c}"><div class="user-info"><strong>${i.nama}</strong><span class="badge" style="background:${c}">${i.kategori}</span></div>${a}</div>`;});document.getElementById('listContainer').innerHTML=h;});}
+    function openImage(u){if(!u||u==="TIADA"||u.includes("RALAT")){alert("Tiada gambar.");return;}let f=u+"&t="+new Date().getTime();document.getElementById('modalImg').src=f;document.getElementById('imageModal').style.display='flex';}
+    function closeImage(){document.getElementById('imageModal').style.display='none';document.getElementById('modalImg').src="";}
+    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){document.getElementById('hijriDisplay').innerText="🌙 --";}}
+    function getDeviceId(){let i=localStorage.getItem('ehadir_device_id');if(!i){i='DEV-'+Math.random().toString(36).substr(2,9).toUpperCase();localStorage.setItem('ehadir_device_id',i);}return i;}
+    
+    function startClock(){
+        setInterval(()=>{
+            let n=new Date();
+            document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});
+            document.getElementById('dateDisplay').innerText=n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear();
+            urusAlasan(); // Sentiasa semak waktu untuk alasan
+        },1000);
+    }
+
+    function startRadar(){if(navigator.geolocation){navigator.geolocation.watchPosition(updatePosition,showError,{enableHighAccuracy:true});}else{document.getElementById('statusText').innerText="❌ GPS Error";}}
+    function showError(){document.getElementById('statusText').innerText="❌ Benarkan GPS";}
+    function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
+    function fetchConfig(){if(navigator.onLine)fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_CONFIG",passcode:PASSCODE})}).then(r=>r.json()).then(d=>{jamConfig=d;});}
+    function resetSesi(){if(confirm("Reset?")){localStorage.removeItem('ehadir_session');location.reload();}}
+    function parseTime(t,r){if(!t)return null;var d=new Date(r||new Date());var p=t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);if(p){var h=parseInt(p[1]),m=parseInt(p[2]);if(p[3].toUpperCase()=="PM"&&h<12)h+=12;if(p[3].toUpperCase()=="AM"&&h==12)h=0;d.setHours(h,m,0,0);return d;}return null;}
+    function updateOnlineStatus(){if(navigator.onLine){document.getElementById('connectionStatus').style.display="none";syncOfflineData();}else{document.getElementById('connectionStatus').innerText="📡 TIADA INTERNET - MODE OFFLINE";document.getElementById('connectionStatus').className="status-offline";document.getElementById('connectionStatus').style.display="block";}}
+    function syncOfflineData(){if(offlineQueue.length===0)return;document.getElementById('connectionStatus').innerText="Syncing...";document.getElementById('connectionStatus').style.display="block";let i=offlineQueue[0];fetch(API_URL,{method:"POST",body:JSON.stringify(i)}).then(r=>r.json()).then(r=>{offlineQueue.shift();localStorage.setItem('ehadir_offline_queue',JSON.stringify(offlineQueue));if(offlineQueue.length>0)syncOfflineData();else{document.getElementById('connectionStatus').style.display="none";loadList();}});}
 </script>
-
 </body>
 </html>
