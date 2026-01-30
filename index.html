@@ -3,36 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Hadir Express</title>
+    <title>E-Hadir Kiosk</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; }
+        
         .info-bar { display: flex; justify-content: space-between; background: #f1f3f5; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; font-size: 12px; }
         h1 { color: #1e3c72; margin: 0; font-weight: 800; font-size: 28px; }
         h3 { margin: 0 0 20px 0; color: #1e3c72; font-weight: 800; font-size: 28px; }
         
         select, input { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        
         .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn:disabled { background: #ccc; }
         .btn-keluar { background: #c0392b; }
 
         /* KAMERA BOX */
         .camera-box { display: none; margin: 15px 0; border: 2px dashed #e74c3c; padding: 10px; border-radius: 10px; background: #fff5f5; }
-        
-        /* DUAL BUTTON KAMERA */
-        .cam-btn-group { display: flex; gap: 10px; justify-content: center; }
-        .camera-btn { flex: 1; background: #e74c3c; color: white; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; text-align: center; display: inline-block; }
-        .camera-btn:active { transform: scale(0.95); }
-
+        .cam-btn-group { display: flex; gap: 10px; justify-content: center; margin-top:5px; }
+        .camera-btn { flex: 1; background: #e74c3c; color: white; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; }
 
+        /* LIST & CHECKOUT BUTTON */
         .list-container { text-align: left; margin-top: 20px; max-height: 250px; overflow-y: auto; }
-        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; color: white; }
+        .user-card { background: #f9f9f9; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; color: white; margin-left: 5px; }
+        
+        /* Butang Pangkah (X) */
+        .btn-x { 
+            background: #e74c3c; color: white; border: none; width: 30px; height: 30px; 
+            border-radius: 50%; font-weight: bold; cursor: pointer; margin-left: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .btn-x:active { transform: scale(0.9); }
+
     </style>
 </head>
 <body>
@@ -58,30 +64,19 @@
             <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
         </div>
 
-        <div id="pelawatForm" style="display:none;">
-            <div class="input-group">
-                <label style="font-size:11px; font-weight:bold; color:#666;">TUJUAN PELAWAT:</label>
-                <input type="text" id="tujuan" placeholder="CONTOH: JUMPA GURU BESAR" style="text-transform:uppercase">
-            </div>
+        <div id="pelawatForm" class="camera-box">
+            <p style="color:#c0392b; font-size:12px; margin:0 0 5px 0; font-weight:bold;">AMBIL GAMBAR (WAJIB)</p>
+            <input type="text" id="tujuan" placeholder="TUJUAN (PILIHAN)" style="text-transform:uppercase; font-size:12px; padding:8px;">
             
-            <div class="camera-box">
-                <p style="color:#c0392b; font-size:12px; margin:0 0 10px 0; font-weight:bold;">SILA PILIH KAMERA:</p>
+            <div class="cam-btn-group">
+                <label for="camBack" class="camera-btn">📸 BELAKANG (PLAT)</label>
+                <input type="file" id="camBack" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
                 
-                <div class="cam-btn-group">
-                    <label for="camBack" class="camera-btn">
-                        📸 BELAKANG
-                    </label>
-                    <input type="file" id="camBack" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
-                    
-                    <label for="camFront" class="camera-btn" style="background:#e67e22;">
-                        🤳 DEPAN
-                    </label>
-                    <input type="file" id="camFront" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
-                </div>
-
-                <img id="previewImg">
-                <input type="hidden" id="base64Foto">
+                <label for="camFront" class="camera-btn" style="background:#e67e22;">🤳 DEPAN (SELFIE)</label>
+                <input type="file" id="camFront" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
             </div>
+            <img id="previewImg">
+            <input type="hidden" id="base64Foto">
         </div>
 
         <button id="btnSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
@@ -94,19 +89,16 @@
 
         <div style="margin-top:20px; text-align:left; font-weight:bold;">
             Senarai Hadir: <span id="count">0</span>
-            <button onclick="loadList()" style="float:right;">🔄</button>
+            <button onclick="loadList()" style="float:right; border:none; bg:none; font-size:18px; cursor:pointer;">🔄</button>
         </div>
         <div id="listContainer" class="list-container">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:10px;">v25.0 Auto-Number & Dual Cam</p>
+        <p style="font-size:10px; color:#aaa; margin-top:10px;">v26.0 Visitor Kiosk</p>
     </div>
 
 <script>
-    // ============================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzuSheqHfo5iBs8_PPfYlby2romAqeWUNi9sQ2JkxBoF8aCXaRged-SxryW15Q90Uz6/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyzJKxtWroiDV_8K_QPTGlmwNy9ZaF4Z8-PClJAwiAuJK4IM7NPAdn--VX2642sP7S0/exec'; 
     const PASSCODE = "101010";
-    // ============================================
 
-    // PWA Service Worker
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 
     function toggleForm() {
@@ -114,11 +106,14 @@
         if (kat === 'PELAWAT') {
             document.getElementById('stafForm').style.display = 'none';
             document.getElementById('pelawatForm').style.display = 'block';
-            document.getElementById('btnSubmit').innerText = "HANTAR DATA";
+            document.getElementById('btnSubmit').innerText = "HANTAR GAMBAR";
+            // Hide session box if pelawat is selected (sebab pelawat x pakai session)
+            document.getElementById('sessionBox').style.display = 'none';
         } else {
             document.getElementById('stafForm').style.display = 'block';
             document.getElementById('pelawatForm').style.display = 'none';
             document.getElementById('btnSubmit').innerText = "DAFTAR MASUK";
+            checkSession(); // Re-check session for staff
         }
     }
 
@@ -157,10 +152,10 @@
         if (kat === 'PELAWAT') {
             let foto = document.getElementById('base64Foto').value;
             let tujuan = document.getElementById('tujuan').value;
-            if (!foto) { alert("Sila ambil gambar (Depan/Belakang)!"); return; }
+            if (!foto) { alert("Sila ambil gambar dahulu!"); return; }
             payload.fotoBase64 = foto;
             payload.tujuan = tujuan;
-            // Nama akan di-auto generate oleh backend
+            // Nama kosongkan, backend auto buat PELAWAT X
         } else {
             let nama = document.getElementById('nama').value.toUpperCase();
             if (!nama) { alert("Sila isi nama!"); return; }
@@ -168,7 +163,7 @@
             if(!localStorage.getItem('did')) localStorage.setItem('did', payload.deviceId);
         }
 
-        let btn = document.getElementById('btnSubmit'); btn.disabled = true; btn.innerText = "⏳ MENGHANTAR...";
+        let btn = document.getElementById('btnSubmit'); btn.disabled = true; btn.innerText = "⏳...";
 
         fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
@@ -181,11 +176,28 @@
                 document.getElementById('previewImg').style.display = 'none';
                 document.getElementById('base64Foto').value = "";
                 document.getElementById('tujuan').value = "";
-                btn.disabled = false; btn.innerText = "HANTAR DATA";
-                loadList();
+                btn.disabled = false; btn.innerText = "HANTAR GAMBAR";
+                loadList(); // Reload list to see new visitor
             }
         })
-        .catch(err => { alert("Ralat/Offline. Data akan dihantar bila online."); btn.disabled=false; });
+        .catch(err => { alert("Offline/Ralat."); btn.disabled=false; });
+    }
+
+    // FUNGSI KHAS: CHECKOUT PELAWAT (PUBLIC)
+    function checkoutVisitor(namaPelawat) {
+        if(!confirm("Daftar keluar untuk " + namaPelawat + "?")) return;
+        
+        // UI Feedback segera (Optimistic UI)
+        alert("Memproses keluar: " + namaPelawat);
+
+        fetch(API_URL, { method: "POST", body: JSON.stringify({action:"CHECKOUT_VISITOR", passcode:PASSCODE, nama:namaPelawat}) })
+        .then(res => res.json()).then(res => {
+            if(res.result === "success") {
+                loadList(); // Refresh list lepas berjaya
+            } else {
+                alert(res.msg);
+            }
+        });
     }
 
     function hantarKeluar() {
@@ -204,7 +216,20 @@
             let html = "";
             list.forEach(i => {
                 let color = i.kategori === 'GURU' ? '#3498db' : (i.kategori === 'PELAWAT' ? '#e74c3c' : '#f1c40f');
-                html += `<div class="user-card" style="border-left:5px solid ${color}"><strong>${i.nama}</strong><span class="badge" style="background:${color}">${i.kategori}</span></div>`;
+                
+                // Jika PELAWAT, tambah butang X
+                let checkoutBtn = "";
+                if (i.kategori === 'PELAWAT') {
+                    checkoutBtn = `<button class="btn-x" onclick="checkoutVisitor('${i.nama}')" title="Daftar Keluar">❌</button>`;
+                }
+
+                html += `<div class="user-card" style="border-left:5px solid ${color}">
+                            <div>
+                                <strong>${i.nama}</strong>
+                                <span class="badge" style="background:${color}">${i.kategori}</span>
+                            </div>
+                            ${checkoutBtn}
+                         </div>`;
             });
             document.getElementById('listContainer').innerHTML = html;
         });
@@ -214,7 +239,11 @@
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         let today = new Date().toISOString().slice(0,10);
         if(session && session.date === today) {
-            document.getElementById('mainForm').style.display = 'none';
+            document.getElementById('stafForm').style.display = 'none'; // Sembunyi form staf
+            document.getElementById('pelawatForm').style.display = 'none'; // Sembunyi form pelawat
+            document.getElementById('kategori').style.display = 'none'; // Sembunyi dropdown
+            document.getElementById('btnSubmit').style.display = 'none'; // Sembunyi butang masuk
+            
             document.getElementById('sessionBox').style.display = 'block';
             document.getElementById('sessionName').innerText = session.nama;
         }
