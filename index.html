@@ -3,111 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-HADIR SK SELAMA (K) V7.0</title>
+    <title>E-HADIR SK SELAMA (K) V9.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #2c3e50; margin: 0; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .info-bar { display: flex; justify-content: space-between; background: #f1f3f5; padding: 10px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; font-size: 11px; }
+        
+        /* NOTIFIKASI JADUAL LIVE */
         #scheduleNotice { background: #fff3e0; border: 2px solid #ff9800; border-radius: 12px; padding: 12px; margin-bottom: 15px; font-size: 13px; text-align: left; display: none; color: #e65100; }
         .live-clock { color: #d84315; font-weight: 900; }
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 2px solid #ddd; box-sizing: border-box; font-family: inherit; }
+
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 2px solid #ddd; box-sizing: border-box; font-family: inherit; font-size: 15px; }
         textarea { border-color: #e67e22; display: none; min-height: 80px; }
-        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 5px; }
+        
+        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 10px; }
         .btn-keluar { background: #c0392b; }
         .btn-pelawat { background: #27ae60; }
-        .list-container { text-align: left; margin-top: 20px; max-height: 250px; overflow-y: auto; border-top: 2px solid #eee; padding-top: 10px; }
-        .user-card { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1e3c72; font-size: 12px; }
-        .badge { background: #1e3c72; color: white; padding: 2px 6px; border-radius: 5px; font-size: 10px; }
-        #previewImg { width: 100%; border-radius: 10px; margin-bottom: 10px; display: none; border: 2px solid #ddd; }
-        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; font-weight: bold; z-index: 999; }
-        .version { font-size: 10px; color: #bdc3c7; margin-top: 20px; cursor: pointer; text-transform: uppercase; }
+        .btn-cancel { background: #7f8c8d; }
+
+        /* LIST REKOD */
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .list-container { text-align: left; margin-top: 10px; max-height: 250px; overflow-y: auto; }
+        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 3px 8px; border-radius: 10px; font-size: 10px; color: white; font-weight: bold; margin-left: 5px; }
+        .action-group { display: flex; gap: 8px; }
+        .btn-icon { border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .btn-img { background: #3498db; color: white; }
+        .btn-x { background: #e74c3c; color: white; }
+
+        #previewImg { width: 100%; border-radius: 10px; margin-bottom: 10px; display: none; border: 2px solid #333; }
+        #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; flex-direction: column; }
+        #modalImg { max-width: 90%; max-height: 70vh; border: 2px solid white; }
     </style>
 </head>
 <body>
 
-<div id="warningBox">⚠️ ANDA DI LUAR KAWASAN / JAUH DARI SEKOLAH!</div>
-
-<div class="container">
-    <div class="info-bar">
-        <div id="dateDisplay">--/--/--</div>
-        <div id="clockDisplay">--:--:--</div>
+    <div id="imageModal" onclick="this.style.display='none'">
+        <img id="modalImg" src="">
+        <button class="btn" style="width:auto; margin-top:20px;">TUTUP</button>
     </div>
 
-    <h2 style="margin:0; color:#1e3c72;">E-HADIR SKSELK</h2>
-
-    <div id="scheduleNotice">
-        <div><strong>🕒 MASA SEKARANG:</strong> <span id="liveTimeNotice" class="live-clock">--:--:--</span></div>
-        <div style="margin-top:5px;"><strong>📅 JADUAL <span id="katNotice">--</span>:</strong></div>
-        <div style="padding-left:10px;">
-            • Masuk: <span id="masukNotice">--</span> | Keluar: <span id="keluarNotice">--</span>
+    <div class="container">
+        <div class="info-bar">
+            <div><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
+            <div id="statusText">📡 GPS...</div>
         </div>
-    </div>
 
-    <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px;">📡 GPS...</div>
+        <h1 style="margin:0; color:#1e3c72; font-size:30px;">E-HADIR</h1>
+        <p style="margin:0 0 20px 0; font-size:12px; font-weight:bold;">SK SELAMA (K)</p>
 
-    <div id="defaultForm">
-        <select id="kategori" onchange="fetchConfig()">
-            <option value="" disabled selected>-- PILIH KATEGORI --</option>
-            <option value="GURU">GURU</option>
-            <option value="AKP">AKP</option>
-            <option value="KEBERSIHAN">KEBERSIHAN</option>
-            <option value="PELAWAT">👤 PELAWAT</option>
-        </select>
-        
-        <div id="extraPelawat" style="display:none;">
+        <div id="scheduleNotice">
+            <div><strong>🕒 MASA SEKARANG:</strong> <span id="liveTimeNotice" class="live-clock">--:--:--</span></div>
+            <div style="margin-top:5px;"><strong>📅 JADUAL <span id="katNotice">--</span>:</strong></div>
+            <div style="padding-left:10px;">
+                • Masuk: <span id="masukNotice">--</span> | Keluar: <span id="keluarNotice">--</span>
+            </div>
+            <div id="otNotice" style="margin-top:5px; font-weight:bold; color:#27ae60; display:none;">✨ MODE: KERJA TAMBAHAN / OT</div>
+        </div>
+
+        <div id="defaultForm">
+            <select id="kategori" onchange="checkKategori()">
+                <option value="" disabled selected>-- PILIH KATEGORI --</option>
+                <option value="GURU">GURU</option>
+                <option value="AKP">AKP</option>
+                <option value="KEBERSIHAN">KEBERSIHAN</option>
+                <option value="PELAWAT">👤 PELAWAT</option>
+            </select>
+            <input type="text" id="nama" placeholder="NAMA PENUH" style="text-transform:uppercase">
+            <textarea id="alasanMasuk" placeholder="📝 ALASAN LEWAT (WAJIB)"></textarea>
+            <button id="btnMasuk" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
+        </div>
+
+        <div id="dashboardPanel" style="display:none;">
+            <div style="background:#e8f6f3; padding:15px; border-radius:15px; border: 2px solid #1abc9c; margin-bottom:15px;">
+                👤 <strong id="sessionName">--</strong><br>
+                <small>STATUS: BERJAYA DAFTAR MASUK</small>
+            </div>
+            <textarea id="alasanKeluar" placeholder="📝 ALASAN BALIK AWAL (WAJIB)"></textarea>
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
+            <hr>
+            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ DAFTAR PELAWAT</button>
+        </div>
+
+        <div id="pelawatPanel" style="display:none; border: 2px dashed #27ae60; padding:15px; border-radius:15px;">
+            <h3 style="color:#27ae60; margin:0;">📸 DAFTAR PELAWAT</h3>
             <input type="text" id="tujuan" placeholder="TUJUAN / NO KENDERAAN">
-            <label style="display:block; background:#34495e; color:white; padding:10px; border-radius:10px; cursor:pointer; margin-bottom:10px;">
-                📸 AMBIL GAMBAR
+            <label class="btn" style="background:#34495e; display:block;">
+                📷 AMBIL GAMBAR
                 <input type="file" accept="image/*" capture="environment" style="display:none" onchange="preview(this)">
             </label>
             <img id="previewImg">
             <input type="hidden" id="fotoBase64">
+            <button class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA</button>
+            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
         </div>
 
-        <input type="text" id="nama" placeholder="NAMA PENUH" style="text-transform:uppercase">
-        <textarea id="alasanMasuk" placeholder="📝 SEBAB LEWAT (WAJIB)"></textarea>
-        <button id="btnMasuk" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
-    </div>
-
-    <div id="dashboardPanel" style="display:none;">
-        <div style="background:#e8f6f3; padding:15px; border-radius:10px; margin-bottom:10px; border: 1px solid #1abc9c;">
-            👤 <strong id="sessionName">--</strong><br>
-            <small>STATUS: SEDANG BERTUGAS</small>
+        <div class="list-header">
+            <span>📋 Rekod Terkini: <strong id="count">0</strong></span>
+            <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
         </div>
-        <textarea id="alasanKeluar" placeholder="📝 SEBAB BALIK AWAL (WAJIB)"></textarea>
-        <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
-    </div>
+        <div id="listContainer" class="list-container">Memuatkan...</div>
 
-    <div class="list-container">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <strong style="font-size:13px;">👥 MASIH DI SEKOLAH (<span id="count">0</span>)</strong>
-            <button onclick="loadList()" style="border:none; background:none; cursor:pointer;">🔄</button>
-        </div>
-        <div id="listDisplay">Memuatkan senarai...</div>
+        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem V9.0</p>
     </div>
-
-    <div class="version" onclick="resetSesi()">E-HADIR SYSTEM VERSI V7.0</div>
-</div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby1AyF4BL-M4vmXT0Lj2nugtRKdhN4vvADuMeAUv4qrP4fUHvG78sYVrPIHjwHB9C_z/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzGCvmpxXeFYbl8IXoXeZ9F0woe2sIHcf8a8AOtGGoPD0ifHZvqALS1DL9QoAz5crFw/exec'; 
     const SCHOOL_LAT = 5.227932, SCHOOL_LNG = 100.699016, RADIUS = 1000, PASSCODE = "101010";
     let jamConfig = {}, lastLat = 0, lastLng = 0, isInZone = false;
 
-    window.onload = () => { startClock(); startGPS(); checkSession(); loadList(); };
+    window.onload = () => { startClock(); startGPS(); checkSession(); loadList(); fetchConfig(); };
 
     function fetchConfig() {
-        let kat = document.getElementById('kategori').value;
-        document.getElementById('extraPelawat').style.display = (kat === "PELAWAT") ? 'block' : 'none';
-        if(kat === "PELAWAT") { document.getElementById('scheduleNotice').style.display = 'none'; return; }
-        
         fetch(API_URL, {method:"POST", body:JSON.stringify({action:"GET_CONFIG", passcode:PASSCODE})})
         .then(r=>r.json()).then(d=>{ jamConfig = d; urusAlasan(); });
     }
 
+    function checkKategori() {
+        if(document.getElementById('kategori').value === 'PELAWAT') showPelawatForm();
+        else urusAlasan();
+    }
+
     function urusAlasan() {
-        if(!jamConfig || Object.keys(jamConfig).length === 0) return;
         let now = new Date();
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         let kat = session ? session.kategori : document.getElementById('kategori').value;
@@ -121,11 +139,23 @@
             let tMasuk = parseTime(jamConfig[kat].masuk, now);
             let tKeluar = parseTime(jamConfig[kat].keluar, now);
 
-            if(!session && tMasuk && now > tMasuk) document.getElementById('alasanMasuk').style.display = 'block';
-            else document.getElementById('alasanMasuk').style.display = 'none';
+            // LOGIK BARU: Jika sekarang dah lepas waktu keluar (OT / Kerja Tambahan)
+            if(tKeluar && now > tKeluar) {
+                document.getElementById('otNotice').style.display = 'block';
+                document.getElementById('alasanMasuk').style.display = 'none'; // Sembunyi alasan lewat
+                document.getElementById('alasanKeluar').style.display = 'none'; // Sembunyi alasan balik awal
+            } else {
+                document.getElementById('otNotice').style.display = 'none';
+                // Masuk Lewat (Hanya jika belum lepas waktu keluar)
+                if(!session && tMasuk && now > tMasuk) document.getElementById('alasanMasuk').style.display = 'block';
+                else document.getElementById('alasanMasuk').style.display = 'none';
 
-            if(session && tKeluar && now < tKeluar) document.getElementById('alasanKeluar').style.display = 'block';
-            else document.getElementById('alasanKeluar').style.display = 'none';
+                // Balik Awal (Hanya jika belum lepas waktu keluar)
+                if(session && tKeluar && now < tKeluar) document.getElementById('alasanKeluar').style.display = 'block';
+                else document.getElementById('alasanKeluar').style.display = 'none';
+            }
+        } else {
+            document.getElementById('scheduleNotice').style.display = 'none';
         }
     }
 
@@ -144,10 +174,76 @@
         return null;
     }
 
+    function hantarMasuk() {
+        if(!isInZone) return alert("Anda di luar kawasan!");
+        let n = document.getElementById('nama').value.toUpperCase(), k = document.getElementById('kategori').value, a = document.getElementById('alasanMasuk').value;
+        if(!n || !k) return alert("Lengkapkan maklumat!");
+        if(document.getElementById('alasanMasuk').style.display === 'block' && !a) return alert("Sila isi alasan lewat!");
+
+        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"MASUK", nama:n, kategori:k, alasan:a, passcode:PASSCODE})})
+        .then(() => {
+            localStorage.setItem('ehadir_session', JSON.stringify({nama:n, kategori:k, date:new Date().toDateString()}));
+            location.reload();
+        });
+    }
+
+    function hantarKeluar() {
+        let s = JSON.parse(localStorage.getItem('ehadir_session')), a = document.getElementById('alasanKeluar').value;
+        if(document.getElementById('alasanKeluar').style.display === 'block' && !a) return alert("Sila isi alasan balik awal!");
+        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"KELUAR", nama:s.nama, alasan:a, passcode:PASSCODE})})
+        .then(() => {
+            localStorage.removeItem('ehadir_session');
+            location.reload();
+        });
+    }
+
+    function hantarPelawat() {
+        let n = document.getElementById('nama').value.toUpperCase() || "PELAWAT", f = document.getElementById('fotoBase64').value, t = document.getElementById('tujuan').value;
+        if(!f) return alert("Sila ambil gambar!");
+        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"MASUK", nama:n, kategori:"PELAWAT", fotoBase64:f, alasan:t, passcode:PASSCODE})})
+        .then(() => { alert("Berjaya!"); cancelPelawat(); loadList(); });
+    }
+
+    function loadList() {
+        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"GET_LIST", passcode:PASSCODE})})
+        .then(r=>r.json()).then(data => {
+            document.getElementById('count').innerText = data.length;
+            let h = "";
+            data.forEach(i => {
+                let color = i.kategori === 'GURU' ? '#3498db' : (i.kategori === 'PELAWAT' ? '#e74c3c' : '#f1c40f');
+                let actions = `<div class="action-group">`;
+                if(i.foto) actions += `<button class="btn-icon btn-img" onclick="openImg('${i.foto}')">🖼️</button>`;
+                if(i.kategori === 'PELAWAT') actions += `<button class="btn-icon btn-x" onclick="checkoutVisitor('${i.nama}')">❌</button>`;
+                actions += `</div>`;
+                h += `<div class="user-card" style="border-left:5px solid ${color}"><div><strong>${i.nama}</strong><span class="badge" style="background:${color}">${i.kategori}</span></div>${actions}</div>`;
+            });
+            document.getElementById('listContainer').innerHTML = h || "Tiada rekod aktif.";
+        });
+    }
+
+    function checkoutVisitor(nama) {
+        if(confirm("Daftar keluar " + nama + "?")) {
+            fetch(API_URL, {method:"POST", body:JSON.stringify({action:"CHECKOUT_VISITOR", nama:nama, passcode:PASSCODE})})
+            .then(() => loadList());
+        }
+    }
+
+    function preview(i) {
+        if(i.files && i.files[0]) {
+            let r = new FileReader();
+            r.onload = e => { 
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('previewImg').style.display = 'block';
+                document.getElementById('fotoBase64').value = e.target.result;
+            };
+            r.readAsDataURL(i.files[0]);
+        }
+    }
+
     function startClock() {
         setInterval(() => {
             let n = new Date();
-            document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-GB');
+            document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
             document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY');
             document.getElementById('liveTimeNotice').innerText = n.toLocaleTimeString('en-GB');
             urusAlasan();
@@ -160,68 +256,32 @@
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
                 let dist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
                 let st = document.getElementById('statusText');
-                let wb = document.getElementById('warningBox');
-                if(dist <= RADIUS) {
-                    isInZone = true; st.innerText = "✅ DALAM KAWASAN"; st.style.color = "green"; wb.style.display="none";
-                } else {
-                    isInZone = false; st.innerText = "🚫 LUAR KAWASAN ("+Math.round(dist)+"m)"; st.style.color = "red";
-                    if(localStorage.getItem('ehadir_session')) wb.style.display="block";
-                }
+                if(dist <= RADIUS) { isInZone = true; st.innerText = "✅ DALAM KAWASAN"; st.style.color = "green"; }
+                else { isInZone = false; st.innerText = "🚫 LUAR KAWASAN"; st.style.color = "red"; }
             }, null, {enableHighAccuracy:true});
         }
     }
 
-    function preview(input) {
-        if(input.files && input.files[0]) {
-            let reader = new FileReader();
-            reader.onload = e => { 
-                document.getElementById('previewImg').src = e.target.result;
-                document.getElementById('previewImg').style.display = 'block';
-                document.getElementById('fotoBase64').value = e.target.result;
-            };
-            reader.readAsDataURL(input.files[0]);
+    function showPelawatForm() { 
+        document.getElementById('defaultForm').style.display='none'; 
+        document.getElementById('dashboardPanel').style.display='none'; 
+        document.getElementById('pelawatPanel').style.display='block'; 
+    }
+    function cancelPelawat() { document.getElementById('pelawatPanel').style.display='none'; checkSession(); }
+    function checkSession() { 
+        let s = JSON.parse(localStorage.getItem('ehadir_session')); 
+        if(s && s.date === new Date().toDateString()){
+            document.getElementById('defaultForm').style.display='none'; 
+            document.getElementById('dashboardPanel').style.display='block'; 
+            document.getElementById('sessionName').innerText = s.nama;
+        } else {
+            document.getElementById('defaultForm').style.display='block'; 
+            document.getElementById('dashboardPanel').style.display='none';
         }
     }
-
-    function hantarMasuk() {
-        if(!isInZone) return alert("Anda di luar kawasan!");
-        let n = document.getElementById('nama').value.toUpperCase(), k = document.getElementById('kategori').value, a = document.getElementById('alasanMasuk').value;
-        let f = document.getElementById('fotoBase64').value;
-        if(!n || !k) return alert("Lengkapkan maklumat!");
-        if(k === "PELAWAT" && !f) return alert("Sila ambil gambar!");
-
-        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"MASUK", nama:n, kategori:k, alasan:a||document.getElementById('tujuan').value, fotoBase64:f, lat:lastLat, lng:lastLng, passcode:PASSCODE})})
-        .then(() => {
-            localStorage.setItem('ehadir_session', JSON.stringify({nama:n, kategori:k, date:new Date().toDateString()}));
-            location.reload();
-        });
-    }
-
-    function hantarKeluar() {
-        let s = JSON.parse(localStorage.getItem('ehadir_session')), a = document.getElementById('alasanKeluar').value;
-        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"KELUAR", nama:s.nama, alasan:a, lat:lastLat, lng:lastLng, passcode:PASSCODE})})
-        .then(() => {
-            localStorage.removeItem('ehadir_session');
-            alert("Berjaya Daftar Keluar!");
-            location.reload();
-        });
-    }
-
-    function loadList() {
-        fetch(API_URL, {method:"POST", body:JSON.stringify({action:"GET_LIST", passcode:PASSCODE})})
-        .then(r=>r.json()).then(data => {
-            document.getElementById('count').innerText = data.length;
-            let html = "";
-            data.forEach(u => {
-                html += `<div class="user-card"><span>${u.nama}</span> <span class="badge">${u.kategori}</span></div>`;
-            });
-            document.getElementById('listDisplay').innerHTML = html || "Tiada rekod aktif.";
-        });
-    }
-
+    function openImg(u) { document.getElementById('modalImg').src = u; document.getElementById('imageModal').style.display = 'flex'; }
     function calcDist(a,b,c,d){let R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
-    function checkSession(){let s=JSON.parse(localStorage.getItem('ehadir_session'));if(s&&s.date===new Date().toDateString()){document.getElementById('defaultForm').style.display='none';document.getElementById('dashboardPanel').style.display='block';document.getElementById('sessionName').innerText=s.nama;fetchConfig();}}
-    function resetSesi(){if(confirm("Reset?")){localStorage.clear();location.reload();}}
+    function resetSesi(){ if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
