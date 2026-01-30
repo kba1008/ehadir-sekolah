@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ehadir-cache-v27'; // Naikkan nombor ini setiap kali edit index.html
+const CACHE_NAME = 'ehadir-cache-v31'; // Naikkan nombor ini setiap kali edit index.html
 const urlsToCache = [
   './',
   './index.html',
@@ -31,4 +31,5 @@ self.addEventListener('activate', event => {
       );
     })
   );
+
 });
