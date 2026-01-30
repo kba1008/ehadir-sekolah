@@ -16,19 +16,31 @@
         .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
         .title-box { margin-bottom: 25px; }
         h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
-        select, input { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
+        
+        /* 🔥 KOTAK ALASAN BOLEH LARAS 🔥 */
+        textarea { 
+            resize: vertical; /* Boleh tarik ke bawah */
+            min-height: 80px; 
+            display: block; /* Sentiasa ada */
+        }
+
         .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .btn-keluar { background: #c0392b; }
         .btn-pelawat { background: #27ae60; margin-top: 15px; } 
         .btn-cancel { background: #7f8c8d; margin-top: 10px; }
+        
         #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
         .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 5px; display: block;}
+        
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
         .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
         .cam-icon { font-size: 24px; margin-bottom: 5px; }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
+        
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
         .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
@@ -68,7 +80,10 @@
 
         <div id="dashboardPanel">
             <span class="user-welcome">👤 <span id="sessionName">--</span></span>
-            <p style="margin:0 0 15px 0; font-size:12px; color:#666;">Status: BERJAYA DAFTAR MASUK</p>
+            <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERJAYA DAFTAR MASUK</p>
+            
+            <textarea id="alasanKeluar" placeholder="📝 ALASAN BALIK AWAL (JIKA BERKENAAN)"></textarea>
+            
             <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
             <p style="font-size:12px; font-weight:bold; color:#2c3e50; margin:0;">PERLU DAFTAR PELAWAT?</p>
@@ -84,6 +99,9 @@
                 <option value="PELAWAT">👤 PELAWAT</option>
             </select>
             <div id="inputNamaBox"><input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase"></div>
+            
+            <textarea id="alasanMasuk" placeholder="📝 ALASAN LEWAT (JIKA BERKENAAN)"></textarea>
+
             <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
         </div>
 
@@ -106,14 +124,14 @@
             <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
         </div>
         <div id="listContainer" class="list-container">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v33.0</p>
+        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v34.0</p>
     </div>
 
 <script>
     // ===============================================================
     // 🔧 TETAPAN
     // ===============================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyPixJcHIMtuM7e7Cov1uZHZFhdPHD1KHG4sk_Xy-Sfme1xulNt3q6D0q7pmuvh0QjJ/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzxglN52tr50UyWn0OkEFNbA4TYDaMB21siWdcGbztYEpgXd9EsfcBxXYEWCI-7_IKj/exec'; 
     const NAMA_ATAS = "E-HADIR"; 
     const NAMA_BAWAH = "SK SELAMA (K)";
     const PASSCODE = "101010";
@@ -138,16 +156,54 @@
         updateOnlineStatus();
     };
 
-    // --- HANTAR KELUAR (YANG DAH DIBAIKI) ---
+    // --- HANTAR MASUK (WAJIB ALASAN JIKA LEWAT) ---
+    function hantarMasuk() {
+        if(!isInZone) { alert("⛔ GAGAL: Anda berada di LUAR KAWASAN sekolah."); return; }
+        let nama = document.getElementById('nama').value.toUpperCase();
+        let kat = document.getElementById('kategori').value;
+        let alasan = document.getElementById('alasanMasuk').value; // Ambil dari kotak
+
+        if (!nama || !kat) { alert("Sila isi nama & kategori!"); return; }
+
+        // Cek Lewat
+        try {
+           if (kat !== "PELAWAT" && jamConfig && jamConfig[kat]) {
+               let limitStr = jamConfig[kat].masuk; let limitKeluarStr = jamConfig[kat].keluar;
+               if(limitStr && limitStr !== "BEBAS") {
+                   let limitMasuk = parseTime(limitStr); let limitKeluar = parseTime(limitKeluarStr); let now = new Date();
+                   if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
+                       // Jika Lewat dan Alasan KOSONG -> STOP
+                       if (alasan.trim() === "") {
+                           alert("⚠️ ANDA LEWAT! (" + limitStr + ")\nSila isi sebab kelewatan di kotak alasan yang disediakan.");
+                           document.getElementById('alasanMasuk').focus();
+                           return;
+                       }
+                   }
+               }
+           }
+        } catch(e){}
+
+        let payload = { 
+            action: "MASUK", passcode: PASSCODE, 
+            nama: nama, kategori: kat, alasan: alasan, // Hantar alasan
+            clientTime: new Date().toISOString(), 
+            deviceId: getDeviceId(),
+            lat: lastLat, lng: lastLng // Hantar GPS juga utk masuk
+        };
+
+        let btn = document.getElementById('btnMainSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
+        sendData(payload, btn, () => {
+            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
+            location.reload();
+        });
+    }
+
+    // --- HANTAR KELUAR (WAJIB ALASAN JIKA AWAL) ---
     function hantarKeluar() {
-        // Step 1: Tanya user dulu
         if(!confirm("Daftar Keluar sekarang?")) return;
         
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
-        let alasan = "";
-        let pesanAmaran = "";
-
-        // Step 2: Cek Awal / Jauh
+        let alasan = document.getElementById('alasanKeluar').value; // Ambil dari kotak
         let now = new Date();
         let isWaktuKerja = false;
         
@@ -159,57 +215,37 @@
                     let limitKeluar = parseTime(limitStr);
                     if (limitKeluar && now < limitKeluar) {
                         isWaktuKerja = true;
-                        alasan = prompt("Anda BALIK AWAL (" + limitStr + "). Sila nyatakan sebab:");
-                        if (!alasan) return; // Kalau cancel, tak jadi keluar
+                        // Jika Awal dan Alasan KOSONG -> STOP
+                        if (alasan.trim() === "") {
+                            alert("⚠️ ANDA BALIK AWAL! (" + limitStr + ")\nSila isi sebab di kotak alasan.");
+                            document.getElementById('alasanKeluar').focus();
+                            return;
+                        }
                     }
                 }
             }
         } catch(e){}
 
-        // Logik Jauh Dari Sekolah (Tapi benarkan keluar)
         if (currentDist > RADIUS_METER && isWaktuKerja) {
-            if(!confirm("⚠️ AMARAN: Anda berada di LUAR KAWASAN semasa waktu bekerja.\n\nSistem akan merekod lokasi semasa anda.\n\nTeruskan daftar keluar?")) return;
+            if(!confirm("⚠️ AMARAN: Anda berada di LUAR KAWASAN.\nLokasi akan direkodkan. Teruskan?")) return;
             alasan += " (Keluar dari Luar Kawasan)";
         }
 
-        // Step 3: Hantar Data (Termasuk GPS)
         let payload = { 
-            action: "KELUAR", 
-            passcode: PASSCODE, 
-            nama: session.nama, 
-            alasan: alasan, 
+            action: "KELUAR", passcode: PASSCODE, 
+            nama: session.nama, alasan: alasan, 
             clientTime: new Date().toISOString(),
-            lat: lastLat, // Hantar lokasi
-            lng: lastLng
+            lat: lastLat, lng: lastLng
         };
 
-        let btn = document.getElementById('btnKeluar');
-        btn.innerText = "⏳..."; btn.disabled = true;
-
+        let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳..."; btn.disabled = true;
         sendData(payload, btn, () => {
-            alert("✅ Berjaya Daftar Keluar!\nLokasi direkodkan."); 
-            localStorage.removeItem('ehadir_session'); 
-            location.reload(); 
+            alert("✅ Berjaya Daftar Keluar!"); 
+            localStorage.removeItem('ehadir_session'); location.reload(); 
         });
     }
 
-    // --- FUNGSI ASAS LAIN (SAMA MACAM DULU) ---
-    function hantarMasuk() {
-        if(!isInZone) { alert("⛔ GAGAL: Anda berada di LUAR KAWASAN sekolah."); return; }
-        let nama = document.getElementById('nama').value.toUpperCase();
-        let kat = document.getElementById('kategori').value;
-        if (!nama || !kat) { alert("Sila isi nama & kategori!"); return; }
-        let payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, clientTime: new Date().toISOString(), deviceId: getDeviceId() };
-        
-        try { if (kat !== "PELAWAT" && jamConfig && jamConfig[kat]) { let limitStr = jamConfig[kat].masuk; let limitKeluarStr = jamConfig[kat].keluar; if(limitStr && limitStr !== "BEBAS") { let limitMasuk = parseTime(limitStr); let limitKeluar = parseTime(limitKeluarStr); let now = new Date(); if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) { payload.alasan = prompt("Anda LEWAT (" + limitStr + "). Alasan:"); if(!payload.alasan) return; } } } } catch(e){}
-
-        let btn = document.getElementById('btnMainSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
-        sendData(payload, btn, () => {
-            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
-            location.reload();
-        });
-    }
-
+    // --- FUNGSI LAIN (PELAWAT & UTILS) ---
     function hantarPelawat() {
         let foto = document.getElementById('base64Foto').value; let tujuan = document.getElementById('tujuan').value;
         if (!foto) { alert("⚠️ Sila ambil gambar dahulu!"); return; }
@@ -227,7 +263,7 @@
     function sendData(payload, btn, onSuccess) {
         if(navigator.onLine) {
             fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
-            .then(res => res.json()).then(res => { if(btn) { btn.disabled = false; btn.innerText = (payload.action=="KELUAR")?"DAFTAR KELUAR":"DAFTAR"; } onSuccess(); })
+            .then(res => res.json()).then(res => { if(btn) { btn.disabled = false; btn.innerText = (payload.action=="KELUAR")?"DAFTAR KELUAR":"DAFTAR MASUK"; } onSuccess(); })
             .catch(e => { alert("Error Server"); if(btn) btn.disabled=false; });
         } else {
             let q = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || []; q.push(payload);
@@ -238,21 +274,13 @@
 
     function updatePosition(pos) {
         lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
-        currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); // Simpan jarak global
-        
-        let status = document.getElementById('statusText');
-        let btn = document.getElementById('btnMainSubmit');
-        let warningBox = document.getElementById('warningBox');
-
+        currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
+        let status = document.getElementById('statusText'); let btn = document.getElementById('btnMainSubmit'); let warningBox = document.getElementById('warningBox');
         if(currentDist <= RADIUS_METER) {
-            isInZone = true; status.innerText = "✅ DALAM KAWASAN"; status.style.color = "green"; 
-            if(btn) btn.disabled = false;
-            warningBox.style.display = "none";
+            isInZone = true; status.innerText = "✅ DALAM KAWASAN"; status.style.color = "green"; if(btn) btn.disabled = false; warningBox.style.display = "none";
         } else {
             isInZone = false; status.innerText = "🚫 LUAR KAWASAN ("+Math.round(currentDist)+"m)"; status.style.color = "red"; 
-            if(btn) btn.disabled = true; // Masuk disable, TAPI KELUAR ENABLE (dlm function hantarKeluar)
-            
-            // Amaran Balik Awal (Visual sahaja)
+            if(btn) btn.disabled = true; 
             if (currentUser) {
                  let now = new Date(); let h = now.getHours(); let isWork = (h >= 7 && h < 14);
                  if (isWork && currentDist > 1000) { warningBox.style.display = "block"; warningBox.innerText = "⚠️ SILA KEMBALI KE SEKOLAH!"; } 
