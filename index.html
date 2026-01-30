@@ -14,26 +14,21 @@
         .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 12px; border: 1px solid #ddd; }
         .hijri-date { color: #27ae60; text-align: right; width: 50%; }
         .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
-        
         .title-box { margin-bottom: 25px; }
         h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
-        
         select, input { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .btn-keluar { background: #c0392b; }
         .btn-pelawat { background: #27ae60; margin-top: 15px; } 
         .btn-cancel { background: #7f8c8d; margin-top: 10px; }
-
         #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
         .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; display: block;}
-        
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
         .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
         .cam-icon { font-size: 24px; margin-bottom: 5px; }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
-
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
         .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
@@ -43,23 +38,12 @@
         .btn-icon { border: none; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-img { background: #3498db; color: white; }
         .btn-x { background: #e74c3c; color: white; }
-
-        /* --- FIX: MODAL GAMBAR YANG JELAS --- */
-        #imageModal {
-            display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.9); /* Gelap penuh */
-            align-items: center; justify-content: center; flex-direction: column;
-        }
-        #modalImg { 
-            max-width: 90%; max-height: 70vh; /* Hadkan tinggi supaya butang nampak */
-            border-radius: 10px; border: 3px solid white; 
-            box-shadow: 0 0 25px rgba(255,255,255,0.3); object-fit: contain;
-        }
-        .close-modal { 
-            margin-top: 20px; padding: 12px 25px; background: #e74c3c; color: white; 
-            border-radius: 50px; border: 2px solid white; font-weight: bold; cursor: pointer; font-size: 16px;
-        }
-
+        
+        /* POPUP GAMBAR */
+        #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; flex-direction: column; }
+        #modalImg { max-width: 90%; max-height: 70vh; border-radius: 10px; border: 3px solid white; box-shadow: 0 0 25px rgba(255,255,255,0.3); object-fit: contain; }
+        .close-modal { margin-top: 20px; padding: 12px 25px; background: #e74c3c; color: white; border-radius: 50px; border: 2px solid white; font-weight: bold; cursor: pointer; font-size: 16px; }
+        
         #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
         .status-offline { background: #c0392b; } .status-sync { background: #f39c12; }
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; animation: pulse 1s infinite; }
@@ -69,7 +53,7 @@
 <body oncontextmenu="return false;"> 
 
     <div id="imageModal">
-        <img id="modalImg" src="">
+        <img id="modalImg" src="" referrerpolicy="no-referrer">
         <button class="close-modal" onclick="closeImage()">TUTUP GAMBAR ❌</button>
     </div>
 
@@ -77,17 +61,14 @@
 
     <div class="container">
         <div id="connectionStatus"></div>
-        
         <div class="info-bar">
             <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
             <div class="hijri-date" id="hijriDisplay">🌙 Loading...</div>
         </div>
-
         <div class="title-box">
             <h1 id="tajukUtama">...</h1>
             <h2 id="tajukKecil">...</h2>
         </div>
-
         <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px;">📡 Mencari GPS...</div>
 
         <div id="dashboardPanel">
@@ -130,14 +111,16 @@
             <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
         </div>
         <div id="listContainer" class="list-container">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v31.0</p>
+        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v31.1 (Fix)</p>
     </div>
 
 <script>
     // ===============================================================
-    // ✏️ PASTE LINK APPS SCRIPT CIKGU DI SINI
+    // ⚠️ SILA MASUKKAN LINK APPS SCRIPT CIKGU DENGAN BETUL DI SINI
     // ===============================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyHbvocpjLRSjMaEAXd-xZcm1T0u0FQE_df9wfFGCPGifmjlKbsf4Qob77tRQj07g/exec'; 
+    // Contoh yang betul:
+    // const API_URL = 'https://script.google.com/macros/s/AKfycb.../exec';
 
     const NAMA_ATAS = "E-HADIR"; 
     const NAMA_BAWAH = "SK SELAMA (K)";
@@ -213,17 +196,7 @@
         let kat = document.getElementById('kategori').value;
         if (!nama || !kat) { alert("Sila isi nama & kategori!"); return; }
         let payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, clientTime: new Date().toISOString(), deviceId: getDeviceId() };
-        try {
-           if (kat !== "PELAWAT" && jamConfig && jamConfig[kat]) {
-               let limitStr = jamConfig[kat].masuk; let limitKeluarStr = jamConfig[kat].keluar;
-               if(limitStr && limitStr !== "BEBAS") {
-                   let limitMasuk = parseTime(limitStr); let limitKeluar = parseTime(limitKeluarStr); let now = new Date();
-                   if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
-                       payload.alasan = prompt("Anda LEWAT (" + limitStr + "). Alasan:"); if(!payload.alasan) return;
-                   }
-               }
-           }
-        } catch(e){}
+        try { if (kat !== "PELAWAT" && jamConfig && jamConfig[kat]) { let limitStr = jamConfig[kat].masuk; let limitKeluarStr = jamConfig[kat].keluar; if(limitStr && limitStr !== "BEBAS") { let limitMasuk = parseTime(limitStr); let limitKeluar = parseTime(limitKeluarStr); let now = new Date(); if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) { payload.alasan = prompt("Anda LEWAT (" + limitStr + "). Alasan:"); if(!payload.alasan) return; } } } } catch(e){}
         let btn = document.getElementById('btnMainSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
         sendData(payload, btn, () => {
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
@@ -258,7 +231,7 @@
         if(navigator.onLine) {
             fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
             .then(res => res.json()).then(res => { if(btn) { btn.disabled = false; btn.innerText = "DAFTAR"; } onSuccess(); })
-            .catch(e => { alert("Error Server"); if(btn) btn.disabled=false; });
+            .catch(e => { alert("Error Server (Semak Link API)"); if(btn) btn.disabled=false; });
         } else {
             let q = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || []; q.push(payload);
             localStorage.setItem('ehadir_offline_queue', JSON.stringify(q));
@@ -284,4 +257,50 @@
             document.getElementById('count').innerText = list.length;
             let html = "";
             list.forEach(i => {
-                let color = i.
+                let color = i.kategori === 'GURU' ? '#3498db' : (i.kategori === 'PELAWAT' ? '#e74c3c' : '#f1c40f');
+                let actions = '<div class="action-group">';
+                if (i.foto && i.foto.length > 10 && i.foto !== "TIADA" && !i.foto.includes("RALAT")) {
+                    actions += `<button class="btn-icon btn-img" onclick="openImage('${i.foto}')" title="Lihat Gambar">🖼️</button>`;
+                }
+                if (i.kategori === 'PELAWAT') {
+                    actions += `<button class="btn-icon btn-x" onclick="checkoutVisitor('${i.nama}')" title="Daftar Keluar">❌</button>`;
+                }
+                actions += '</div>';
+                html += `<div class="user-card" style="border-left:5px solid ${color}"><div class="user-info"><strong>${i.nama}</strong><span class="badge" style="background:${color}">${i.kategori}</span></div>${actions}</div>`;
+            });
+            document.getElementById('listContainer').innerHTML = html;
+        });
+    }
+    
+    function openImage(url) { document.getElementById('modalImg').src = url; document.getElementById('imageModal').style.display = 'flex'; }
+    function closeImage() { document.getElementById('imageModal').style.display = 'none'; document.getElementById('modalImg').src = ""; }
+    function getDeviceId() { let id = localStorage.getItem('ehadir_device_id'); if (!id) { id = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase(); localStorage.setItem('ehadir_device_id', id); } return id; }
+    function startClock() { setInterval(() => { let now = new Date(); document.getElementById('clockDisplay').innerText = now.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit" }); document.getElementById('dateDisplay').innerText = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear(); }, 1000); }
+    function startRadar() { if (navigator.geolocation) { navigator.geolocation.watchPosition(updatePosition, showError, { enableHighAccuracy: true }); } else { document.getElementById('statusText').innerText = "❌ GPS Error"; } }
+    function manualRefreshGPS() { document.getElementById('statusText').innerText = "📡 ..."; startRadar(); }
+    function updatePosition(pos) {
+        lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
+        let dist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
+        let status = document.getElementById('statusText'); let btn = document.getElementById('btnMainSubmit'); let warningBox = document.getElementById('warningBox');
+        if(dist <= RADIUS_METER) {
+            isInZone = true; status.innerText = "✅ DALAM KAWASAN"; status.style.color = "green"; if(btn) btn.disabled = false; warningBox.style.display = "none";
+        } else {
+            isInZone = false; status.innerText = "🚫 LUAR KAWASAN ("+Math.round(dist)+"m)"; status.style.color = "red"; if(btn) btn.disabled = true;
+            if (currentUser) {
+                 let now = new Date(); let h = now.getHours(); let isWork = (h >= 7 && h < 14);
+                 if (isWork && dist > 1000) { warningBox.style.display = "block"; warningBox.innerText = "⚠️ SILA KEMBALI KE SEKOLAH!"; } 
+                 else if (!isWork && dist > 2000) { warningBox.style.display = "block"; warningBox.innerHTML = `⚠️ ANDA BELUM KELUAR.<br><u onclick="hantarKeluar()">TEKAN SINI</u>`; } 
+                 else { warningBox.style.display = "none"; }
+            }
+        }
+    }
+    function showError() { document.getElementById('statusText').innerText = "❌ Benarkan GPS"; }
+    function calcDist(lat1, lon1, lat2, lon2) { var R = 6371e3; var φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180, Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180; var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+    function fetchConfig() { if(navigator.onLine) fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "GET_CONFIG", passcode: PASSCODE }) }).then(res => res.json()).then(data => { jamConfig = data; }); }
+    function resetSesi() { if(confirm("Reset?")) { localStorage.removeItem('ehadir_session'); location.reload(); } }
+    function parseTime(t,ref){ if(!t)return null; var d=new Date(ref); var p=t.match(/(\d+)[.:](\d+).*?(AM|PM)/i); if(p){var h=parseInt(p[1]),m=parseInt(p[2]); if(p[3]=="PM"&&h<12)h+=12; if(p[3]=="AM"&&h==12)h=0; d.setHours(h,m,0,0); return d;} return null; }
+    function updateOnlineStatus() { if (navigator.onLine) { document.getElementById('connectionStatus').style.display = "none"; syncOfflineData(); } else { document.getElementById('connectionStatus').innerText = "📡 TIADA INTERNET - MODE OFFLINE"; document.getElementById('connectionStatus').className = "status-offline"; document.getElementById('connectionStatus').style.display = "block"; } }
+    function syncOfflineData() { if(offlineQueue.length === 0) return; document.getElementById('connectionStatus').innerText = "Syncing..."; document.getElementById('connectionStatus').style.display = "block"; let item = offlineQueue[0]; fetch(API_URL, { method: "POST", body: JSON.stringify(item) }).then(res => res.json()).then(res => { offlineQueue.shift(); localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue)); if(offlineQueue.length > 0) syncOfflineData(); else { document.getElementById('connectionStatus').style.display = "none"; loadList(); } }); }
+</script>
+</body>
+</html>
