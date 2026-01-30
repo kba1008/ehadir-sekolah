@@ -2,121 +2,215 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Hadir System v35.0</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3c72">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Kehadiran Korporat</title>
+    <meta name="theme-color" content="#1e293b">
     
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* --- GAYA VISUAL (CSS) --- */
-        body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 40px; }
+        body { font-family: 'Inter', sans-serif; background-color: #e2e8f0; }
+        .hidden-el { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 12px; border: 1px solid #ddd; }
-        .hijri-date { color: #27ae60; text-align: right; width: 50%; }
-        .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
-
-        .title-box { margin-bottom: 25px; }
-        h1 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
-        h2 { color: #e67e22; margin: 0; font-weight: 800; font-size: 18px; text-transform: uppercase; }
-
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; transition: 0.3s; }
-        select:focus, input:focus { border-color: #1e3c72; outline: none; }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Kotak Alasan */
-        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e67e22; background: #fffcf5; }
-
-        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .btn-keluar { background: #c0392b; }
-        .btn-pelawat { background: #27ae60; margin-top: 15px; }
-        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
-
-        /* Dashboard Panel */
-        #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
-        .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; display: block; margin-bottom: 10px; }
-
-        /* Pelawat Panel */
-        #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
-        .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; }
-
-        /* List Area */
-        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; font-weight: bold; }
-        .list-container { text-align: left; margin-top: 10px; max-height: 250px; overflow-y: auto; }
-        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #1e3c72; border-radius: 8px; margin-bottom: 5px; }
-
-        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; }
-        #statusText { font-size: 11px; font-weight: bold; margin-bottom: 10px; }
+        /* Corporate Shadow */
+        .corp-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body class="text-slate-800 min-h-screen flex justify-center items-center p-0 sm:p-4 bg-slate-200" oncontextmenu="return false;">
 
-    <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+    <!-- Warning Box (GPS) -->
+    <div id="warningBox" class="fixed top-0 left-0 w-full bg-red-700 text-white p-3 text-center text-sm font-semibold z-50 hidden-el shadow-md tracking-wide">
+        <i class="fa-solid fa-circle-exclamation mr-2"></i> PERHATIAN: SILA KEMBALI KE ZON LOKASI
+    </div>
 
-    <div class="container">
-        <div class="info-bar">
-            <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
-            <div class="hijri-date" id="hijriDisplay">🌙 Memuatkan...</div>
-        </div>
-
-        <div class="title-box">
-            <h1>E-HADIR</h1>
-            <h2>SK SELAMA (K)</h2>
-        </div>
-
-        <div id="statusText" style="color: gray;">📡 Mencari GPS...</div>
-
-        <div id="dashboardPanel">
-            <span class="user-welcome">👤 <span id="sessionName">--</span></span>
-            <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERTUGAS</p>
-            <textarea id="alasanKeluar" placeholder="⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
-            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
-            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ DAFTAR PELAWAT</button>
-        </div>
-
-        <div id="defaultForm">
-            <select id="kategori" onchange="checkKategori(); triggerAlasanMasuk();">
-                <option value="" disabled selected>-- PILIH KATEGORI --</option>
-                <option value="GURU">GURU</option>
-                <option value="AKP">AKP</option>
-                <option value="KEBERSIHAN">KEBERSIHAN</option>
-                <option value="PELAWAT">👤 PELAWAT</option>
-            </select>
-            <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
-            <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
-            <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
-        </div>
-
-        <div id="pelawatPanel">
-            <h3 style="color:#27ae60; margin:0;">📸 MOD PELAWAT</h3>
-            <input type="text" id="tujuan" placeholder="TUJUAN / NO KENDERAAN" style="text-transform:uppercase;">
-            <div class="cam-grid">
-                <label class="cam-btn">📸 BELAKANG<input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)"></label>
-                <label class="cam-btn" style="background:#e67e22;">🤳 DEPAN<input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)"></label>
+    <div class="w-full max-w-md bg-white sm:rounded-xl shadow-2xl overflow-hidden relative min-h-screen sm:min-h-0 flex flex-col">
+        
+        <!-- Corporate Header -->
+        <div class="bg-slate-900 text-white px-6 py-8 relative z-10">
+            <div id="connectionStatus" class="absolute top-2 right-2 text-[9px] font-mono opacity-50 hidden-el">GPS ACTIVE</div>
+            
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center shadow-lg">
+                        <i class="fa-solid fa-building-user text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight uppercase">E-HADIR PRO</h1>
+                        <h2 id="schoolTitle" class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">PENGURUSAN STAF</h2>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div id="clockDisplay" class="text-xl font-bold font-mono tracking-tighter">--:--</div>
+                    <div id="dateDisplay" class="text-[10px] text-slate-400 uppercase">--/--/--</div>
+                </div>
             </div>
-            <img id="previewImg">
-            <input type="hidden" id="base64Foto">
-            <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA</button>
-            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
+
+            <div class="flex justify-between items-center text-xs">
+                <span id="hijriDisplay" class="text-slate-300 font-light"><i class="fa-regular fa-calendar mr-1"></i> ...</span>
+                <span id="statusText" class="font-semibold bg-slate-800 px-3 py-1 rounded-full border border-slate-700 text-slate-400">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengesan GPS...
+                </span>
+            </div>
         </div>
 
-        <div class="list-header">
-            <span>📋 Rekod Hari Ini: <strong id="count">0</strong></span>
-            <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer;">🔄</button>
-        </div>
-        <div id="listContainer" class="list-container">Memuatkan...</div>
+        <!-- Main Content Area -->
+        <div class="p-6 flex-grow bg-slate-50 relative">
+            
+            <!-- Background Decoration -->
+            <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-slate-100 to-transparent pointer-events-none"></div>
 
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem</p>
+            <!-- DASHBOARD PANEL (User logged in) -->
+            <div id="dashboardPanel" class="hidden-el fade-in relative z-10">
+                <!-- ID Card Style -->
+                <div class="bg-white border-l-4 border-blue-600 rounded-lg p-5 mb-6 corp-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">LOG MASUK SEBAGAI</p>
+                            <h3 id="sessionName" class="text-xl font-bold text-slate-800 leading-tight uppercase">--</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 text-blue-800 px-3 py-2 rounded text-xs font-bold text-center border border-blue-100">
+                        STATUS: SEDANG BERTUGAS
+                    </div>
+                </div>
+
+                <textarea id="alasanKeluar" class="w-full p-3 text-sm border border-red-200 bg-red-50 rounded-lg mb-4 focus:outline-none focus:ring-1 focus:ring-red-500 hidden-el resize-none" rows="2" placeholder="Sila nyatakan sebab pulang awal..."></textarea>
+                
+                <button id="btnKeluar" onclick="hantarKeluar()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-lg shadow-md transition transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-wide">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Daftar Keluar
+                </button>
+
+                <div class="my-6 border-t border-slate-200 relative">
+                    <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-50 px-2 text-[10px] text-slate-400 uppercase">Menu Tambahan</span>
+                </div>
+
+                <button onclick="showPelawatForm()" class="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold py-3 rounded-lg transition active:scale-[0.98] flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-user-plus"></i> Daftar Pelawat
+                </button>
+            </div>
+
+            <!-- LOGIN FORM (Default) -->
+            <div id="defaultForm" class="fade-in relative z-10">
+                <div class="space-y-5">
+                    
+                    <div class="group">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Kategori Pengguna</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-layer-group text-sm"></i>
+                            </div>
+                            <select id="kategori" onchange="checkKategori(); triggerAlasanMasuk();" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-medium appearance-none transition-colors">
+                                <option value="" disabled selected>Pilih Kategori</option>
+                                <option value="GURU">GURU</option>
+                                <option value="AKP">AKP</option>
+                                <option value="KEBERSIHAN">PEKERJA KEBERSIHAN</option>
+                                <option value="PELAWAT">PELAWAT LUAR</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Nama Penuh</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-id-card text-sm"></i>
+                            </div>
+                            <input type="text" id="nama" placeholder="Taip nama penuh..." class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-semibold uppercase transition-colors">
+                        </div>
+                    </div>
+
+                    <textarea id="alasanMasuk" class="w-full p-3 text-sm border border-amber-300 bg-amber-50 rounded-lg hidden-el focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none" rows="2" placeholder="Sila nyatakan sebab kelewatan..."></textarea>
+
+                    <button id="btnMainSubmit" onclick="hantarMasuk()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-blue-900/20 transition transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-wide mt-4">
+                        <i class="fa-solid fa-fingerprint text-lg"></i> Sahkan Kehadiran
+                    </button>
+                </div>
+            </div>
+
+            <!-- PELAWAT PANEL -->
+            <div id="pelawatPanel" class="hidden-el fade-in bg-white p-5 rounded-lg border border-slate-200 shadow-sm relative z-10">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+                    <div class="w-8 h-8 rounded bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-camera"></i></div>
+                    <h3 class="text-slate-700 font-bold text-sm uppercase">Rekod Pelawat</h3>
+                </div>
+                
+                <div class="space-y-3">
+                    <input type="text" id="tujuan" placeholder="TUJUAN / NO. KENDERAAN" class="w-full p-3 border border-slate-300 rounded-lg uppercase text-xs font-semibold focus:outline-none focus:border-blue-500">
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="bg-slate-800 text-white p-3 rounded-lg text-center cursor-pointer hover:bg-slate-700 transition">
+                            <i class="fa-solid fa-camera block text-lg mb-1"></i>
+                            <span class="text-[10px] font-bold uppercase tracking-wide">Kamera Belakang</span>
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="processImage(this)">
+                        </label>
+                        <label class="bg-slate-600 text-white p-3 rounded-lg text-center cursor-pointer hover:bg-slate-500 transition">
+                            <i class="fa-solid fa-camera-rotate block text-lg mb-1"></i>
+                            <span class="text-[10px] font-bold uppercase tracking-wide">Kamera Depan</span>
+                            <input type="file" accept="image/*" capture="user" class="hidden" onchange="processImage(this)">
+                        </label>
+                    </div>
+
+                    <div class="relative w-full rounded-lg overflow-hidden border border-slate-300 bg-slate-100 min-h-[120px]">
+                        <img id="previewImg" class="w-full object-cover hidden-el">
+                        <div id="placeholderCam" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-regular fa-image text-2xl mb-1"></i>
+                            <span class="text-[10px]">Pratonton Foto</span>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="base64Foto">
+                    
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="cancelPelawat()" class="flex-1 bg-white border border-slate-300 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-50">BATAL</button>
+                        <button id="btnPelawatSubmit" onclick="hantarPelawat()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs shadow">HANTAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIST SECTION -->
+            <div class="mt-10">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-blue-600"></i> Log Hari Ini
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] bg-slate-200 px-2 py-1 rounded text-slate-600 font-bold">Total: <span id="count">0</span></span>
+                        <button onclick="loadList()" class="w-6 h-6 rounded bg-white border border-slate-200 text-slate-500 hover:text-blue-600 flex items-center justify-center transition">
+                            <i class="fa-solid fa-rotate text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="listContainer" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar pb-6">
+                    <div class="text-center py-6 text-slate-400 text-xs italic">Memuatkan data...</div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-8 pb-4">
+                 <p class="text-[9px] text-slate-300 cursor-pointer hover:text-slate-400 transition font-mono" onclick="resetSesi()">SYSTEM ID: 2023-CORP-V1</p>
+            </div>
+        </div>
     </div>
 
 <script>
-    /* --- KONFIGURASI --- */
-    const API_URL = 'https://script.google.com/macros/s/AKfycby9wvSX-cPkUToqRiZHsnPVPnWFm_lbaXdvFZnchhQNprFWKsKsAkCQdhktBSGLs_c5/exec'; 
+    // KONFIGURASI SISTEM
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxnengUIJ3-_rPCiZWDtlrYSOr68pSpSlEabeXxEBw-xTHVye2cEkMaWfobVeLoJIGL/exec'; 
     const PASSCODE = "101010";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
@@ -133,13 +227,12 @@
         loadList();
         fetchConfig();
         getHijriDate();
-        setInterval(triggerAlasanKeluar, 5000); 
+        setInterval(triggerAlasanKeluar, 5000);
     };
 
-    /* --- LOGIK MASA (JAM CONFIG) --- */
     function fetchConfig() {
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
-        .then(r => r.json()).then(res => { jamConfig = res; });
+        .then(r => r.json()).then(res => { if(res.status === "SUCCESS") jamConfig = res.data; });
     }
 
     function triggerAlasanMasuk() {
@@ -150,11 +243,11 @@
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
-                area.style.display = "block";
+                area.classList.remove('hidden-el');
                 return;
             }
         }
-        area.style.display = "none";
+        area.classList.add('hidden-el');
     }
 
     function triggerAlasanKeluar() {
@@ -163,30 +256,32 @@
         if (s && jamConfig[s.kategori]) {
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
             if (limitKeluar && new Date() < limitKeluar) {
-                area.style.display = "block";
+                area.classList.remove('hidden-el');
             } else {
-                area.style.display = "none";
+                area.classList.add('hidden-el');
             }
         }
     }
 
-    /* --- PROSES DATA --- */
     function hantarMasuk() {
-        if(!isInZone) { alert("⛔ ANDA DI LUAR KAWASAN!"); return; }
+        if(!isInZone) { alert("⛔ AKSES DITOLAK: ANDA DI LUAR KAWASAN PREMIS!"); return; }
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
-        if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
-        if (document.getElementById('alasanMasuk').style.display === "block" && !alasan.trim()) {
-            alert("⚠️ Sila isi alasan kelewatan!"); return;
+        let now = new Date();
+
+        if (!nama || !kat) { alert("Sila lengkapkan butiran Nama & Kategori."); return; }
+        
+        if (!document.getElementById('alasanMasuk').classList.contains('hidden-el') && alasan.trim() === "") {
+            alert("Sila nyatakan alasan kelewatan."); return;
         }
 
-        document.getElementById('btnMainSubmit').disabled = true;
-        let data = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng };
-        
-        fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
-        .then(() => {
-            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
+        let btn = document.getElementById('btnMainSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES...';
+
+        sendData({ action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() }, () => {
+            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
             location.reload();
         });
     }
@@ -194,16 +289,17 @@
     function hantarKeluar() {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         let alasan = document.getElementById('alasanKeluar').value;
-        if (document.getElementById('alasanKeluar').style.display === "block" && !alasan.trim()) {
-            alert("⚠️ Sila isi alasan balik awal!"); return;
+        
+        if (!document.getElementById('alasanKeluar').classList.contains('hidden-el') && alasan.trim() === "") {
+            alert("Sila nyatakan alasan pulang awal."); return;
         }
-        if(!confirm("Daftar Keluar sekarang?")) return;
 
-        document.getElementById('btnKeluar').disabled = true;
-        let data = { action: "KELUAR", passcode: PASSCODE, nama: session.nama, kategori: session.kategori, alasan: alasan, lat: lastLat, lng: lastLng };
+        if(!confirm("Sahkan daftar keluar?")) return;
+        let btn = document.getElementById('btnKeluar');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES...';
 
-        fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
-        .then(() => {
+        sendData({ action: "KELUAR", passcode: PASSCODE, nama: session.nama, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() }, () => {
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
@@ -212,28 +308,17 @@
     function hantarPelawat() {
         let foto = document.getElementById('base64Foto').value;
         let tjn = document.getElementById('tujuan').value.toUpperCase();
-        if (!foto || !tjn) { alert("Ambil gambar & isi tujuan!"); return; }
-        document.getElementById('btnPelawatSubmit').disabled = true;
-        let data = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: tjn, fotoBase64: foto, lat: lastLat, lng: lastLng };
-        fetch(API_URL, { method: "POST", body: JSON.stringify(data) }).then(() => location.reload());
+        if (!foto || !tjn) { alert("Sila ambil gambar & isi tujuan."); return; }
+        
+        let btn = document.getElementById('btnPelawatSubmit');
+        btn.disabled = true;
+        btn.innerText = '...';
+
+        sendData({ action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: tjn, fotoBase64: foto, lat: lastLat, lng: lastLng }, () => location.reload());
     }
 
-    /* --- SISTEM GPS & UTILITI --- */
-    function startRadar() {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
-                let dist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
-                isInZone = (dist <= RADIUS_METER);
-                document.getElementById('statusText').innerText = isInZone ? "✅ DALAM KAWASAN" : "🚫 LUAR KAWASAN (" + Math.round(dist) + "m)";
-                document.getElementById('statusText').style.color = isInZone ? "green" : "red";
-                document.getElementById('warningBox').style.display = isInZone ? "none" : "block";
-            }, null, {enableHighAccuracy: true});
-        }
-    }
+    function sendData(p, cb) { fetch(API_URL, { method: "POST", body: JSON.stringify(p) }).then(() => cb()).catch(() => { alert("Ralat sambungan pelayan."); cb(); }); }
 
-    function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
-    
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
         let d = new Date(r), p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
@@ -245,35 +330,92 @@
         } return null;
     }
 
-    function startClock(){setInterval(()=>{let n=new Date();document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});document.getElementById('dateDisplay').innerText=n.toLocaleDateString('ms-MY');},1000);}
-    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){}}
-    function checkSession() { let s = JSON.parse(localStorage.getItem('ehadir_session')); if(s && s.date === new Date().toISOString().slice(0,10)) { document.getElementById('defaultForm').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; document.getElementById('sessionName').innerText = s.nama; } }
-    function loadList() { fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) }).then(r => r.json()).then(res => { document.getElementById('count').innerText = res.length; let h = ""; res.forEach(i => { h += `<div class="user-card"><div style="padding-left:10px;"><strong>${i.nama}</strong><br><small>${i.kategori} | ${i.jam || ''}</small></div></div>`; }); document.getElementById('listContainer').innerHTML = h || "Tiada rekod."; }); }
-    function checkKategori(){ if(document.getElementById('kategori').value==='PELAWAT') showPelawatForm(); }
-    function showPelawatForm(){ document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
-    function cancelPelawat(){ document.getElementById('pelawatPanel').style.display='none'; checkSession(); }
-    function resetSesi(){ if(confirm("Reset sesi?")){localStorage.removeItem('ehadir_session');location.reload();} }
-    
-    function processImage(input){
-        if(input.files && input.files[0]){
-            let reader = new FileReader();
-            reader.onload = function(e){
-                let img = new Image();
-                img.src = e.target.result;
-                img.onload = function(){
-                    let canvas = document.createElement("canvas");
-                    let ctx = canvas.getContext("2d");
-                    canvas.width = 400; canvas.height = 400 * (img.height/img.width);
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    let data = canvas.toDataURL("image/jpeg", 0.7);
-                    document.getElementById('previewImg').src = data;
-                    document.getElementById('previewImg').style.display = 'block';
-                    document.getElementById('base64Foto').value = data;
-                };
-            };
-            reader.readAsDataURL(input.files[0]);
+    function startRadar() {
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(pos => {
+                lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
+                let dist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
+                isInZone = (dist <= RADIUS_METER);
+                let statusBadge = document.getElementById('statusText');
+                let warnBox = document.getElementById('warningBox');
+                
+                if(isInZone){
+                    statusBadge.innerHTML = '<i class="fa-solid fa-wifi text-emerald-400"></i> GPS: OK';
+                    statusBadge.className = "font-bold bg-slate-800 px-3 py-1 rounded-full border border-emerald-900 text-emerald-400 text-[10px] tracking-wide";
+                    warnBox.classList.add('hidden-el');
+                } else {
+                    statusBadge.innerHTML = `<i class="fa-solid fa-location-slash text-red-400"></i> LUAR: ${Math.round(dist)}m`;
+                    statusBadge.className = "font-bold bg-slate-800 px-3 py-1 rounded-full border border-red-900 text-red-400 text-[10px] tracking-wide";
+                    warnBox.classList.remove('hidden-el');
+                }
+            }, null, {enableHighAccuracy: true});
         }
     }
+
+    function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
+    function startClock(){setInterval(()=>{let n=new Date();document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});document.getElementById('dateDisplay').innerText=n.toLocaleDateString('ms-MY');},1000);}
+    
+    function checkSession() { 
+        let s = JSON.parse(localStorage.getItem('ehadir_session')); 
+        if(s && s.date === new Date().toISOString().slice(0,10)) { 
+            document.getElementById('defaultForm').classList.add('hidden-el'); 
+            document.getElementById('dashboardPanel').classList.remove('hidden-el'); 
+            document.getElementById('sessionName').innerText = s.nama; 
+            triggerAlasanKeluar(); 
+        } 
+    }
+
+    function loadList() { 
+        document.getElementById('listContainer').innerHTML = '<div class="text-center py-4 text-slate-400"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+        
+        fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
+        .then(r => r.json())
+        .then(res => { 
+            let l = res.data || res; 
+            if(!Array.isArray(l)) l = [];
+            
+            document.getElementById('count').innerText = l.length; 
+            let h = ""; 
+            
+            if(l.length === 0) {
+                h = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-300 rounded-lg">Tiada rekod kehadiran.</div>';
+            } else {
+                l.forEach(i => { 
+                    let masa = i.jam || i.waktu || i.time || i.masa || '--:--';
+                    let initial = i.nama ? i.nama.charAt(0).toUpperCase() : '?';
+                    let isPelawat = i.kategori === 'PELAWAT';
+                    let bgClass = isPelawat ? 'bg-slate-50 border-l-4 border-l-purple-500' : 'bg-white border-l-4 border-l-blue-500';
+
+                    h += `
+                    <div class="${bgClass} p-3 rounded shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3 w-full overflow-hidden">
+                            <div class="flex-shrink-0 w-8 h-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
+                                ${initial}
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-700 text-xs truncate uppercase">${i.nama}</h4>
+                                <p class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">${i.kategori}</p>
+                            </div>
+                        </div>
+                        <div class="text-right pl-2 flex-shrink-0">
+                            <span class="block text-xs font-bold text-slate-800 font-mono">${masa}</span>
+                        </div>
+                    </div>`; 
+                }); 
+            }
+            document.getElementById('listContainer').innerHTML = h; 
+        })
+        .catch(err => {
+            document.getElementById('listContainer').innerHTML = '<div class="text-center text-red-500 text-xs py-4">Ralat data.</div>';
+        });
+    }
+
+    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let im=new Image();im.src=e.target.result;im.onload=function(){let cv=document.createElement("canvas");let ctx=cv.getContext("2d");cv.width=600;cv.height=600*(im.height/im.width);ctx.drawImage(im,0,0,cv.width,cv.height);let d=cv.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').classList.remove('hidden-el');document.getElementById('placeholderCam').classList.add('hidden-el');document.getElementById('base64Foto').value=d;};};r.readAsDataURL(i.files[0]);}}
+    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerHTML=`<i class="fa-regular fa-calendar-check mr-1"></i> ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){}}
+    function checkKategori(){ if(document.getElementById('kategori').value==='PELAWAT') showPelawatForm(); }
+    function showPelawatForm(){ document.getElementById('defaultForm').classList.add('hidden-el'); document.getElementById('dashboardPanel').classList.add('hidden-el'); document.getElementById('pelawatPanel').classList.remove('hidden-el'); }
+    function cancelPelawat(){ document.getElementById('pelawatPanel').classList.add('hidden-el'); checkSession(); if(!localStorage.getItem('ehadir_session')) document.getElementById('defaultForm').classList.remove('hidden-el'); }
+    function resetSesi(){ if(confirm("Reset sistem?")){localStorage.removeItem('ehadir_session');location.reload();} }
 </script>
 </body>
 </html>
