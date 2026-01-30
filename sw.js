@@ -1,5 +1,5 @@
 // sw.js - Versi 32
-const CACHE_NAME = 'ehadir-cache-v32'; 
+const CACHE_NAME = 'ehadir-cache-v33'; 
 const urlsToCache = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', event => {
@@ -17,4 +17,5 @@ self.addEventListener('activate', event => {
       if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
     })
   )));
+
 });
