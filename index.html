@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Kehadiran Korporat - OT Mode</title>
+    <title>Sistem Kehadiran Korporat - Jadual Auto</title>
     <meta name="theme-color" content="#1e293b">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -128,22 +128,25 @@
                         <i class="fa-solid fa-circle-info text-blue-600 mt-0.5 text-xs"></i>
                         <div>
                             <p class="text-[10px] text-blue-800 font-bold uppercase leading-tight">PERHATIAN</p>
-                            <p class="text-[10px] text-slate-600 leading-tight">Sila pilih kategori pekerjaan anda untuk melihat waktu bekerja yang telah ditetapkan.</p>
+                            <p class="text-[10px] text-slate-600 leading-tight">Sila pilih kategori pekerjaan anda untuk melihat jadual bertugas yang ditetapkan.</p>
                         </div>
                     </div>
 
-                    <!-- NEW: Working Hours Display (TOP) -->
+                    <!-- PENTING: Working Hours Display (JADUAL BERTUGAS) -->
                     <div id="workingHoursInfo" class="hidden-el bg-slate-800 text-white p-4 rounded-lg shadow-lg border border-slate-700 fade-in transform transition-all">
+                        <div class="text-center mb-2 border-b border-slate-600 pb-2">
+                            <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">JADUAL BERTUGAS</p>
+                        </div>
                         <div class="flex justify-between items-center divide-x divide-slate-600">
                             <div class="text-center w-1/2 pr-2">
-                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Waktu Masuk</p>
+                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Mula Tugas</p>
                                 <div class="flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-right-to-bracket text-emerald-400 text-xs"></i>
                                     <p id="infoMasuk" class="text-lg font-bold font-mono text-emerald-400">--:--</p>
                                 </div>
                             </div>
                             <div class="text-center w-1/2 pl-2">
-                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Waktu Keluar</p>
+                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Tamat Tugas</p>
                                 <div class="flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-right-from-bracket text-rose-400 text-xs"></i>
                                     <p id="infoKeluar" class="text-lg font-bold font-mono text-rose-400">--:--</p>
@@ -153,12 +156,13 @@
                     </div>
 
                     <div class="group">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Kategori Pengguna</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Kategori Pekerjaan</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-layer-group text-sm"></i>
                             </div>
-                            <select id="kategori" onchange="checkKategori(); triggerAlasanMasuk(); updateTimeDisplay();" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-medium appearance-none transition-colors">
+                            <!-- PENTING: onchange akan trigger updateTimeDisplay() -->
+                            <select id="kategori" onchange="checkKategori(); updateTimeDisplay(); triggerAlasanMasuk();" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-medium appearance-none transition-colors">
                                 <option value="" disabled selected>Pilih Kategori</option>
                                 <option value="GURU">GURU</option>
                                 <option value="AKP">AKP</option>
@@ -268,15 +272,18 @@
 
 <script>
     // KONFIGURASI SISTEM
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxnengUIJ3-_rPCiZWDtlrYSOr68pSpSlEabeXxEBw-xTHVye2cEkMaWfobVeLoJIGL/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwNSWJX3jH9CDjUiq__3869_ySI4bUTzEbJL1vtKvc2jnAplj7RMpvyuQCguiu2ceKQ/exec'; 
     const PASSCODE = "101010";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
 
-    // Konfigurasi Jadual Asas
-    // NOTA PENTING: Waktu masuk/keluar diambil dari Google Sheet (Sheet 'Config').
+    // Konfigurasi Jadual Asas (Fallback jika API lambat)
+    // Data ini akan dikemaskini oleh API (Google Sheet 'Config') jika ada.
     let jamConfig = {
+        "GURU": { masuk: "07:30 AM", keluar: "02:30 PM" },
+        "AKP": { masuk: "08:00 AM", keluar: "05:00 PM" },
+        "KEBERSIHAN": { masuk: "07:00 AM", keluar: "04:00 PM" },
         "PELAWAT": { masuk: "BEBAS", keluar: "BEBAS" }
     };
 
@@ -295,32 +302,36 @@
     };
 
     function fetchConfig() {
+        // Mengambil data dari Google Sheet (Sheet bernama JAM/Config)
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             if(res.status === "SUCCESS") {
+                // Menggabungkan data sedia ada dengan data dari Google Sheet
                 jamConfig = {...jamConfig, ...res.data};
-                // Kemaskini jika kategori sudah dipilih
+                // Kemaskini paparan jika kategori sudah dipilih
                 updateTimeDisplay();
             }
         });
     }
 
+    // FUNGSI BARU: Memaparkan Jadual Bertugas apabila kategori dipilih
     function updateTimeDisplay() {
         let kat = document.getElementById('kategori').value;
         let infoBox = document.getElementById('workingHoursInfo');
         let txtMasuk = document.getElementById('infoMasuk');
         let txtKeluar = document.getElementById('infoKeluar');
 
+        // Jika kategori dipilih & bukan pelawat & data wujud
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
             txtMasuk.innerText = jamConfig[kat].masuk;
             txtKeluar.innerText = jamConfig[kat].keluar;
-            infoBox.classList.remove('hidden-el');
+            infoBox.classList.remove('hidden-el'); // Tunjuk kotak
         } else {
-            infoBox.classList.add('hidden-el');
+            infoBox.classList.add('hidden-el'); // Sembunyi kotak
         }
     }
 
-    // FUNGSI UTAMA YANG DIUBAH: Logik Lewat vs OT
+    // Logik Lewat vs OT
     function triggerAlasanMasuk() {
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
