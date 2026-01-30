@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Kehadiran Korporat</title>
+    <title>Sistem Kehadiran Korporat - OT Mode</title>
     <meta name="theme-color" content="#1e293b">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -123,12 +123,32 @@
             <div id="defaultForm" class="fade-in relative z-10">
                 <div class="space-y-5">
                     
-                    <!-- NOTE BARU: Info Kategori -->
+                    <!-- Info Kategori -->
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3 shadow-sm">
                         <i class="fa-solid fa-circle-info text-blue-600 mt-0.5 text-xs"></i>
                         <div>
                             <p class="text-[10px] text-blue-800 font-bold uppercase leading-tight">PERHATIAN</p>
-                            <p class="text-[10px] text-slate-600 leading-tight">Sila pilih kategori pekerjaan anda untuk melihat waktu bekerja yang telah ditetapkan dalam sistem.</p>
+                            <p class="text-[10px] text-slate-600 leading-tight">Sila pilih kategori pekerjaan anda untuk melihat waktu bekerja yang telah ditetapkan.</p>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Working Hours Display (TOP) -->
+                    <div id="workingHoursInfo" class="hidden-el bg-slate-800 text-white p-4 rounded-lg shadow-lg border border-slate-700 fade-in transform transition-all">
+                        <div class="flex justify-between items-center divide-x divide-slate-600">
+                            <div class="text-center w-1/2 pr-2">
+                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Waktu Masuk</p>
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-right-to-bracket text-emerald-400 text-xs"></i>
+                                    <p id="infoMasuk" class="text-lg font-bold font-mono text-emerald-400">--:--</p>
+                                </div>
+                            </div>
+                            <div class="text-center w-1/2 pl-2">
+                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Waktu Keluar</p>
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-right-from-bracket text-rose-400 text-xs"></i>
+                                    <p id="infoKeluar" class="text-lg font-bold font-mono text-rose-400">--:--</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -138,7 +158,6 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-layer-group text-sm"></i>
                             </div>
-                            <!-- Added updateTimeDisplay() to onchange -->
                             <select id="kategori" onchange="checkKategori(); triggerAlasanMasuk(); updateTimeDisplay();" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-medium appearance-none transition-colors">
                                 <option value="" disabled selected>Pilih Kategori</option>
                                 <option value="GURU">GURU</option>
@@ -150,16 +169,6 @@
                                 <i class="fa-solid fa-chevron-down text-xs"></i>
                             </div>
                         </div>
-
-                        <!-- BARU: Paparan Masa Bekerja -->
-                        <div id="workingHoursDisplay" class="hidden-el mt-2 bg-slate-800 text-white p-3 rounded-lg border border-slate-700 shadow-sm text-center">
-                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Waktu Bekerja Ditetapkan</p>
-                            <div class="flex justify-center items-center gap-4 text-xs font-mono font-bold">
-                                <span class="text-emerald-400"><i class="fa-solid fa-right-to-bracket mr-1"></i><span id="timeIn">--:--</span></span>
-                                <span class="text-slate-500">|</span>
-                                <span class="text-rose-400"><i class="fa-solid fa-right-from-bracket mr-1"></i><span id="timeOut">--:--</span></span>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="group">
@@ -169,6 +178,15 @@
                                 <i class="fa-solid fa-id-card text-sm"></i>
                             </div>
                             <input type="text" id="nama" placeholder="Taip nama penuh..." class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm font-semibold uppercase transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- NOTIFIKASI OT -->
+                    <div id="overtimeNote" class="hidden-el mb-1 bg-indigo-50 border border-indigo-200 rounded-lg p-3 flex items-start gap-3 fade-in">
+                        <i class="fa-solid fa-business-time text-indigo-600 mt-0.5 text-xs"></i>
+                        <div>
+                            <p class="text-[10px] text-indigo-800 font-bold uppercase leading-tight">MOD KERJA LEBIH MASA</p>
+                            <p class="text-[10px] text-slate-600 leading-tight">Anda mendaftar masuk selepas waktu bekerja rasmi. Rekod ini dikira sebagai Kerja Lebih Masa (OT).</p>
                         </div>
                     </div>
 
@@ -256,11 +274,9 @@
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
 
-    // Konfigurasi Jadual Asas (Fallback berdasarkan gambar JAM)
+    // Konfigurasi Jadual Asas
+    // NOTA PENTING: Waktu masuk/keluar diambil dari Google Sheet (Sheet 'Config').
     let jamConfig = {
-        "GURU": { masuk: "7:50:00 AM", keluar: "1:30:00 PM" },
-        "AKP": { masuk: "8:15:00 AM", keluar: "4:00:00 PM" },
-        "KEBERSIHAN": { masuk: "7:30:00 AM", keluar: "4:00:00 PM" }, // Dianggap PM walaupun gambar tulis AM (typo biasa)
         "PELAWAT": { masuk: "BEBAS", keluar: "BEBAS" }
     };
 
@@ -272,7 +288,7 @@
         startRadar();
         checkSession();
         loadList();
-        fetchConfig(); // Cuba tarik config terkini dari server
+        fetchConfig(); 
         getHijriDate();
         setInterval(triggerAlasanKeluar, 5000);
         setInterval(loadList, 60000);
@@ -282,48 +298,61 @@
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             if(res.status === "SUCCESS") {
-                // Merge data server dengan data sedia ada
                 jamConfig = {...jamConfig, ...res.data};
-                // Update paparan jika pengguna sudah memilih kategori sebelum data sampai
+                // Kemaskini jika kategori sudah dipilih
                 updateTimeDisplay();
             }
         });
     }
 
-    // FUNGSI BARU: Paparkan Waktu Kerja
     function updateTimeDisplay() {
         let kat = document.getElementById('kategori').value;
-        let displayBox = document.getElementById('workingHoursDisplay');
-        let timeInEl = document.getElementById('timeIn');
-        let timeOutEl = document.getElementById('timeOut');
+        let infoBox = document.getElementById('workingHoursInfo');
+        let txtMasuk = document.getElementById('infoMasuk');
+        let txtKeluar = document.getElementById('infoKeluar');
 
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
-            timeInEl.innerText = jamConfig[kat].masuk;
-            timeOutEl.innerText = jamConfig[kat].keluar;
-            displayBox.classList.remove('hidden-el');
-            displayBox.classList.add('fade-in');
+            txtMasuk.innerText = jamConfig[kat].masuk;
+            txtKeluar.innerText = jamConfig[kat].keluar;
+            infoBox.classList.remove('hidden-el');
         } else {
-            displayBox.classList.add('hidden-el');
+            infoBox.classList.add('hidden-el');
         }
     }
 
+    // FUNGSI UTAMA YANG DIUBAH: Logik Lewat vs OT
     function triggerAlasanMasuk() {
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
         let warn = document.getElementById('lateEntryWarning');
+        let otNote = document.getElementById('overtimeNote'); 
         let now = new Date();
 
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            // Jika masuk lebih masa yang ditetapkan
+            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+
+            // 1. Semak jika masuk SELEPAS waktu bekerja tamat (OT)
+            if (limitKeluar && now > limitKeluar) {
+                area.classList.add('hidden-el');
+                warn.classList.add('hidden-el');
+                otNote.classList.remove('hidden-el');
+                return;
+            }
+
+            // 2. Semak jika masuk SELEPAS waktu mula tetapi SEBELUM waktu tamat (Lewat)
             if (limitMasuk && now > limitMasuk) {
                 area.classList.remove('hidden-el');
                 warn.classList.remove('hidden-el');
+                otNote.classList.add('hidden-el');
                 return;
             }
         }
+        
+        // Normal (Tepat masa)
         area.classList.add('hidden-el');
         warn.classList.add('hidden-el');
+        otNote.classList.add('hidden-el');
     }
 
     function triggerAlasanKeluar() {
@@ -353,9 +382,14 @@
 
         if (!nama || !kat) { alert("Sila lengkapkan butiran Nama & Kategori."); return; }
         
-        // Validasi Alasan
+        // Validasi Alasan hanya jika kotak alasan 'visible'
         if (!document.getElementById('alasanMasuk').classList.contains('hidden-el') && alasan.trim() === "") {
             alert("Sila nyatakan alasan kelewatan anda."); return;
+        }
+
+        // Jika OT (kotak alasan hidden), set alasan auto
+        if (document.getElementById('alasanMasuk').classList.contains('hidden-el') && !document.getElementById('overtimeNote').classList.contains('hidden-el')) {
+            alasan = "KERJA LEBIH MASA (OT)";
         }
 
         let btn = document.getElementById('btnMainSubmit');
@@ -497,8 +531,6 @@
             let l = res.data || res; 
             if(!Array.isArray(l)) l = [];
             
-            // FILTER: Buang data jika ia datang dari sheet JAM (baris MASUK/KELUAR)
-            // Kita tapis objek yang mempunyai nama 'MASUK' atau 'KELUAR'
             let filteredList = l.filter(i => {
                 let nama = (i.nama || "").toUpperCase();
                 return nama !== "MASUK" && nama !== "KELUAR";
