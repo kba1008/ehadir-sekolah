@@ -19,11 +19,12 @@
         
         select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
         
-        /* 🔥 PINDAAN: KOTAK ALASAN TERSEMBUNYI SECARA LALAI 🔥 */
+        /* 🔥 ASALNYA TERSEMBUNYI, AKAN MUNCUL GUNA LOGIK MASA 🔥 */
         textarea { 
             resize: vertical; 
             min-height: 80px; 
             display: none; 
+            border: 2px solid #e67e22;
         }
 
         .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -82,7 +83,7 @@
             <span class="user-welcome">👤 <span id="sessionName">--</span></span>
             <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERJAYA DAFTAR MASUK</p>
             
-            <textarea id="alasanKeluar" placeholder="📝 ALASAN BALIK AWAL (JIKA BERKENAAN)"></textarea>
+            <textarea id="alasanKeluar" placeholder="📝 ALASAN BALIK AWAL (WAJIB JIKA AWAL)"></textarea>
             
             <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
@@ -100,7 +101,7 @@
             </select>
             <div id="inputNamaBox"><input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase"></div>
             
-            <textarea id="alasanMasuk" placeholder="📝 ALASAN LEWAT (JIKA BERKENAAN)"></textarea>
+            <textarea id="alasanMasuk" placeholder="📝 ALASAN LEWAT (WAJIB JIKA LEWAT)"></textarea>
 
             <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
         </div>
@@ -124,12 +125,12 @@
             <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
         </div>
         <div id="listContainer" class="list-container">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v34.0</p>
+        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v36.0</p>
     </div>
 
 <script>
     // ===============================================================
-    // 🔧 TETAPAN (KEKALKAN ASAL)
+    // 🔧 TETAPAN (KEKALKAN ASAL ANDA)
     // ===============================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyXACAxTAndTr91GvWM1_idtbkNYK4_aCNfz_rDpsX881nWy7bOMMWUcYPNHxHX-vE/exec'; 
     const NAMA_ATAS = "E-HADIR"; 
@@ -150,22 +151,25 @@
         document.getElementById('tajukUtama').innerText = NAMA_ATAS;
         document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
         startClock(); startRadar(); checkSession(); loadList(); fetchConfig(); getHijriDate();
-        if ("Notification" in window) { Notification.requestPermission(); }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         updateOnlineStatus();
     };
 
-    // 🔥 FUNGSI BARU: URUS VISIBILITI KOTAK ALASAN 🔥
+    // 🔥 LOGIK UTAMA: SEMAK WAKTU TERKINI DARI SHEET JAM 🔥
     function urusAlasan() {
+        if (!jamConfig || Object.keys(jamConfig).length === 0) return;
+
         let now = new Date();
 
-        // 1. Untuk Borang Masuk
+        // 1. Semak untuk Borang Masuk
         let kat = document.getElementById('kategori').value;
         let boxMasuk = document.getElementById('alasanMasuk');
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
-            let limitMasuk = parseTime(jamConfig[kat].masuk);
-            let limitKeluar = parseTime(jamConfig[kat].keluar);
+            let limitMasuk = parseTime(jamConfig[kat].masuk, now);
+            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+            
+            // Tunjuk jika sudah melepasi waktu masuk dan belum waktu balik
             if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
                 boxMasuk.style.display = 'block';
             } else {
@@ -175,11 +179,13 @@
             boxMasuk.style.display = 'none';
         }
 
-        // 2. Untuk Borang Keluar (Dashboard)
+        // 2. Semak untuk Borang Keluar (Dashboard)
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let boxKeluar = document.getElementById('alasanKeluar');
         if (s && jamConfig[s.kategori]) {
-            let limitKeluar = parseTime(jamConfig[s.kategori].keluar);
+            let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
+            
+            // Tunjuk jika waktu sekarang masih awal (sebelum waktu balik)
             if (limitKeluar && now < limitKeluar) {
                 boxKeluar.style.display = 'block';
             } else {
@@ -188,8 +194,21 @@
         }
     }
 
+    function checkKategori() { 
+        let v = document.getElementById('kategori').value; 
+        if(v === 'PELAWAT'){
+            showPelawatForm();
+            document.getElementById('kategori').value = "";
+        } 
+        // Tarik data JAM terbaru setiap kali kategori ditukar
+        fetchConfig(); 
+    }
+
     function hantarMasuk() {
-        if(!isInZone) { alert("⛔ GAGAL: Anda berada di LUAR KAWASAN sekolah."); return; }
+        if(!isInZone) { alert("⛔ GAGAL: Lokasi anda di luar kawasan."); return; }
+        
+        urusAlasan(); // Pastikan status alasan tepat pada saat tekan butang
+        
         let nama = document.getElementById('nama').value.toUpperCase();
         let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
@@ -197,7 +216,7 @@
         if (!nama || !kat) { alert("Sila isi nama & kategori!"); return; }
 
         if (document.getElementById('alasanMasuk').style.display === 'block' && alasan.trim() === "") {
-            alert("⚠️ ANDA LEWAT!\nSila isi sebab kelewatan di kotak alasan.");
+            alert("⚠️ MAAF, ANDA LEWAT!\nSila nyatakan alasan kelewatan sebelum menghantar.");
             document.getElementById('alasanMasuk').focus();
             return;
         }
@@ -218,13 +237,14 @@
     }
 
     function hantarKeluar() {
+        urusAlasan(); 
         if(!confirm("Daftar Keluar sekarang?")) return;
         
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         let alasan = document.getElementById('alasanKeluar').value;
         
         if (document.getElementById('alasanKeluar').style.display === 'block' && alasan.trim() === "") {
-            alert("⚠️ ANDA BALIK AWAL!\nSila isi sebab di kotak alasan.");
+            alert("⚠️ MAAF, ANDA BALIK AWAL!\nSila nyatakan alasan balik awal sebelum menghantar.");
             document.getElementById('alasanKeluar').focus();
             return;
         }
@@ -243,39 +263,35 @@
         });
     }
 
-    // --- FUNGSI LAIN KEKAL SAMA ---
-    function hantarPelawat() {
-        let foto = document.getElementById('base64Foto').value; let tujuan = document.getElementById('tujuan').value;
-        if (!foto) { alert("⚠️ Sila ambil gambar dahulu!"); return; }
-        let payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", fotoBase64: foto, tujuan: tujuan, clientTime: new Date().toISOString(), deviceId: getDeviceId() };
-        let btn = document.getElementById('btnPelawatSubmit'); btn.innerText = "⏳ HANTAR..."; btn.disabled = true;
-        sendData(payload, btn, () => { alert("✅ Pelawat Berjaya Didaftarkan!"); cancelPelawat(); loadList(); });
-    }
-
-    function checkoutVisitor(namaPelawat) {
-        if(!confirm("Daftar keluar untuk " + namaPelawat + "?")) return;
-        let payload = { action:"CHECKOUT_VISITOR", passcode:PASSCODE, nama:namaPelawat };
-        sendData(payload, null, () => { loadList(); });
-    }
-
-    function sendData(payload, btn, onSuccess) {
+    function fetchConfig(){
         if(navigator.onLine) {
-            fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
-            .then(res => res.json()).then(res => { if(btn) { btn.disabled = false; btn.innerText = (payload.action=="KELUAR")?"DAFTAR KELUAR":"DAFTAR MASUK"; } onSuccess(); })
-            .catch(e => { alert("Error Server"); if(btn) btn.disabled=false; });
-        } else {
-            let q = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || []; q.push(payload);
-            localStorage.setItem('ehadir_offline_queue', JSON.stringify(q));
-            alert("⚠️ Offline. Data disimpan."); onSuccess(); 
+            fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_CONFIG",passcode:PASSCODE})})
+            .then(r=>r.json())
+            .then(d=>{
+                jamConfig = d;
+                urusAlasan(); // Kemas kini paparan sebaik sahaja data diterima
+            });
         }
     }
 
+    function startClock(){
+        setInterval(()=>{
+            let n=new Date();
+            document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});
+            document.getElementById('dateDisplay').innerText=n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear();
+            urusAlasan(); // Semak setiap saat supaya kotak alasan muncul tepat pada waktunya
+        },1000);
+    }
+
+    function startRadar(){if(navigator.geolocation){navigator.geolocation.watchPosition(updatePosition,showError,{enableHighAccuracy:true});}else{document.getElementById('statusText').innerText="❌ GPS Error";}}
+    function showError(){document.getElementById('statusText').innerText="❌ Benarkan GPS";}
+    
     function updatePosition(pos) {
         lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
         currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
         let status = document.getElementById('statusText'); let btn = document.getElementById('btnMainSubmit'); let warningBox = document.getElementById('warningBox');
         if(currentDist <= RADIUS_METER) {
-            isInZone = true; status.innerText = "✅ DALAM KAWASAN"; status.style.color = "green"; if(btn) btn.disabled = false; warningBox.style.display = "none";
+            isInZone = true; status.innerText = "✅ DALAM KAWASAN SEKOLAH"; status.style.color = "green"; if(btn) btn.disabled = false; warningBox.style.display = "none";
         } else {
             isInZone = false; status.innerText = "🚫 LUAR KAWASAN ("+Math.round(currentDist)+"m)"; status.style.color = "red"; 
             if(btn) btn.disabled = true; 
@@ -288,16 +304,22 @@
         }
     }
 
-    function checkKategori() { 
-        let v=document.getElementById('kategori').value; 
-        if(v==='PELAWAT'){showPelawatForm();document.getElementById('kategori').value="";} 
-        urusAlasan(); // Panggil logik alasan
+    function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
+    
+    function parseTime(t,ref){
+        if(!t || t === "BEBAS") return null;
+        let d = new Date(ref || new Date());
+        let p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
+        if (p) {
+            let h = parseInt(p[1]), m = parseInt(p[2]);
+            if (p[3].toUpperCase() == "PM" && h < 12) h += 12;
+            if (p[3].toUpperCase() == "AM" && h == 12) h = 0;
+            d.setHours(h, m, 0, 0);
+            return d;
+        }
+        return null;
     }
-    
-    function showPelawatForm() { document.getElementById('dashboardPanel').style.display='none'; document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; document.getElementById('base64Foto').value=""; document.getElementById('previewImg').style.display='none'; document.getElementById('tujuan').value=""; }
-    function cancelPelawat() { document.getElementById('pelawatPanel').style.display='none'; checkSession(); }
-    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let m=new Image();m.src=e.target.result;m.onload=function(){let c=document.createElement("canvas");let x=c.getContext("2d");let max=800;let w=m.width,h=m.height;if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}c.width=w;c.height=h;x.drawImage(m,0,0,w,h);let d=c.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=d;}};r.readAsDataURL(i.files[0]);}}
-    
+
     function checkSession() { 
         let s=JSON.parse(localStorage.getItem('ehadir_session')); 
         let t=new Date().toISOString().slice(0,10); 
@@ -306,37 +328,21 @@
             document.getElementById('dashboardPanel').style.display='block';
             document.getElementById('sessionName').innerText=s.nama;
             currentUser=s.nama;
-        } else {
-            document.getElementById('defaultForm').style.display='block';
-            document.getElementById('dashboardPanel').style.display='none';
         }
-        document.getElementById('pelawatPanel').style.display='none'; 
-        urusAlasan(); // Panggil logik alasan
+        urusAlasan();
     }
 
-    function loadList(){if(!navigator.onLine)return;fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSCODE})}).then(r=>r.json()).then(l=>{document.getElementById('count').innerText=l.length;let h="";l.forEach(i=>{let c=i.kategori==='GURU'?'#3498db':(i.kategori==='PELAWAT'?'#e74c3c':'#f1c40f');let a='<div class="action-group">';if(i.foto&&i.foto.length>20&&!i.foto.includes("RALAT")){a+=`<button class="btn-icon btn-img" onclick="openImage('${i.foto}')">🖼️</button>`;}if(i.kategori==='PELAWAT'){a+=`<button class="btn-icon btn-x" onclick="checkoutVisitor('${i.nama}')">❌</button>`;}a+='</div>';h+=`<div class="user-card" style="border-left:5px solid ${c}"><div class="user-info"><strong>${i.nama}</strong><span class="badge" style="background:${c}">${i.kategori}</span></div>${a}</div>`;});document.getElementById('listContainer').innerHTML=h;});}
-    function openImage(u){if(!u||u==="TIADA"||u.includes("RALAT")){alert("Tiada gambar.");return;}let f=u+"&t="+new Date().getTime();document.getElementById('modalImg').src=f;document.getElementById('imageModal').style.display='flex';}
-    function closeImage(){document.getElementById('imageModal').style.display='none';document.getElementById('modalImg').src="";}
-    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){document.getElementById('hijriDisplay').innerText="🌙 --";}}
+    function loadList(){if(!navigator.onLine)return;fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSCODE})}).then(r=>r.json()).then(l=>{document.getElementById('count').innerText=l.length;let h="";l.forEach(i=>{let c=i.kategori==='GURU'?'#3498db':(i.kategori==='PELAWAT'?'#e74c3c':'#f1c40f');let a='<div class="action-group">';if(i.foto&&i.foto.length>20){a+=`<button class="btn-icon btn-img" onclick="openImage('${i.foto}')">🖼️</button>`;}if(i.kategori==='PELAWAT'){a+=`<button class="btn-icon btn-x" onclick="checkoutVisitor('${i.nama}')">❌</button>`;}a+='</div>';h+=`<div class="user-card" style="border-left:5px solid ${c}"><div class="user-info"><strong>${i.nama}</strong><span class="badge" style="background:${c}">${i.kategori}</span></div>${a}</div>`;});document.getElementById('listContainer').innerHTML=h;});}
+    function openImage(u){document.getElementById('modalImg').src=u;document.getElementById('imageModal').style.display='flex';}
+    function closeImage(){document.getElementById('imageModal').style.display='none';}
+    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){}}
     function getDeviceId(){let i=localStorage.getItem('ehadir_device_id');if(!i){i='DEV-'+Math.random().toString(36).substr(2,9).toUpperCase();localStorage.setItem('ehadir_device_id',i);}return i;}
-    
-    function startClock(){
-        setInterval(()=>{
-            let n=new Date();
-            document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});
-            document.getElementById('dateDisplay').innerText=n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear();
-            urusAlasan(); // Sentiasa semak waktu untuk alasan
-        },1000);
-    }
-
-    function startRadar(){if(navigator.geolocation){navigator.geolocation.watchPosition(updatePosition,showError,{enableHighAccuracy:true});}else{document.getElementById('statusText').innerText="❌ GPS Error";}}
-    function showError(){document.getElementById('statusText').innerText="❌ Benarkan GPS";}
-    function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
-    function fetchConfig(){if(navigator.onLine)fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_CONFIG",passcode:PASSCODE})}).then(r=>r.json()).then(d=>{jamConfig=d;});}
+    function sendData(p,b,s){fetch(API_URL,{method:"POST",body:JSON.stringify(p)}).then(r=>r.json()).then(r=>{if(b){b.disabled=false;}s();});}
     function resetSesi(){if(confirm("Reset?")){localStorage.removeItem('ehadir_session');location.reload();}}
-    function parseTime(t,r){if(!t)return null;var d=new Date(r||new Date());var p=t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);if(p){var h=parseInt(p[1]),m=parseInt(p[2]);if(p[3].toUpperCase()=="PM"&&h<12)h+=12;if(p[3].toUpperCase()=="AM"&&h==12)h=0;d.setHours(h,m,0,0);return d;}return null;}
-    function updateOnlineStatus(){if(navigator.onLine){document.getElementById('connectionStatus').style.display="none";syncOfflineData();}else{document.getElementById('connectionStatus').innerText="📡 TIADA INTERNET - MODE OFFLINE";document.getElementById('connectionStatus').className="status-offline";document.getElementById('connectionStatus').style.display="block";}}
-    function syncOfflineData(){if(offlineQueue.length===0)return;document.getElementById('connectionStatus').innerText="Syncing...";document.getElementById('connectionStatus').style.display="block";let i=offlineQueue[0];fetch(API_URL,{method:"POST",body:JSON.stringify(i)}).then(r=>r.json()).then(r=>{offlineQueue.shift();localStorage.setItem('ehadir_offline_queue',JSON.stringify(offlineQueue));if(offlineQueue.length>0)syncOfflineData();else{document.getElementById('connectionStatus').style.display="none";loadList();}});}
+    function showPelawatForm() { document.getElementById('dashboardPanel').style.display='none'; document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
+    function cancelPelawat() { document.getElementById('pelawatPanel').style.display='none'; checkSession(); }
+    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){document.getElementById('previewImg').src=e.target.result;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=e.target.result;};r.readAsDataURL(i.files[0]);}}
+    function updateOnlineStatus(){if(navigator.onLine){document.getElementById('connectionStatus').style.display="none";}else{document.getElementById('connectionStatus').innerText="📡 MOD OFFLINE AKTIF";document.getElementById('connectionStatus').style.display="block";}}
 </script>
 </body>
 </html>
