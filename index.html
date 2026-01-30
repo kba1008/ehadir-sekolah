@@ -17,6 +17,14 @@
         .title-box { margin-bottom: 25px; }
         h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
         
+        /* Kotak Notifikasi Jadual Baru */
+        #scheduleNotice { 
+            background: #fff3e0; border: 2px solid #ff9800; border-radius: 12px; 
+            padding: 10px; margin-bottom: 15px; font-size: 13px; color: #e65100; 
+            display: none; text-align: left; line-height: 1.4;
+        }
+        .live-clock-small { font-weight: 800; color: #d84315; }
+
         select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
         textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e67e22; }
 
@@ -24,7 +32,6 @@
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .btn-keluar { background: #c0392b; }
         .btn-pelawat { background: #27ae60; margin-top: 15px; } 
-        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
         
         #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
         .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 5px; display: block;}
@@ -32,31 +39,19 @@
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
         .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
-        .cam-icon { font-size: 24px; margin-bottom: 5px; }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .list-container { text-align: left; margin-top: 10px; max-height: 250px; overflow-y: auto; }
-        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .badge { padding: 3px 8px; border-radius: 10px; font-size: 10px; color: white; font-weight: bold; margin-left: 5px; }
+        .list-container { text-align: left; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; }
         
-        #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; flex-direction: column; }
-        #modalImg { max-width: 95%; max-height: 70vh; border: 3px solid white; border-radius: 8px; object-fit: contain; }
-        
-        #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
         
-        /* Label Versi Bawah */
         .version-label { font-size: 11px; color: #bdc3c7; margin-top: 25px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
-
-    <div id="imageModal" onclick="if(event.target.id=='imageModal') closeImage()">
-        <img id="modalImg" src="">
-        <button style="margin-top:20px; padding:10px 20px;" onclick="closeImage()">TUTUP ❌</button>
-    </div>
 
     <div id="warningBox">⚠️ AMARAN: SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
@@ -64,9 +59,23 @@
         <div id="connectionStatus"></div>
         <div class="info-bar">
             <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
-            <div class="hijri-date" id="hijriDisplay">🌙 Memuatkan...</div>
+            <div class="hijri-date" id="hijriDisplay">🌙 Loading...</div>
         </div>
-        <div class="title-box"><h1 id="tajukUtama">...</h1><h2 id="tajukKecil">...</h2></div>
+        
+        <div class="title-box">
+            <h1 id="tajukUtama">E-HADIR</h1>
+            <h2 id="tajukKecil">SK SELAMA (K)</h2>
+        </div>
+
+        <div id="scheduleNotice">
+            <div><strong>🕒 MASA SEKARANG:</strong> <span id="liveTimeNotice" class="live-clock-small">--:--:--</span></div>
+            <div><strong>📅 JADUAL <span id="katNotice">--</span>:</strong></div>
+            <div style="margin-left: 10px;">
+                • Masuk: <span id="masukNotice">--</span><br>
+                • Keluar: <span id="keluarNotice">--</span>
+            </div>
+        </div>
+
         <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px;">📡 Mencari Lokasi...</div>
 
         <div id="dashboardPanel">
@@ -85,7 +94,7 @@
                 <option value="KEBERSIHAN">KEBERSIHAN</option>
                 <option value="PELAWAT">👤 PELAWAT</option>
             </select>
-            <input type="text" id="nama" placeholder="NAMA PENUH" style="text-transform:uppercase">
+            <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
             <textarea id="alasanMasuk" placeholder="📝 SEBAB DATANG LEWAT (WAJIB)"></textarea>
             <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
         </div>
@@ -94,13 +103,12 @@
             <h3 style="color:#27ae60; margin:0;">📸 PELAWAT</h3>
             <input type="text" id="tujuan" placeholder="TUJUAN" style="text-transform:uppercase;">
             <div class="cam-grid">
-                <label class="cam-btn">📸 PLAT KENDERAAN<input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)"></label>
-                <label class="cam-btn" style="background:#e67e22;">🤳 SWAFOTO<input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)"></label>
+                <label class="cam-btn">📸 AMBIL GAMBAR<input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)"></label>
             </div>
             <img id="previewImg">
             <input type="hidden" id="base64Foto">
             <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR</button>
-            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
+            <button class="btn btn-cancel" onclick="cancelPelawat()" style="background:#7f8c8d; color:white; border:none; padding:10px; width:100%; border-radius:10px; margin-top:5px;">BATAL</button>
         </div>
 
         <div class="list-header">
@@ -109,11 +117,11 @@
         </div>
         <div id="listContainer" class="list-container">Memuatkan...</div>
         
-        <div class="version-label" onclick="resetSesi()">E-HADIR SYSTEM VERSI V4.0</div>
+        <div class="version-label" onclick="resetSesi()">E-HADIR SYSTEM VERSI V5.0</div>
     </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyXACAxTAndTr91GvWM1_idtbkNYK4_aCNfz_rDpsX881nWy7bOMMWUcYPNHxHX-vE/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbypJ0Zdtknm9CEpTf6kE3P5Wc8JoAveab_iVMJ7-iHeKiSKrvh4sFuDWrwx4VUQPf0s/exec'; 
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
@@ -124,46 +132,66 @@
     let lastLat = 0, lastLng = 0;
 
     window.onload = function() {
-        document.getElementById('tajukUtama').innerText = "E-HADIR";
-        document.getElementById('tajukKecil').innerText = "SK SELAMA (K)";
         startClock(); startRadar(); checkSession(); loadList(); fetchConfig(); getHijriDate();
     };
 
-    // 🔥 SEMAK JADUAL DARI SHEET JAM 🔥
     function fetchConfig(){
         fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_CONFIG",passcode:PASSCODE})})
-        .then(r=>r.json()).then(d=>{ jamConfig = d; urusAlasan(); });
+        .then(r=>r.json()).then(d=>{ 
+            jamConfig = d; 
+            urusAlasan(); 
+        });
     }
 
+    // 🔥 FUNGSI UTAMA KEMAS KINI NOTIFIKASI JADUAL & ALASAN 🔥
     function urusAlasan() {
         if (!jamConfig || Object.keys(jamConfig).length === 0) return;
+        
         let now = new Date();
-        let kat = document.getElementById('kategori').value;
+        let currentCat = "";
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
-
-        // Semak Lewat (Masuk)
-        let boxMasuk = document.getElementById('alasanMasuk');
-        if (kat && jamConfig[kat] && kat !== "PELAWAT") {
-            let tMasuk = parseTime(jamConfig[kat].masuk, now);
-            if (tMasuk && now > tMasuk) boxMasuk.style.display = 'block';
-            else boxMasuk.style.display = 'none';
+        
+        // Kenalpasti kategori aktif
+        if (session) {
+            currentCat = session.kategori;
+        } else {
+            currentCat = document.getElementById('kategori').value;
         }
 
-        // Semak Balik Awal (Keluar)
+        let noticeBox = document.getElementById('scheduleNotice');
+        let boxMasuk = document.getElementById('alasanMasuk');
         let boxKeluar = document.getElementById('alasanKeluar');
-        if (session && jamConfig[session.kategori]) {
-            let tKeluar = parseTime(jamConfig[session.kategori].keluar, now);
-            if (tKeluar && now < tKeluar) boxKeluar.style.display = 'block';
+
+        if (currentCat && jamConfig[currentCat] && currentCat !== "PELAWAT") {
+            // Kemaskini Paparan Kotak Notifikasi
+            noticeBox.style.display = 'block';
+            document.getElementById('katNotice').innerText = currentCat;
+            document.getElementById('masukNotice').innerText = jamConfig[currentCat].masuk;
+            document.getElementById('keluarNotice').innerText = jamConfig[currentCat].keluar;
+            document.getElementById('liveTimeNotice').innerText = now.toLocaleTimeString('en-GB');
+
+            let tMasuk = parseTime(jamConfig[currentCat].masuk, now);
+            let tKeluar = parseTime(jamConfig[currentCat].keluar, now);
+
+            // Logik Tampil Alasan Masuk (Lewat)
+            if (tMasuk && now > tMasuk && !session) boxMasuk.style.display = 'block';
+            else boxMasuk.style.display = 'none';
+
+            // Logik Tampil Alasan Keluar (Balik Awal)
+            if (tKeluar && now < tKeluar && session) boxKeluar.style.display = 'block';
             else boxKeluar.style.display = 'none';
+        } else {
+            noticeBox.style.display = 'none';
         }
     }
 
     function checkKategori() {
-        if(document.getElementById('kategori').value === 'PELAWAT') showPelawatForm();
-        fetchConfig(); // Refresh data jam dari sheet setiap kali tukar kategori
+        if(document.getElementById('kategori').value === 'PELAWAT') {
+            showPelawatForm();
+        }
+        urusAlasan();
     }
 
-    // 🔥 KAWALAN GPS & WAKTU BERTUGAS 🔥
     function updatePosition(pos) {
         lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
         let dist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
@@ -182,15 +210,12 @@
                 let tMasuk = parseTime(jamConfig[session.kategori].masuk, now);
                 let tKeluar = parseTime(jamConfig[session.kategori].keluar, now);
 
-                // Jika jam bekerja tapi berada jauh > 1km
                 if (tMasuk && tKeluar && now > tMasuk && now < tKeluar) {
                     warning.style.display = "block";
-                    warning.innerText = "⚠️ ANDA JAUH DARI SEKOLAH! SILA PULANG KE TEMPAT KERJA.";
-                } 
-                // Jika sudah tamat waktu bekerja tapi belum daftar keluar (Lupa)
-                else if (tKeluar && now > tKeluar) {
+                    warning.innerText = "⚠️ ANDA JAUH! SILA PULANG KE SEKOLAH SEGERA.";
+                } else if (tKeluar && now > tKeluar) {
                     warning.style.display = "block";
-                    warning.innerHTML = `⚠️ WAKTU KERJA TAMAT.<br>SILA <u onclick="hantarKeluar()" style="cursor:pointer">DAFTAR KELUAR</u> SEKARANG.`;
+                    warning.innerHTML = `⚠️ WAKTU KERJA TAMAT. SILA <u onclick="hantarKeluar()" style="cursor:pointer">DAFTAR KELUAR</u> SEKARANG.`;
                 }
             }
         }
@@ -198,7 +223,6 @@
 
     function hantarMasuk() {
         if(!isInZone) { alert("GAGAL: Anda di luar kawasan sekolah!"); return; }
-        urusAlasan();
         let nama = document.getElementById('nama').value.toUpperCase();
         let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
@@ -218,19 +242,16 @@
     function hantarKeluar() {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         let alasan = document.getElementById('alasanKeluar').value;
-        urusAlasan();
-
         if (document.getElementById('alasanKeluar').style.display === 'block' && !alasan) {
-            alert("Nota: Anda balik awal. Sila isi alasan."); return;
+            alert("Nota: Anda balik awal. Sila nyatakan alasan."); return;
         }
-
         let payload = { action:"KELUAR", passcode:PASSCODE, nama:session.nama, alasan:alasan, lat:lastLat, lng:lastLng, clientTime:new Date().toISOString() };
         sendData(payload, document.getElementById('btnKeluar'), () => {
             alert("Berjaya Daftar Keluar!"); localStorage.removeItem('ehadir_session'); location.reload();
         });
     }
 
-    // --- FUNGSI SOKONGAN ---
+    // --- FUNGSI TOOLS ---
     function parseTime(t,ref){
         if(!t || t === "BEBAS") return null;
         let d = new Date(ref);
@@ -247,13 +268,13 @@
         let n=new Date();
         document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});
         document.getElementById('dateDisplay').innerText=n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear();
-        urusAlasan(); 
+        urusAlasan(); // Sentiasa kemaskini notifikasi setiap saat
     },1000); }
     function startRadar(){ if(navigator.geolocation) navigator.geolocation.watchPosition(updatePosition,()=>{},{enableHighAccuracy:true}); }
     function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
     function checkSession(){ let s=JSON.parse(localStorage.getItem('ehadir_session')); if(s && s.date===new Date().toISOString().slice(0,10)){ document.getElementById('defaultForm').style.display='none'; document.getElementById('dashboardPanel').style.display='block'; document.getElementById('sessionName').innerText=s.nama; } }
     function sendData(p,b,s){ b.disabled=true; fetch(API_URL,{method:"POST",body:JSON.stringify(p)}).then(r=>r.json()).then(()=>{b.disabled=false; s();}); }
-    function loadList(){ fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSCODE})}).then(r=>r.json()).then(l=>{ document.getElementById('count').innerText=l.length; let h=""; l.forEach(i=>{ h+=`<div class="user-card"><span>${i.nama} <span class="badge" style="background:#3498db">${i.kategori}</span></span></div>`; }); document.getElementById('listContainer').innerHTML=h; }); }
+    function loadList(){ fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSCODE})}).then(r=>r.json()).then(l=>{ document.getElementById('count').innerText=l.length; let h=""; l.forEach(i=>{ h+=`<div class="user-card"><span>${i.nama} [${i.kategori}]</span></div>`; }); document.getElementById('listContainer').innerHTML=h; }); }
     function getHijriDate(){ try{ let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'}; document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(new Date()).replace('AH','').trim()}`;}catch(e){}}
     function resetSesi(){ if(confirm("Reset Sesi?")) { localStorage.clear(); location.reload(); } }
     function showPelawatForm(){ document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
