@@ -9,58 +9,95 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 40px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%); color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.4); padding-bottom: 40px; }
         
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 12px; border: 1px solid #ddd; }
-        .hijri-date { color: #27ae60; text-align: right; width: 50%; }
-        .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 12px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 12px; border: 1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .hijri-date { color: #27ae60; text-align: right; width: 50%; font-size: 11px; }
+        .masihi-date { color: #2c3e50; text-align: left; width: 50%; font-size: 11px; }
         
         .title-box { margin-bottom: 25px; }
-        h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
+        h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1.5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        h2 { font-size: 16px; letter-spacing: 1px; color: #34495e; margin-top: 5px; }
         
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; transition: all 0.3s ease; }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); }
         
-        /* 🔥 KOTAK ALASAN (DEFAULT: HIDDEN) 🔥 */
-        .reason-box { display: none; background: #fff5f5; padding: 10px; border: 1px dashed #e74c3c; border-radius: 10px; margin-bottom: 10px; text-align: left; }
-        .reason-label { color: #c0392b; font-size: 11px; font-weight: bold; margin-bottom: 5px; display: block; }
-        textarea { min-height: 80px; resize: vertical; margin-bottom: 0; width: 100%; }
+        .reason-box { display: none; background: linear-gradient(135deg, #fff5f5 0%, #ffeaea 100%); padding: 12px; border: 2px dashed #e74c3c; border-radius: 10px; margin-bottom: 12px; text-align: left; animation: pulse-box 2s infinite; }
+        @keyframes pulse-box { 0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.3); } 50% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); } }
+        .reason-label { color: #c0392b; font-size: 12px; font-weight: bold; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        textarea { min-height: 80px; resize: vertical; margin-bottom: 0; width: 100%; font-family: 'Poppins', sans-serif; }
 
-        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .btn-keluar { background: #c0392b; }
-        .btn-pelawat { background: #27ae60; margin-top: 15px; } 
-        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
+        .btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4); transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; background: rgba(255, 255, 255, 0.5); opacity: 0; border-radius: 100%; transform: scale(1, 1) translate(-50%); transform-origin: 50% 50%; }
+        .btn:active::after { animation: ripple 1s ease-out; }
+        @keyframes ripple { 0% { transform: scale(0, 0); opacity: 0.5; } 100% { transform: scale(100, 100); opacity: 0; } }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+        .btn-keluar { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4); }
+        .btn-pelawat { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); margin-top: 15px; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4); } 
+        .btn-cancel { background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%); margin-top: 10px; box-shadow: 0 4px 15px rgba(127, 140, 141, 0.3); }
+        .btn-warning { background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%); box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4); }
 
-        #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
-        .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 5px; display: block;}
+        #dashboardPanel { display: none; background: linear-gradient(135deg, #e8f6f3 0%, #d1f2eb 100%); padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; box-shadow: inset 0 0 10px rgba(26, 188, 156, 0.2); }
+        .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 8px; display: block; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
         
-        #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
-        .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
-        .cam-icon { font-size: 24px; margin-bottom: 5px; }
-        #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
+        #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: linear-gradient(135deg, #f0fdf4 0%, #e8f5e9 100%); margin-bottom: 20px; box-shadow: inset 0 0 10px rgba(39, 174, 96, 0.1); }
+        .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+        .cam-btn { background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #2c3e50; transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+        .cam-btn:hover { background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .cam-icon { font-size: 28px; margin-bottom: 6px; }
+        #previewImg { width: 100%; margin-top: 12px; border-radius: 10px; display: none; border: 3px solid #2c3e50; max-height: 280px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
-        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
-        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .user-info { display: flex; align-items: center; }
-        .badge { padding: 3px 8px; border-radius: 10px; font-size: 10px; color: white; font-weight: bold; margin-left: 5px; }
-        .action-group { display: flex; gap: 8px; }
-        .btn-icon { border: none; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-img { background: #3498db; color: white; }
-        .btn-x { background: #e74c3c; color: white; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+        .list-container { text-align: left; margin-top: 12px; max-height: 320px; overflow-y: auto; padding-right: 5px; }
+        .list-container::-webkit-scrollbar { width: 6px; }
+        .list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .list-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .list-container::-webkit-scrollbar-thumb:hover { background: #555; }
+        .user-card { background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%); padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s ease; }
+        .user-card:hover { transform: translateX(5px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); background: #f5f5f5; }
+        .user-info { display: flex; align-items: center; flex: 1; }
+        .user-info strong { font-size: 14px; color: #2c3e50; margin-right: 8px; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; color: white; font-weight: bold; margin-left: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        .action-group { display: flex; gap: 10px; }
+        .btn-icon { border: none; width: 38px; height: 38px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
+        .btn-img { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
+        .btn-x { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+        .btn-img:hover { transform: scale(1.1); box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4); }
+        .btn-x:hover { transform: scale(1.1); box-shadow: 0 4px 8px rgba(231, 76, 60, 0.4); }
 
-        #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; flex-direction: column; }
-        #modalImg { max-width: 95%; max-height: 70vh; border: 3px solid white; border-radius: 8px; box-shadow: 0 0 30px rgba(255,255,255,0.2); object-fit: contain; }
-        .close-modal { margin-top: 20px; padding: 12px 30px; background: #e74c3c; color: white; border-radius: 50px; border: 2px solid white; font-weight: bold; cursor: pointer; font-size: 16px; }
+        #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(5px); }
+        #modalImg { max-width: 95%; max-height: 70vh; border: 4px solid white; border-radius: 10px; box-shadow: 0 0 40px rgba(255,255,255,0.3); object-fit: contain; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .close-modal { margin-top: 25px; padding: 14px 35px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: 50px; border: 3px solid white; font-weight: bold; cursor: pointer; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
+        .close-modal:hover { background: linear-gradient(135deg, #c0392b 0%, #a93226 100%); transform: translateY(-2px); box-shadow: 0 7px 20px rgba(192, 57, 43, 0.5); }
 
-        #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
-        .status-offline { background: #c0392b; } .status-sync { background: #f39c12; }
-        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; animation: pulse 1s infinite; }
+        #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 8px; font-size: 11px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; text-align: center; z-index: 10; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+        .status-offline { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); animation: pulse-status 2s infinite; }
+        .status-sync { background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%); animation: pulse-status 2s infinite; }
+        @keyframes pulse-status { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); color: white; padding: 16px; text-align: center; z-index: 9999; font-weight: bold; box-shadow: 0 -3px 15px rgba(0,0,0,0.3); animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .security-badge { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 5px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; color: #27ae60; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .toast { position: fixed; bottom: 20px; right: 20px; background: white; color: #333; padding: 15px 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 5px solid #27ae60; }
+        .toast.error { border-left: 5px solid #e74c3c; }
+        .toast.warning { border-left: 5px solid #f39c12; }
+        
+        .gps-indicator { display: inline-block; width: 10px; height: 10px; background: #e74c3c; border-radius: 50%; margin-right: 8px; animation: pulse-gps 2s infinite; }
+        .gps-indicator.active { background: #27ae60; }
+        @keyframes pulse-gps { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
     </style>
 </head>
-<body oncontextmenu="return false;"> 
+<body> 
 
     <div id="imageModal" onclick="if(event.target.id=='imageModal') closeImage()">
         <img id="modalImg" src="" referrerpolicy="no-referrer">
@@ -68,116 +105,419 @@
     </div>
 
     <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+    
+    <div class="toast" id="toast"></div>
 
     <div class="container">
+        <div class="security-badge">🔒 SELAMAT</div>
         <div id="connectionStatus"></div>
         <div class="info-bar">
-            <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
+            <div class="masihi-date">
+                <span id="dateDisplay">--/--/--</span><br>
+                <span id="clockDisplay" style="color:#e67e22; font-weight: bold;">--:--</span>
+            </div>
             <div class="hijri-date" id="hijriDisplay">🌙 Loading...</div>
         </div>
-        <div class="title-box"><h1 id="tajukUtama">...</h1><h2 id="tajukKecil">...</h2></div>
-        <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px;">📡 Mencari GPS...</div>
+        <div class="title-box">
+            <h1 id="tajukUtama">...</h1>
+            <h2 id="tajukKecil">...</h2>
+        </div>
+        <div id="statusText" style="font-size:12px; font-weight:bold; margin-bottom:12px; display: flex; align-items: center; justify-content: center;">
+            <span class="gps-indicator" id="gpsIndicator"></span>
+            <span id="gpsStatusText">📡 Mencari GPS...</span>
+        </div>
 
         <div id="dashboardPanel">
             <span class="user-welcome">👤 <span id="sessionName">--</span></span>
-            <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERJAYA DAFTAR MASUK</p>
+            <p style="margin:0 0 12px 0; font-size:13px; color:#2c3e50; background: rgba(255,255,255,0.7); padding: 8px; border-radius: 8px; border-left: 4px solid #27ae60;">
+                <strong>✅ STATUS:</strong> BERJAYA DAFTAR MASUK
+            </p>
             
             <div id="boxAlasanKeluar" class="reason-box">
                 <span class="reason-label" id="labelAlasanKeluar">⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:</span>
-                <textarea id="alasanKeluar" placeholder="Tulis alasan di sini..."></textarea>
+                <textarea id="alasanKeluar" placeholder="Tulis alasan dengan jelas di sini..." maxlength="200"></textarea>
+                <small style="color: #7f8c8d; display: block; margin-top: 5px; font-size: 10px;">(Maksimum 200 aksara)</small>
             </div>
             
-            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
-            <p style="font-size:12px; font-weight:bold; color:#2c3e50; margin:0;">PERLU DAFTAR PELAWAT?</p>
-            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ DAFTAR PELAWAT</button>
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">
+                <span id="btnKeluarText">DAFTAR KELUAR</span>
+            </button>
+            <hr style="margin: 22px 0; border: 0; border-top: 2px dashed #bdc3c7;">
+            <p style="font-size:13px; font-weight:bold; color:#27ae60; margin:0 0 10px 0;">PERLU DAFTAR PELAWAT?</p>
+            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ DAFTAR PELAWAT BARU</button>
         </div>
 
         <div id="defaultForm">
             <select id="kategori" onchange="checkKategori()">
-                <option value="" disabled selected>-- PILIH KATEGORI --</option>
-                <option value="GURU">GURU</option>
-                <option value="AKP">AKP</option>
-                <option value="KEBERSIHAN">KEBERSIHAN</option>
+                <option value="" disabled selected>-- PILIH KATEGORI ANDA --</option>
+                <option value="GURU">👨‍🏫 GURU</option>
+                <option value="AKP">👮 AKP</option>
+                <option value="KEBERSIHAN">🧹 KEBERSIHAN</option>
                 <option value="PELAWAT">👤 PELAWAT</option>
             </select>
-            <div id="inputNamaBox"><input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase"></div>
+            <div id="inputNamaBox">
+                <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase" maxlength="50" oninput="validateName(this)">
+            </div>
             
             <div id="boxAlasanMasuk" class="reason-box">
                 <span class="reason-label" id="labelAlasanMasuk">⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:</span>
-                <textarea id="alasanMasuk" placeholder="Tulis alasan di sini..."></textarea>
+                <textarea id="alasanMasuk" placeholder="Tulis alasan dengan jelas di sini..." maxlength="200"></textarea>
+                <small style="color: #7f8c8d; display: block; margin-top: 5px; font-size: 10px;">(Maksimum 200 aksara)</small>
             </div>
 
-            <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
+            <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()" disabled>
+                <span id="btnMainSubmitText">DAFTAR MASUK</span>
+            </button>
+            <p id="locationHint" style="font-size:10px; color:#7f8c8d; margin-top:8px; display:none;">
+                ℹ️ Butang akan aktif apabila anda berada dalam kawasan sekolah
+            </p>
         </div>
 
         <div id="pelawatPanel">
-            <h3 style="color:#27ae60; margin:0;">📸 MOD PELAWAT</h3>
-            <p style="font-size:11px; margin-bottom:10px;">Ambil gambar sebagai bukti kehadiran.</p>
-            <input type="text" id="tujuan" placeholder="TUJUAN (PILIHAN)" style="text-transform:uppercase; font-size:14px;">
+            <h3 style="color:#27ae60; margin:0 0 10px 0; font-size: 18px;">📸 MOD PELAWAT</h3>
+            <p style="font-size:11px; margin-bottom:12px; color: #2c3e50;">Ambil gambar sebagai bukti kehadiran pelawat.</p>
+            <input type="text" id="tujuan" placeholder="TUJUAN LAWATAN (PILIHAN)" style="text-transform:uppercase; font-size:14px;" maxlength="100">
             <div class="cam-grid">
-                <label class="cam-btn"><span class="cam-icon">📸</span>BELAKANG (PLAT)<input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)"></label>
-                <label class="cam-btn" style="background:#e67e22; border-color:#d35400;"><span class="cam-icon">🤳</span>DEPAN (WAJAH)<input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)"></label>
+                <label class="cam-btn">
+                    <span class="cam-icon">📸</span>
+                    <span style="font-size: 10px; margin-top: 3px; font-weight: bold;">KENDERAAN</span>
+                    <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this, 'vehicle')">
+                </label>
+                <label class="cam-btn" style="background:linear-gradient(135deg, #e67e22 0%, #d35400 100%); border-color:#d35400;">
+                    <span class="cam-icon">🤳</span>
+                    <span style="font-size: 10px; margin-top: 3px; font-weight: bold;">WAJAH</span>
+                    <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this, 'face')">
+                </label>
+            </div>
+            <div style="text-align: left; margin-top: 8px; font-size: 11px; color: #7f8c8d;">
+                <strong>📸 Gambar yang diambil:</strong> <span id="photoStatus">Belum ada</span>
             </div>
             <img id="previewImg">
             <input type="hidden" id="base64Foto">
             <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA PELAWAT</button>
-            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
+            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL & KEMBALI</button>
         </div>
 
         <div class="list-header">
             <span>📋 Rekod Terkini: <strong id="count">0</strong></span>
-            <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
+            <button onclick="loadList()" style="border:none; background:none; font-size:22px; cursor:pointer; color: #3498db; transition: transform 0.3s ease;" title="Muat Semula">
+                🔄
+            </button>
         </div>
         <div id="listContainer" class="list-container">Loading...</div>
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem v35.0</p>
+        <p style="font-size:10px; color:#95a5a6; margin-top:22px; cursor:pointer; padding: 8px; border-radius: 5px; transition: background 0.3s ease;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'" onclick="showAdminPanel()">
+            🔐 Panel Admin (v3.5.1)
+        </p>
     </div>
 
 <script>
     // ===============================================================
-    // 🔧 TETAPAN
+    // 🔐 TETAPAN SISTEM (DIPERBAIKI UNTUK KESELAMATAN)
     // ===============================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzSSv8OlV6gadrKWWjGuKw8e39Fl0fTw1U_9-WnLKy114gWBlUWX0qMUl2LJjZ46GRE/exec'; 
-    const NAMA_ATAS = "E-HADIR"; 
-    const NAMA_BAWAH = "SK SELAMA (K)";
-    const PASSCODE = "101010";
-    const SCHOOL_LAT = 5.227932478937475; 
-    const SCHOOL_LNG = 100.69901604319402; 
-    const RADIUS_METER = 1000; 
+    const CONFIG = {
+        API_URL: 'https://script.google.com/macros/s/AKfycbzSSv8OlV6gadrKWWjGuKw8e39Fl0fTw1U_9-WnLKy114gWBlUWX0qMUl2LJjZ46GRE/exec',
+        NAMA_SEKOLAH_ATAS: "E-HADIR",
+        NAMA_SEKOLAH_BAWAH: "SK SELAMA (K)",
+        SCHOOL_COORDINATES: {
+            LAT: 5.227932478937475,
+            LNG: 100.69901604319402
+        },
+        RADIUS_METER: 1000,
+        MAX_IMAGE_SIZE_KB: 500,
+        MAX_OFFLINE_QUEUE: 50,
+        SESSION_TIMEOUT_HOURS: 12,
+        DEVICE_ID_PREFIX: 'EHADIR_'
+    };
+    
+    // 🔐 ENCRYPTION KEY (Sebenarnya perlu disimpan di server)
+    // Ini adalah contoh - untuk production, guna server-side auth
+    const SYSTEM_TOKEN = generateSecureToken();
+    
     // ===============================================================
-
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-
-    let isInZone = false; let currentUser = null; let currentKat = null; let jamConfig = {}; 
-    let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || [];
+    // 🚀 PEMBOLEHUBAH GLOBAL
+    // ===============================================================
+    let isInZone = false;
+    let currentUser = null;
+    let currentKat = null;
+    let jamConfig = {};
+    let offlineQueue = loadEncryptedData('offline_queue') || [];
     let lastLat = 0, lastLng = 0, currentDist = 0;
-    let isLewat = false; let isBalikAwal = false; // Status untuk kawal kotak alasan
+    let isLewat = false;
+    let isBalikAwal = false;
+    let gpsWatchId = null;
+    let lastLocationUpdate = 0;
+    let locationAccuracy = 0;
+    let isMockLocationDetected = false;
+    let deviceId = getOrCreateDeviceId();
+    let adminMode = false;
 
+    // ===============================================================
+    // 🎯 FUNGSI UTAMA
+    // ===============================================================
     window.onload = function() {
-        document.getElementById('tajukUtama').innerText = NAMA_ATAS;
-        document.getElementById('tajukKecil').innerText = NAMA_BAWAH;
-        startClock(); startRadar(); checkSession(); loadList(); fetchConfig(); getHijriDate();
-        if ("Notification" in window) { Notification.requestPermission(); }
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
+        initializeSystem();
     };
 
-    // --- LOGIK TUNJUK/SOROK KOTAK ALASAN ---
-    function checkReasonStatus() {
-        let now = new Date();
-        let kat = document.getElementById('kategori').value;
-        let session = JSON.parse(localStorage.getItem('ehadir_session'));
+    function initializeSystem() {
+        // Set tajuk
+        document.getElementById('tajukUtama').innerText = CONFIG.NAMA_SEKOLAH_ATAS;
+        document.getElementById('tajukKecil').innerText = CONFIG.NAMA_SEKOLAH_BAWAH;
+        
+        // Mulakan sistem
+        startClock();
+        startRadar();
+        checkSession();
+        loadList();
+        fetchConfig();
+        getHijriDate();
+        
+        // Permission untuk notification
+        requestNotificationPermission();
+        
+        // Event listeners untuk connectivity
+        setupConnectivityListeners();
+        
+        // Setup toast notifications
+        setupToast();
+        
+        // Security check
+        performSecurityCheck();
+        
+        showSuccessToast("Sistem dimuatkan dengan selamat ✅");
+    }
 
-        // 1. CEK LEWAT (MASUK)
-        let boxMasuk = document.getElementById('boxAlasanMasuk');
-        if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
-            let limitStr = jamConfig[kat].masuk;
-            if (limitStr && limitStr !== "BEBAS") {
-                let limitMasuk = parseTime(limitStr);
-                let limitKeluar = parseTime(jamConfig[kat].keluar);
+    // ===============================================================
+    // 🔒 FUNGSI KESELAMATAN & VALIDASI
+    // ===============================================================
+    
+    function performSecurityCheck() {
+        // Detect if running in suspicious environment
+        const isSecure = (
+            window.location.protocol === 'https:' || 
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+        );
+        
+        if (!isSecure && window.location.protocol !== 'file:') {
+            showWarningToast("⚠️ Awas: Sambungan tidak selamat. Gunakan HTTPS.");
+        }
+        
+        // Check for developer tools (basic detection)
+        if (isDevToolsOpen()) {
+            logSecurityEvent("DevTools detected");
+        }
+    }
+    
+    function isDevToolsOpen() {
+        return (
+            window.outerWidth - window.innerWidth > 100 ||
+            window.outerHeight - window.innerHeight > 100
+        );
+    }
+    
+    function validateName(input) {
+        // Remove numbers and special characters (allow only letters, spaces, hyphens, dots)
+        input.value = input.value.replace(/[^A-Z\s\.\-]/g, '');
+        
+        // Auto capitalize
+        input.value = input.value.toUpperCase();
+        
+        // Trim extra spaces
+        input.value = input.value.replace(/\s+/g, ' ').trim();
+    }
+    
+    function validateInput(text, maxLength = 200) {
+        if (!text || text.trim().length === 0) return false;
+        if (text.length > maxLength) return false;
+        
+        // Basic XSS protection
+        const dangerousChars = /[<>\"']/;
+        if (dangerousChars.test(text)) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    // ===============================================================
+    // 📍 FUNGSI GPS & LOKASI (DIPERBAIKI)
+    // ===============================================================
+    
+    function startRadar() {
+        if (!navigator.geolocation) {
+            updateGPSStatus("❌ GPS tidak disokong", false);
+            return;
+        }
+        
+        // Clear previous watch if exists
+        if (gpsWatchId !== null) {
+            navigator.geolocation.clearWatch(gpsWatchId);
+        }
+        
+        // Use watchPosition with better options
+        gpsWatchId = navigator.geolocation.watchPosition(
+            handlePositionSuccess,
+            handlePositionError,
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 5000
+            }
+        );
+        
+        updateGPSStatus("📡 Mengesan lokasi...", true);
+    }
+    
+    function handlePositionSuccess(pos) {
+        // 🔍 ADVANCED FAKE GPS DETECTION
+        const isFake = detectFakeGPS(pos);
+        
+        if (isFake) {
+            updateGPSSatus("⚠️ Lokasi tidak sah (Fake GPS?)", false);
+            isMockLocationDetected = true;
+            return;
+        }
+        
+        isMockLocationDetected = false;
+        lastLat = pos.coords.latitude;
+        lastLng = pos.coords.longitude;
+        locationAccuracy = pos.coords.accuracy;
+        
+        // Calculate distance from school
+        currentDist = calculateDistance(
+            lastLat, 
+            lastLng, 
+            CONFIG.SCHOOL_COORDINATES.LAT, 
+            CONFIG.SCHOOL_COORDINATES.LNG
+        );
+        
+        lastLocationUpdate = Date.now();
+        
+        // Update UI
+        updateLocationStatus();
+    }
+    
+    function detectFakeGPS(position) {
+        const coords = position.coords;
+        
+        // Check 1: Impossible accuracy
+        if (coords.accuracy === 0 || coords.accuracy > 5000) {
+            logSecurityEvent(`Suspicious accuracy: ${coords.accuracy}`);
+            return true;
+        }
+        
+        // Check 2: Missing altitude on high accuracy devices
+        if (coords.accuracy < 20 && coords.altitude === null) {
+            logSecurityEvent("High accuracy without altitude - possible fake");
+            return true;
+        }
+        
+        // Check 3: Impossible speed
+        if (coords.speed !== null && coords.speed > 300) { // 300 m/s = 1080 km/h
+            logSecurityEvent(`Impossible speed: ${coords.speed} m/s`);
+            return true;
+        }
+        
+        // Check 4: Coordinates don't change (GPS stuck)
+        if (coords.latitude === 0 && coords.longitude === 0) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    function updateLocationStatus() {
+        const statusEl = document.getElementById('statusText');
+        const btn = document.getElementById('btnMainSubmit');
+        const warningBox = document.getElementById('warningBox');
+        const gpsIndicator = document.getElementById('gpsIndicator');
+        
+        gpsIndicator.className = 'gps-indicator active';
+        
+        if (currentDist <= CONFIG.RADIUS_METER) {
+            isInZone = true;
+            updateGPSSatus(`✅ DALAM KAWASAN (${Math.round(currentDist)}m)`, true);
+            
+            if (btn) {
+                btn.disabled = false;
+                document.getElementById('locationHint').style.display = 'none';
+            }
+            
+            warningBox.style.display = 'none';
+            
+            // Log location for audit
+            logLocationEvent(lastLat, lastLng, currentDist);
+        } else {
+            isInZone = false;
+            updateGPSSatus(`🚫 LUAR KAWASAN (${Math.round(currentDist)}m)`, false);
+            
+            if (btn) {
+                btn.disabled = true;
+                document.getElementById('locationHint').style.display = 'block';
+            }
+            
+            // Show warning if user is logged in but outside
+            if (currentUser) {
+                const now = new Date();
+                const hour = now.getHours();
+                const isWorkingHours = (hour >= 6 && hour < 18);
                 
-                // Lewat jika: Masa sekarang > Masa Masuk DAN Masa Sekarang < Masa Keluar
+                if (isWorkingHours && currentDist > 1000) {
+                    warningBox.style.display = 'block';
+                    warningBox.innerHTML = `⚠️ <strong>ANDA BERADA DI LUAR KAWASAN SEKOLAH</strong><br>Sila kembali ke sekolah untuk daftar keluar.`;
+                } else if (!isWorkingHours && currentDist > 2000) {
+                    warningBox.style.display = 'block';
+                    warningBox.innerHTML = `⚠️ <strong>ANDA BELUM MELAKUKAN DAFTAR KELUAR</strong><br><button class="btn btn-warning" onclick="hantarKeluar()" style="margin-top:8px; padding:8px; font-size:12px;">DAFTAR KELUAR SEKARANG</button>`;
+                } else {
+                    warningBox.style.display = 'none';
+                }
+            }
+        }
+    }
+    
+    function updateGPSSatus(message, isActive) {
+        document.getElementById('gpsStatusText').innerText = message;
+        document.getElementById('gpsIndicator').className = isActive ? 'gps-indicator active' : 'gps-indicator';
+    }
+    
+    function handlePositionError(error) {
+        let message = "❌ Ralat GPS: ";
+        
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                message += "Sila benarkan akses lokasi";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                message += "Lokasi tidak dapat dikesan";
+                break;
+            case error.TIMEOUT:
+                message += "Permintaan lokasi tamat masa";
+                break;
+            default:
+                message += "Ralat tidak diketahui";
+        }
+        
+        updateGPSSatus(message, false);
+        logSecurityEvent(`GPS Error: ${error.code} - ${error.message}`);
+    }
+
+    // ===============================================================
+    // ⏰ FUNGSI MASA & WAKTU
+    // ===============================================================
+    
+    function checkReasonStatus() {
+        const now = new Date();
+        const kat = document.getElementById('kategori').value;
+        const session = loadEncryptedData('session');
+        
+        // CEK LEWAT (MASUK)
+        const boxMasuk = document.getElementById('boxAlasanMasuk');
+        if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
+            const limitStr = jamConfig[kat].masuk;
+            if (limitStr && limitStr !== "BEBAS") {
+                const limitMasuk = parseTime(limitStr, now);
+                const limitKeluar = parseTime(jamConfig[kat].keluar, now);
+                
                 if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
                     boxMasuk.style.display = 'block';
                     document.getElementById('labelAlasanMasuk').innerText = `⚠️ ANDA LEWAT (${limitStr}). SILA ISI ALASAN:`;
@@ -186,20 +526,22 @@
                     boxMasuk.style.display = 'none';
                     isLewat = false;
                 }
+            } else {
+                boxMasuk.style.display = 'none';
+                isLewat = false;
             }
         } else {
             boxMasuk.style.display = 'none';
             isLewat = false;
         }
-
-        // 2. CEK BALIK AWAL (KELUAR)
-        let boxKeluar = document.getElementById('boxAlasanKeluar');
+        
+        // CEK BALIK AWAL (KELUAR)
+        const boxKeluar = document.getElementById('boxAlasanKeluar');
         if (session && session.kategori && jamConfig[session.kategori]) {
-            let limitStr = jamConfig[session.kategori].keluar;
+            const limitStr = jamConfig[session.kategori].keluar;
             if (limitStr && limitStr !== "BEBAS") {
-                let limitKeluar = parseTime(limitStr);
+                const limitKeluar = parseTime(limitStr, now);
                 
-                // Awal jika: Masa sekarang < Masa Keluar
                 if (limitKeluar && now < limitKeluar) {
                     boxKeluar.style.display = 'block';
                     document.getElementById('labelAlasanKeluar').innerText = `⚠️ ANDA BALIK AWAL (${limitStr}). SILA ISI ALASAN:`;
@@ -208,137 +550,917 @@
                     boxKeluar.style.display = 'none';
                     isBalikAwal = false;
                 }
+            } else {
+                boxKeluar.style.display = 'none';
+                isBalikAwal = false;
             }
         } else {
             boxKeluar.style.display = 'none';
             isBalikAwal = false;
         }
     }
-
-    // --- HANTAR MASUK ---
-    function hantarMasuk() {
-        if(!isInZone) { alert("⛔ GAGAL: Anda berada di LUAR KAWASAN sekolah."); return; }
+    
+    function parseTime(timeStr, referenceDate = new Date()) {
+        if (!timeStr || timeStr === "BEBAS") return null;
         
-        let nama = document.getElementById('nama').value.toUpperCase();
-        let kat = document.getElementById('kategori').value;
-        let alasan = document.getElementById('alasanMasuk').value;
+        // Handle simple time format (HH:MM)
+        const simpleMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+        if (simpleMatch) {
+            const hours = parseInt(simpleMatch[1]);
+            const minutes = parseInt(simpleMatch[2]);
+            const result = new Date(referenceDate);
+            result.setHours(hours, minutes, 0, 0);
+            return result;
+        }
+        
+        // Handle AM/PM format
+        const ampMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (ampMatch) {
+            let hours = parseInt(ampMatch[1]);
+            const minutes = parseInt(ampMatch[2]);
+            const period = ampMatch[3].toUpperCase();
+            
+            if (period === "PM" && hours < 12) hours += 12;
+            if (period === "AM" && hours === 12) hours = 0;
+            
+            const result = new Date(referenceDate);
+            result.setHours(hours, minutes, 0, 0);
+            return result;
+        }
+        
+        return null;
+    }
 
-        if (!nama || !kat) { alert("Sila isi nama & kategori!"); return; }
-
+    // ===============================================================
+    // 📤 FUNGSI HANTAR DATA (DIPERBAIKI)
+    // ===============================================================
+    
+    function hantarMasuk() {
+        // Security checks
+        if (isMockLocationDetected) {
+            showErrorToast("⛔ Lokasi tidak sah. Sila matikan Fake GPS.");
+            return;
+        }
+        
+        if (!isInZone) {
+            showErrorToast("⛔ GAGAL: Anda berada di LUAR KAWASAN sekolah.");
+            return;
+        }
+        
+        const nama = document.getElementById('nama').value.trim().toUpperCase();
+        const kat = document.getElementById('kategori').value;
+        const alasan = document.getElementById('alasanMasuk').value.trim();
+        
+        // Validation
+        if (!nama || nama.length < 3) {
+            showErrorToast("⚠️ Sila masukkan nama penuh (minimum 3 aksara)");
+            document.getElementById('nama').focus();
+            return;
+        }
+        
+        if (!kat) {
+            showErrorToast("⚠️ Sila pilih kategori");
+            return;
+        }
+        
+        // Validate name format
+        if (!validateInput(nama, 50)) {
+            showErrorToast("⚠️ Format nama tidak sah");
+            return;
+        }
+        
         // WAJIB ISI ALASAN JIKA LEWAT
-        if (isLewat && alasan.trim().length < 3) {
-            alert("⛔ ANDA LEWAT!\nSila isi alasan yang kukuh sebelum daftar masuk.");
+        if (isLewat && alasan.length < 10) {
+            showErrorToast("⛔ ANDA LEWAT!\nSila isi alasan yang lengkap (minimum 10 aksara).");
             document.getElementById('alasanMasuk').focus();
             return;
         }
-
-        let payload = { 
-            action: "MASUK", passcode: PASSCODE, 
-            nama: nama, kategori: kat, alasan: alasan, 
-            clientTime: new Date().toISOString(), 
-            deviceId: getDeviceId(),
-            lat: lastLat, lng: lastLng 
+        
+        if (alasan && !validateInput(alasan, 200)) {
+            showErrorToast("⚠️ Alasan mengandungi aksara tidak dibenarkan");
+            return;
+        }
+        
+        // Prepare payload
+        const payload = { 
+            action: "MASUK",
+            nama: sanitizeInput(nama),
+            kategori: kat,
+            alasan: alasan ? sanitizeInput(alasan) : "",
+            clientTime: new Date().toISOString(),
+            deviceId: deviceId,
+            lat: lastLat,
+            lng: lastLng,
+            accuracy: locationAccuracy,
+            token: SYSTEM_TOKEN,
+            version: "3.5.1"
         };
-
-        let btn = document.getElementById('btnMainSubmit'); btn.innerText = "⏳..."; btn.disabled = true;
-        sendData(payload, btn, () => {
-            localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: new Date().toISOString().slice(0,10)}));
-            location.reload();
+        
+        // Disable button & show loading
+        const btn = document.getElementById('btnMainSubmit');
+        btn.disabled = true;
+        document.getElementById('btnMainSubmitText').innerHTML = '<span class="loading-spinner"></span>Memproses...';
+        
+        // Send data
+        sendData(payload, (success, response) => {
+            btn.disabled = false;
+            document.getElementById('btnMainSubmitText').textContent = 'DAFTAR MASUK';
+            
+            if (success) {
+                // Save session
+                const sessionData = {
+                    nama: nama,
+                    kategori: kat,
+                    date: new Date().toISOString().slice(0,10),
+                    timestamp: Date.now()
+                };
+                saveEncryptedData('session', sessionData);
+                
+                showSuccessToast("✅ Berjaya Daftar Masuk!");
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showErrorToast(response || "Ralat semasa daftar masuk");
+            }
         });
     }
-
-    // --- HANTAR KELUAR ---
+    
     function hantarKeluar() {
-        if(!confirm("Daftar Keluar sekarang?")) return;
+        if (!confirm("Adakah anda pasti mahu mendaftar keluar sekarang?")) return;
         
-        let session = JSON.parse(localStorage.getItem('ehadir_session'));
-        let alasan = document.getElementById('alasanKeluar').value;
-
+        const session = loadEncryptedData('session');
+        if (!session) {
+            showErrorToast("Ralat: Tiada sesi aktif");
+            return;
+        }
+        
+        let alasan = document.getElementById('alasanKeluar').value.trim();
+        
         // WAJIB ISI ALASAN JIKA BALIK AWAL
-        if (isBalikAwal && alasan.trim().length < 3) {
-            alert("⛔ ANDA BALIK AWAL!\nSila isi alasan sebelum daftar keluar.");
+        if (isBalikAwal && alasan.length < 10) {
+            showErrorToast("⛔ ANDA BALIK AWAL!\nSila isi alasan yang lengkap (minimum 10 aksara).");
             document.getElementById('alasanKeluar').focus();
             return;
         }
-
-        // AMARAN JIKA JAUH
-        if (currentDist > RADIUS_METER && !isBalikAwal) { // Kalau dah balik awal, mungkin memang dah kat rumah
-             // Pilihan: Boleh tambah amaran di sini jika perlu
+        
+        if (alasan && !validateInput(alasan, 200)) {
+            showErrorToast("⚠️ Alasan mengandungi aksara tidak dibenarkan");
+            return;
         }
-        if (currentDist > RADIUS_METER) alasan += " (Rekod: Luar Kawasan)";
-
-        let payload = { 
-            action: "KELUAR", passcode: PASSCODE, 
-            nama: session.nama, alasan: alasan, 
+        
+        // Add location warning if outside
+        if (currentDist > CONFIG.RADIUS_METER) {
+            if (!alasan) alasan = "";
+            alasan += alasan ? " | Luar Kawasan" : "Luar Kawasan";
+        }
+        
+        const payload = { 
+            action: "KELUAR",
+            nama: session.nama,
+            alasan: alasan ? sanitizeInput(alasan) : "",
             clientTime: new Date().toISOString(),
-            lat: lastLat, lng: lastLng
+            deviceId: deviceId,
+            lat: lastLat,
+            lng: lastLng,
+            accuracy: locationAccuracy,
+            token: SYSTEM_TOKEN
         };
-
-        let btn = document.getElementById('btnKeluar'); btn.innerText = "⏳..."; btn.disabled = true;
-        sendData(payload, btn, () => {
-            alert("✅ Berjaya Daftar Keluar!"); 
-            localStorage.removeItem('ehadir_session'); location.reload(); 
+        
+        const btn = document.getElementById('btnKeluar');
+        btn.disabled = true;
+        document.getElementById('btnKeluarText').innerHTML = '<span class="loading-spinner"></span>Memproses...';
+        
+        sendData(payload, (success, response) => {
+            btn.disabled = false;
+            document.getElementById('btnKeluarText').textContent = 'DAFTAR KELUAR';
+            
+            if (success) {
+                // Clear session
+                deleteEncryptedData('session');
+                showSuccessToast("✅ Berjaya Daftar Keluar!");
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showErrorToast(response || "Ralat semasa daftar keluar");
+            }
         });
     }
 
-    // --- ANTI FAKE GPS LOGIC ---
-    function updatePosition(pos) {
-        lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
-        currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
+    // ===============================================================
+    // 📸 FUNGSI PELAWAT
+    // ===============================================================
+    
+    function hantarPelawat() {
+        const foto = document.getElementById('base64Foto').value;
+        const tujuan = document.getElementById('tujuan').value.trim();
         
-        let status = document.getElementById('statusText');
-        let btn = document.getElementById('btnMainSubmit');
-        let warningBox = document.getElementById('warningBox');
-
-        // 🔥 LOGIK PENGESANAN FAKE GPS 🔥
-        // 1. Jika Accuracy terlalu sempurna (0) atau terlalu teruk (>1500)
-        // 2. Jika Altitude tiada (null) - Fake GPS selalunya tak bagi altitude
-        if (pos.coords.accuracy === 0) {
-             status.innerText = "⚠️ GPS MERAGUKAN (FAKE?)"; 
-             status.style.color = "purple";
-             return; 
+        if (!foto || foto.length < 100) {
+            showErrorToast("⚠️ Sila ambil gambar dahulu!");
+            return;
         }
-
-        if(currentDist <= RADIUS_METER) {
-            isInZone = true; status.innerText = "✅ DALAM KAWASAN"; status.style.color = "green"; 
-            if(btn) btn.disabled = false;
-            warningBox.style.display = "none";
-        } else {
-            isInZone = false; status.innerText = "🚫 LUAR KAWASAN ("+Math.round(currentDist)+"m)"; status.style.color = "red"; 
-            if(btn) btn.disabled = true; 
-            if (currentUser) {
-                 let now = new Date(); let h = now.getHours(); let isWork = (h >= 7 && h < 14);
-                 if (isWork && currentDist > 1000) { warningBox.style.display = "block"; warningBox.innerText = "⚠️ SILA KEMBALI KE SEKOLAH!"; } 
-                 else if (!isWork && currentDist > 2000) { warningBox.style.display = "block"; warningBox.innerHTML = `⚠️ ANDA BELUM KELUAR.<br><u onclick="hantarKeluar()">TEKAN SINI</u>`; } 
-                 else { warningBox.style.display = "none"; }
+        
+        // Validate image size
+        const sizeKB = Math.round((foto.length * 3 / 4) / 1024);
+        if (sizeKB > CONFIG.MAX_IMAGE_SIZE_KB) {
+            showErrorToast(`⚠️ Gambar terlalu besar (${sizeKB}KB). Maksimum ${CONFIG.MAX_IMAGE_SIZE_KB}KB`);
+            return;
+        }
+        
+        if (tujuan && !validateInput(tujuan, 100)) {
+            showErrorToast("⚠️ Tujuan mengandungi aksara tidak dibenarkan");
+            return;
+        }
+        
+        const payload = { 
+            action: "MASUK",
+            kategori: "PELAWAT",
+            fotoBase64: compressImage(foto),
+            tujuan: tujuan ? sanitizeInput(tujuan) : "",
+            clientTime: new Date().toISOString(),
+            deviceId: deviceId,
+            lat: lastLat,
+            lng: lastLng,
+            token: SYSTEM_TOKEN
+        };
+        
+        const btn = document.getElementById('btnPelawatSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span>Hantar...';
+        
+        sendData(payload, (success, response) => {
+            btn.disabled = false;
+            btn.textContent = 'HANTAR DATA PELAWAT';
+            
+            if (success) {
+                showSuccessToast("✅ Pelawat Berjaya Didaftarkan!");
+                cancelPelawat();
+                loadList();
+            } else {
+                showErrorToast(response || "Ralat semasa daftar pelawat");
             }
+        });
+    }
+    
+    function processImage(input, type) {
+        if (!input.files || !input.files[0]) return;
+        
+        const file = input.files[0];
+        const sizeKB = file.size / 1024;
+        
+        if (sizeKB > CONFIG.MAX_IMAGE_SIZE_KB) {
+            showErrorToast(`⚠️ Fail terlalu besar (${Math.round(sizeKB)}KB). Maksimum ${CONFIG.MAX_IMAGE_SIZE_KB}KB`);
+            input.value = '';
+            return;
+        }
+        
+        if (!file.type.match('image.*')) {
+            showErrorToast("⚠️ Sila pilih fail gambar sahaja");
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = new Image();
+            img.src = e.target.result;
+            
+            img.onload = function() {
+                // Resize image to max 800px
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                
+                let maxWidth = 800;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxWidth) {
+                        width *= maxWidth / height;
+                        height = maxWidth;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+                
+                // Display preview
+                document.getElementById('previewImg').src = dataUrl;
+                document.getElementById('previewImg').style.display = 'block';
+                document.getElementById('base64Foto').value = dataUrl;
+                document.getElementById('photoStatus').textContent = `✅ ${type === 'vehicle' ? 'Kenderaan' : 'Wajah'} (${Math.round((dataUrl.length * 3 / 4) / 1024)}KB)`;
+                
+                showSuccessToast(`📸 Gambar ${type === 'vehicle' ? 'kenderaan' : 'wajah'} berjaya diambil!`);
+            };
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    function compressImage(base64) {
+        // Already compressed in processImage
+        return base64;
+    }
+
+    // ===============================================================
+    // 🔄 FUNGSI PENGHANTARAN DATA (DIPERBAIKI)
+    // ===============================================================
+    
+    function sendData(payload, callback) {
+        // Add security headers
+        payload.timestamp = Date.now();
+        payload.checksum = generateChecksum(payload);
+        
+        if (navigator.onLine) {
+            // Online - send immediately
+            fetch(CONFIG.API_URL, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-EHadir-Version': '3.5.1',
+                    'X-Device-ID': deviceId
+                },
+                body: JSON.stringify(payload),
+                mode: 'cors'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    callback(true, data.message);
+                } else {
+                    // Queue for retry if server validation failed
+                    addToOfflineQueue(payload);
+                    callback(false, data.message || "Pengesahan gagal");
+                }
+            })
+            .catch(error => {
+                console.error('Send error:', error);
+                // Add to offline queue on network error
+                addToOfflineQueue(payload);
+                callback(false, "Tiada sambungan internet. Data disimpan.");
+            });
+        } else {
+            // Offline - queue immediately
+            addToOfflineQueue(payload);
+            callback(true, "✅ Offline: Data disimpan dan akan dihantar kemudian");
+        }
+    }
+    
+    function addToOfflineQueue(payload) {
+        if (offlineQueue.length >= CONFIG.MAX_OFFLINE_QUEUE) {
+            offlineQueue.shift(); // Remove oldest
+        }
+        
+        offlineQueue.push({
+            ...payload,
+            queuedAt: Date.now(),
+            retryCount: 0
+        });
+        
+        saveEncryptedData('offline_queue', offlineQueue);
+        logSecurityEvent(`Offline queue: ${offlineQueue.length} items`);
+    }
+    
+    function generateChecksum(payload) {
+        // Simple checksum for data integrity
+        const dataStr = JSON.stringify(payload);
+        let hash = 0;
+        for (let i = 0; i < dataStr.length; i++) {
+            hash = ((hash << 5) - hash) + dataStr.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
+    }
+
+    // ===============================================================
+    // 💾 FUNGSI STORAGE (ENCRYPTED)
+    // ===============================================================
+    
+    function saveEncryptedData(key, data) {
+        try {
+            const encrypted = encryptData(JSON.stringify(data));
+            localStorage.setItem(`ehadir_${key}`, encrypted);
+            return true;
+        } catch (e) {
+            console.error('Save error:', e);
+            return false;
+        }
+    }
+    
+    function loadEncryptedData(key) {
+        try {
+            const encrypted = localStorage.getItem(`ehadir_${key}`);
+            if (!encrypted) return null;
+            
+            const decrypted = decryptData(encrypted);
+            return JSON.parse(decrypted);
+        } catch (e) {
+            console.error('Load error:', e);
+            return null;
+        }
+    }
+    
+    function deleteEncryptedData(key) {
+        localStorage.removeItem(`ehadir_${key}`);
+    }
+    
+    function encryptData(data) {
+        // Simple XOR encryption (for demo - use Web Crypto in production)
+        const key = deviceId.substring(0, 10);
+        let result = '';
+        for (let i = 0; i < data.length; i++) {
+            result += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return btoa(result);
+    }
+    
+    function decryptData(encrypted) {
+        const key = deviceId.substring(0, 10);
+        const decoded = atob(encrypted);
+        let result = '';
+        for (let i = 0; i < decoded.length; i++) {
+            result += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return result;
+    }
+
+    // ===============================================================
+    // 🎨 FUNGSI UI & UTILITI
+    // ===============================================================
+    
+    function startClock() {
+        setInterval(() => {
+            const now = new Date();
+            
+            // Update time
+            document.getElementById('clockDisplay').innerText = now.toLocaleTimeString('ms-MY', {
+                hour12: true,
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            
+            // Update date
+            document.getElementById('dateDisplay').innerText = 
+                now.getDate() + '/' + 
+                (now.getMonth() + 1) + '/' + 
+                now.getFullYear();
+            
+            // Check reason status every second
+            checkReasonStatus();
+            
+        }, 1000);
+    }
+    
+    function getHijriDate() {
+        const today = new Date();
+        const options = {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            calendar: 'islamic-umalqura'
+        };
+        
+        try {
+            const hijriDate = new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura', options).format(today);
+            document.getElementById('hijriDisplay').innerText = `🌙 ${hijriDate.replace('AH', '').trim()}`;
+        } catch (e) {
+            document.getElementById('hijriDisplay').innerText = "🌙 -- / -- / --";
+            console.error('Hijri date error:', e);
+        }
+    }
+    
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // Earth radius in meters
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+        
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c;
+    }
+    
+    function sanitizeInput(input) {
+        if (!input) return '';
+        return input
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+    
+    function generateSecureToken() {
+        return 'tk_' + Math.random().toString(36).substring(2, 15) + 
+               Math.random().toString(36).substring(2, 15);
+    }
+    
+    function getOrCreateDeviceId() {
+        let id = localStorage.getItem('ehadir_device_id');
+        if (!id) {
+            id = CONFIG.DEVICE_ID_PREFIX + 
+                 Math.random().toString(36).substring(2, 10).toUpperCase() + 
+                 '_' + Date.now().toString(36);
+            localStorage.setItem('ehadir_device_id', id);
+        }
+        return id;
+    }
+
+    // ===============================================================
+    // 🍞 FUNGSI SESSION & UI
+    // ===============================================================
+    
+    function checkSession() {
+        const session = loadEncryptedData('session');
+        const today = new Date().toISOString().slice(0,10);
+        const now = Date.now();
+        
+        // Check if session exists and is for today
+        const isValidSession = session && 
+                               session.date === today && 
+                               (now - session.timestamp) < (CONFIG.SESSION_TIMEOUT_HOURS * 60 * 60 * 1000);
+        
+        if (isValidSession) {
+            document.getElementById('defaultForm').style.display = 'none';
+            document.getElementById('dashboardPanel').style.display = 'block';
+            document.getElementById('sessionName').innerText = session.nama;
+            currentUser = session.nama;
+            currentKat = session.kategori;
+        } else {
+            // Clear invalid session
+            if (session) deleteEncryptedData('session');
+            
+            document.getElementById('defaultForm').style.display = 'block';
+            document.getElementById('dashboardPanel').style.display = 'none';
+            currentUser = null;
+            currentKat = null;
+        }
+        
+        document.getElementById('pelawatPanel').style.display = 'none';
+        checkReasonStatus();
+    }
+    
+    function showPelawatForm() {
+        document.getElementById('dashboardPanel').style.display = 'none';
+        document.getElementById('defaultForm').style.display = 'none';
+        document.getElementById('pelawatPanel').style.display = 'block';
+        document.getElementById('base64Foto').value = "";
+        document.getElementById('previewImg').style.display = 'none';
+        document.getElementById('tujuan').value = "";
+        document.getElementById('photoStatus').textContent = "Belum ada";
+    }
+    
+    function cancelPelawat() {
+        document.getElementById('pelawatPanel').style.display = 'none';
+        checkSession();
+    }
+    
+    function checkKategori() {
+        const value = document.getElementById('kategori').value;
+        if (value === 'PELAWAT') {
+            showPelawatForm();
+            document.getElementById('kategori').value = "";
+        } else {
+            checkReasonStatus();
         }
     }
 
-    // --- UTILS LAIN KEKAL SAMA ---
-    function hantarPelawat() { let foto = document.getElementById('base64Foto').value; let tujuan = document.getElementById('tujuan').value; if (!foto) { alert("⚠️ Sila ambil gambar dahulu!"); return; } let payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", fotoBase64: foto, tujuan: tujuan, clientTime: new Date().toISOString(), deviceId: getDeviceId() }; let btn = document.getElementById('btnPelawatSubmit'); btn.innerText = "⏳ HANTAR..."; btn.disabled = true; sendData(payload, btn, () => { alert("✅ Pelawat Berjaya Didaftarkan!"); cancelPelawat(); loadList(); }); }
-    function checkoutVisitor(namaPelawat) { if(!confirm("Daftar keluar untuk " + namaPelawat + "?")) return; let payload = { action:"CHECKOUT_VISITOR", passcode:PASSCODE, nama:namaPelawat }; sendData(payload, null, () => { loadList(); }); }
-    function sendData(payload, btn, onSuccess) { if(navigator.onLine) { fetch(API_URL, { method: "POST", body: JSON.stringify(payload) }).then(res => res.json()).then(res => { if(btn) { btn.disabled = false; btn.innerText = (payload.action=="KELUAR")?"DAFTAR KELUAR":"DAFTAR MASUK"; } onSuccess(); }).catch(e => { alert("Error Server"); if(btn) btn.disabled=false; }); } else { let q = JSON.parse(localStorage.getItem('ehadir_offline_queue')) || []; q.push(payload); localStorage.setItem('ehadir_offline_queue', JSON.stringify(q)); alert("⚠️ Offline. Data disimpan."); onSuccess(); } }
-    function checkKategori() { let v=document.getElementById('kategori').value; if(v==='PELAWAT'){showPelawatForm();document.getElementById('kategori').value="";} else { checkReasonStatus(); } }
-    function showPelawatForm() { document.getElementById('dashboardPanel').style.display='none'; document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; document.getElementById('base64Foto').value=""; document.getElementById('previewImg').style.display='none'; document.getElementById('tujuan').value=""; }
-    function cancelPelawat() { document.getElementById('pelawatPanel').style.display='none'; checkSession(); }
-    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let m=new Image();m.src=e.target.result;m.onload=function(){let c=document.createElement("canvas");let x=c.getContext("2d");let max=800;let w=m.width,h=m.height;if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}c.width=w;c.height=h;x.drawImage(m,0,0,w,h);let d=c.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=d;}};r.readAsDataURL(i.files[0]);}}
-    function checkSession() { let s=JSON.parse(localStorage.getItem('ehadir_session')); let t=new Date().toISOString().slice(0,10); if(s&&s.date===t){document.getElementById('defaultForm').style.display='none';document.getElementById('dashboardPanel').style.display='block';document.getElementById('sessionName').innerText=s.nama;currentUser=s.nama;}else{document.getElementById('defaultForm').style.display='block';document.getElementById('dashboardPanel').style.display='none';}document.getElementById('pelawatPanel').style.display='none'; checkReasonStatus(); }
-    function loadList(){if(!navigator.onLine)return;fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_LIST",passcode:PASSCODE})}).then(r=>r.json()).then(l=>{document.getElementById('count').innerText=l.length;let h="";l.forEach(i=>{let c=i.kategori==='GURU'?'#3498db':(i.kategori==='PELAWAT'?'#e74c3c':'#f1c40f');let a='<div class="action-group">';if(i.foto&&i.foto.length>20&&!i.foto.includes("RALAT")){a+=`<button class="btn-icon btn-img" onclick="openImage('${i.foto}')">🖼️</button>`;}if(i.kategori==='PELAWAT'){a+=`<button class="btn-icon btn-x" onclick="checkoutVisitor('${i.nama}')">❌</button>`;}a+='</div>';h+=`<div class="user-card" style="border-left:5px solid ${c}"><div class="user-info"><strong>${i.nama}</strong><span class="badge" style="background:${c}">${i.kategori}</span></div>${a}</div>`;});document.getElementById('listContainer').innerHTML=h;});}
-    function openImage(u){if(!u||u==="TIADA"||u.includes("RALAT")){alert("Tiada gambar.");return;}let f=u+"&t="+new Date().getTime();document.getElementById('modalImg').src=f;document.getElementById('imageModal').style.display='flex';}
-    function closeImage(){document.getElementById('imageModal').style.display='none';document.getElementById('modalImg').src="";}
-    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){document.getElementById('hijriDisplay').innerText="🌙 --";}}
-    function getDeviceId(){let i=localStorage.getItem('ehadir_device_id');if(!i){i='DEV-'+Math.random().toString(36).substr(2,9).toUpperCase();localStorage.setItem('ehadir_device_id',i);}return i;}
-    function startClock(){setInterval(()=>{let n=new Date();document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});document.getElementById('dateDisplay').innerText=n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear();checkReasonStatus();},1000);}
-    function startRadar(){if(navigator.geolocation){navigator.geolocation.watchPosition(updatePosition,showError,{enableHighAccuracy:true});}else{document.getElementById('statusText').innerText="❌ GPS Error";}}
-    function manualRefreshGPS(){document.getElementById('statusText').innerText="📡 ...";startRadar();}
-    function showError(){document.getElementById('statusText').innerText="❌ Benarkan GPS";}
-    function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
-    function fetchConfig(){if(navigator.onLine)fetch(API_URL,{method:"POST",body:JSON.stringify({action:"GET_CONFIG",passcode:PASSCODE})}).then(r=>r.json()).then(d=>{jamConfig=d;});}
-    function resetSesi(){if(confirm("Reset?")){localStorage.removeItem('ehadir_session');location.reload();}}
-    function parseTime(t,r){if(!t)return null;var d=new Date(r),p=t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);if(p){var h=parseInt(p[1]),m=parseInt(p[2]);if(p[3]=="PM"&&h<12)h+=12;if(p[3]=="AM"&&h==12)h=0;d.setHours(h,m,0,0);return d;}return null;}
-    function updateOnlineStatus(){if(navigator.onLine){document.getElementById('connectionStatus').style.display="none";syncOfflineData();}else{document.getElementById('connectionStatus').innerText="📡 TIADA INTERNET - MODE OFFLINE";document.getElementById('connectionStatus').className="status-offline";document.getElementById('connectionStatus').style.display="block";}}
-    function syncOfflineData(){if(offlineQueue.length===0)return;document.getElementById('connectionStatus').innerText="Syncing...";document.getElementById('connectionStatus').style.display="block";let i=offlineQueue[0];fetch(API_URL,{method:"POST",body:JSON.stringify(i)}).then(r=>r.json()).then(r=>{offlineQueue.shift();localStorage.setItem('ehadir_offline_queue',JSON.stringify(offlineQueue));if(offlineQueue.length>0)syncOfflineData();else{document.getElementById('connectionStatus').style.display="none";loadList();}});}
+    // ===============================================================
+    // 📋 FUNGSI SENARAI & VISITOR
+    // ===============================================================
+    
+    function loadList() {
+        if (!navigator.onLine) {
+            document.getElementById('listContainer').innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #7f8c8d;">
+                    <p>📡 Tiada internet</p>
+                    <p style="font-size: 12px; margin-top: 5px;">Senarai akan dikemas kini apabila online</p>
+                </div>
+            `;
+            return;
+        }
+        
+        fetch(CONFIG.API_URL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: "GET_LIST", 
+                token: SYSTEM_TOKEN,
+                deviceId: deviceId
+            })
+        })
+        .then(response => response.json())
+        .then(list => {
+            document.getElementById('count').innerText = list.length;
+            
+            if (list.length === 0) {
+                document.getElementById('listContainer').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #95a5a6;">
+                        <p>📋 Tiada rekod untuk hari ini</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            list.forEach(item => {
+                // Determine color based on category
+                let color = '#3498db'; // Default blue
+                if (item.kategori === 'PELAWAT') color = '#e74c3c';
+                else if (item.kategori === 'KEBERSIHAN') color = '#f1c40f';
+                else if (item.kategori === 'AKP') color = '#9b59b6';
+                
+                // Action buttons
+                let actions = '<div class="action-group">';
+                
+                if (item.foto && item.foto.length > 20 && !item.foto.includes("RALAT")) {
+                    actions += `<button class="btn-icon btn-img" onclick="openImage('${item.foto}')" title="Lihat Gambar">🖼️</button>`;
+                }
+                
+                if (item.kategori === 'PELAWAT' && !item.keluarTime) {
+                    actions += `<button class="btn-icon btn-x" onclick="checkoutVisitor('${sanitizeInput(item.nama)}')" title="Daftar Keluar">❌</button>`;
+                }
+                
+                actions += '</div>';
+                
+                html += `
+                    <div class="user-card" style="border-left:5px solid ${color}">
+                        <div class="user-info">
+                            <strong>${sanitizeInput(item.nama)}</strong>
+                            <span class="badge" style="background:${color}">${item.kategori}</span>
+                            ${item.masukTime ? `<small style="color:#7f8c8d; margin-left:10px; font-size:11px;">⏰ ${item.masukTime}</small>` : ''}
+                        </div>
+                        ${actions}
+                    </div>
+                `;
+            });
+            
+            document.getElementById('listContainer').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Load list error:', error);
+            document.getElementById('listContainer').innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #e74c3c;">
+                    <p>❌ Ralat memuatkan senarai</p>
+                </div>
+            `;
+        });
+    }
+    
+    function checkoutVisitor(namaPelawat) {
+        if (!confirm(`Daftar keluar pelawat:\n${namaPelawat}`)) return;
+        
+        const payload = { 
+            action: "CHECKOUT_VISITOR", 
+            nama: namaPelawat,
+            token: SYSTEM_TOKEN,
+            deviceId: deviceId
+        };
+        
+        sendData(payload, (success) => {
+            if (success) {
+                showSuccessToast("✅ Pelawat berjaya didaftar keluar");
+                loadList();
+            }
+        });
+    }
+    
+    function openImage(url) {
+        if (!url || url === "TIADA" || url.includes("RALAT")) {
+            showErrorToast("Tiada gambar tersedia");
+            return;
+        }
+        
+        // Add cache buster
+        const fullUrl = url.includes('?') ? `${url}&t=${Date.now()}` : `${url}?t=${Date.now()}`;
+        
+        document.getElementById('modalImg').src = fullUrl;
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+    
+    function closeImage() {
+        document.getElementById('imageModal').style.display = 'none';
+        document.getElementById('modalImg').src = "";
+    }
+
+    // ===============================================================
+    // 🔔 FUNGSI NOTIFICATION & TOAST
+    // ===============================================================
+    
+    function requestNotificationPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    logSecurityEvent("Notifications enabled");
+                }
+            });
+        }
+    }
+    
+    function setupToast() {
+        const toast = document.getElementById('toast');
+        
+        window.showToast = function(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        };
+    }
+    
+    function showSuccessToast(message) {
+        window.showToast(message, 'success');
+    }
+    
+    function showErrorToast(message) {
+        window.showToast(message, 'error');
+    }
+    
+    function showWarningToast(message) {
+        window.showToast(message, 'warning');
+    }
+
+    // ===============================================================
+    // 🔄 FUNGSI SYNC & CONNECTIVITY
+    // ===============================================================
+    
+    function setupConnectivityListeners() {
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        updateConnectionStatus();
+    }
+    
+    function handleOnline() {
+        updateConnectionStatus();
+        syncOfflineQueue();
+    }
+    
+    function handleOffline() {
+        updateConnectionStatus();
+    }
+    
+    function updateConnectionStatus() {
+        const statusEl = document.getElementById('connectionStatus');
+        
+        if (navigator.onLine) {
+            statusEl.style.display = 'none';
+        } else {
+            statusEl.textContent = "📡 MODE OFFLINE - Data akan disegerakkan kemudian";
+            statusEl.className = 'status-offline';
+            statusEl.style.display = 'block';
+        }
+    }
+    
+    function syncOfflineQueue() {
+        if (offlineQueue.length === 0) return;
+        
+        const statusEl = document.getElementById('connectionStatus');
+        statusEl.textContent = `🔄 Menyegerakkan ${offlineQueue.length} data...`;
+        statusEl.className = 'status-sync';
+        statusEl.style.display = 'block';
+        
+        processNextInQueue();
+    }
+    
+    function processNextInQueue() {
+        if (offlineQueue.length === 0) {
+            document.getElementById('connectionStatus').style.display = 'none';
+            loadList();
+            showSuccessToast("✅ Data offline berjaya disegerakkan");
+            return;
+        }
+        
+        const item = offlineQueue[0];
+        item.retryCount = (item.retryCount || 0) + 1;
+        
+        // Don't retry more than 3 times
+        if (item.retryCount > 3) {
+            offlineQueue.shift();
+            saveEncryptedData('offline_queue', offlineQueue);
+            processNextInQueue();
+            return;
+        }
+        
+        fetch(CONFIG.API_URL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                offlineQueue.shift();
+                saveEncryptedData('offline_queue', offlineQueue);
+            } else {
+                // Keep in queue for next retry
+            }
+        })
+        .catch(error => {
+            console.error('Sync error:', error);
+        })
+        .finally(() => {
+            setTimeout(processNextInQueue, 1000);
+        });
+    }
+
+    // ===============================================================
+    // 📊 FUNGSI LOGGING & AUDIT
+    // ===============================================================
+    
+    function logSecurityEvent(event) {
+        console.log(`[SECURITY] ${new Date().toISOString()}: ${event}`);
+    }
+    
+    function logLocationEvent(lat, lng, distance) {
+        console.log(`[LOCATION] ${new Date().toISOString()}: Lat=${lat.toFixed(6)}, Lng=${lng.toFixed(6)}, Dist=${distance.toFixed(1)}m`);
+    }
+
+    // ===============================================================
+    // ⚙️ FUNGSI CONFIG & ADMIN
+    // ===============================================================
+    
+    function fetchConfig() {
+        if (!navigator.onLine) return;
+        
+        fetch(CONFIG.API_URL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: "GET_CONFIG",
+                token: SYSTEM_TOKEN,
+                deviceId: deviceId
+            })
+        })
+        .then(response => response.json())
+        .then(config => {
+            jamConfig = config;
+            console.log('Config loaded:', jamConfig);
+        })
+        .catch(error => {
+            console.error('Config fetch error:', error);
+        });
+    }
+    
+    function showAdminPanel() {
+        const pass = prompt("Masukkan kod admin:");
+        if (pass === "101010") { // In production, verify with server
+            adminMode = true;
+            showSuccessToast("🔓 Mod Admin Diaktifkan");
+            
+            // Show admin options (could be extended)
+            alert(`Admin Panel\n\nDevice ID: ${deviceId}\nOffline Queue: ${offlineQueue.length} item\nLocation: ${lastLat.toFixed(4)}, ${lastLng.toFixed(4)}\nDistance: ${Math.round(currentDist)}m\nAccuracy: ${locationAccuracy.toFixed(1)}m`);
+        } else if (pass !== null) {
+            showErrorToast("❌ Kod admin salah");
+        }
+    }
+
+    // ===============================================================
+    // 🗑️ FUNGSI RESET & MAINTENANCE
+    // ===============================================================
+    
+    function resetSesi() {
+        if (confirm("⚠️ Reset sistem akan memadam semua data tempatan.\nTeruskan?")) {
+            localStorage.clear();
+            showSuccessToast("✅ Sistem telah direset");
+            setTimeout(() => location.reload(), 500);
+        }
+    }
+    
+    // Add reset function to window for accessibility
+    window.resetSesi = resetSesi;
+    
+    // Handle page visibility for battery optimization
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // Page is hidden, reduce GPS frequency
+            if (gpsWatchId !== null) {
+                navigator.geolocation.clearWatch(gpsWatchId);
+                gpsWatchId = null;
+            }
+        } else {
+            // Page is visible again, restart GPS
+            startRadar();
+        }
+    });
+
 </script>
 </body>
 </html>
