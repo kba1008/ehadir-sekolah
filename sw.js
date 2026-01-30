@@ -1,11 +1,15 @@
-const CACHE_NAME = 'ehadir-cache-v1';
+// KEMASKINI VERSI DI SINI SETIAP KALI UBAH HTML
+const CACHE_NAME = 'ehadir-cache-v23'; 
+
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json'
 ];
 
+// INSTALL: Simpan fail dalam cache
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Paksa update segera
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -15,18 +19,14 @@ self.addEventListener('install', event => {
   );
 });
 
+// FETCH: Guna cache jika offline, update jika online
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
 
+// ACTIVATE: Buang cache lama (v19, v20, dll)
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -34,10 +34,12 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Buang cache lama:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+  return self.clients.claim();
 });
