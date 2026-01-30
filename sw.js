@@ -1,5 +1,5 @@
 // KEMASKINI VERSI DI SINI SETIAP KALI UBAH HTML
-const CACHE_NAME = 'ehadir-cache-v25'; 
+const CACHE_NAME = 'ehadir-cache-v26'; 
 
 const urlsToCache = [
   './',
@@ -44,3 +44,4 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 
 });
+
