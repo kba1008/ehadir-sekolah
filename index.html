@@ -3,7 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v20.2 (Minimalis)</title>
+    <title>Sistem Pelawat & Kehadiran v20.3 (Fix Timezone)</title>
+    
+    <!-- ====================================================================== -->
+    <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
+    <!-- ====================================================================== -->
+    <script>
+        // 1. Masukkan Link Google Apps Script (Web App URL) di sini
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwY1w4aCdBDX2TNX4lNIOuJ3Abhg6E-fk2vqRuttFcvrWWHGkIB7dSctL5HJZgF4ErB/exec'; 
+        
+        // 2. Kata Laluan untuk Admin / Manual Override
+        const PASSCODE = "101010";
+        
+        // 3. Koordinat Lokasi (Ambil dari Google Maps)
+        const SCHOOL_LAT = 5.227932478937475; 
+        const SCHOOL_LNG = 100.69901604319402; 
+        
+        // 4. Jarak Radius yang dibenarkan (dalam meter)
+        const RADIUS_METER = 1000; 
+    </script>
+    <!-- ====================================================================== -->
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -182,6 +202,7 @@
 
         <div class="title-box">
             <h1>E-HADIR</h1>
+            <!-- Anda boleh ubah tajuk sekolah di sini juga jika mahu hardcode -->
             <h2 id="schoolTitle">SK SELAMA (K)</h2>
         </div>
         
@@ -263,11 +284,8 @@
     </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzJYkZRwWaVQB5-dYQtygWxYm4dubYwByXIOC8DkCOn8sYq9tghEXCbT6Imrr2apOIm/exec'; 
-    const PASSCODE = "101010";
-    const SCHOOL_LAT = 5.227932478937475; 
-    const SCHOOL_LNG = 100.69901604319402; 
-    const RADIUS_METER = 1000; 
+    // NOTA: Tetapan API_URL, PASSCODE, dan KOORDINAT telah dipindahkan ke bahagian atas (dalam tag <head>)
+    // supaya lebih mudah diedit oleh pengguna.
 
     let jamConfig = null; 
     let isInZone = false; 
@@ -312,6 +330,20 @@
         });
     }
 
+    // --- FUNGSI PEMBERSIH JAM (FIX 1899 DATE) ---
+    function cleanTimeDisplay(val) {
+        if (!val) return "--:--";
+        // Jika data masuk adalah string panjang (ISO) atau ada tahun 1899
+        if (val.toString().length > 10 || val.toString().includes("1899")) {
+            let d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                // Ambil masa sahaja, buang tarikh dan timezone pelik
+                return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+        }
+        return val; // Jika data memang dah cantik (cth: "07:30 AM"), pulangkan saja
+    }
+
     // --- FUNGSI JADUAL MINIMALIS (DIKEMASKINI) ---
     function updateScheduleInfo() {
         let kat = document.getElementById('kategori').value;
@@ -328,8 +360,9 @@
         }
 
         if (kat && jamConfig[kat]) {
-            let masuk = jamConfig[kat].masuk || "--:--";
-            let keluar = jamConfig[kat].keluar || "--:--";
+            // Guna cleanTimeDisplay untuk bersihkan paparan
+            let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
+            let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
             
             // Paparan Minimalis (Pil)
             infoBox.innerHTML = `
@@ -357,10 +390,13 @@
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             
+            // Paparan bersih untuk placeholder
+            let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
+
             if (limitMasuk && limitKeluar) {
                 if (now > limitMasuk && now < limitKeluar) {
                     area.style.display = "block";
-                    area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${jamConfig[kat].masuk}). SILA NYATAKAN SEBAB:`;
+                    area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
                     return;
                 }
             }
@@ -377,13 +413,14 @@
         
         if (s && jamConfig && jamConfig[s.kategori]) {
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
+            let displayKeluar = cleanTimeDisplay(jamConfig[s.kategori].keluar);
             
             dashboardSchedule.style.display = "block";
-            userExitTime.innerText = jamConfig[s.kategori].keluar;
+            userExitTime.innerText = displayKeluar;
 
             if (limitKeluar && new Date() < limitKeluar) {
                 area.style.display = "block";
-                area.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${jamConfig[s.kategori].keluar}). SILA NYATAKAN SEBAB:`;
+                area.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
             } else {
                 area.style.display = "none";
             }
@@ -503,7 +540,19 @@
         if (!t || t === "BEBAS") return null;
         let d = new Date(r);
         
-        let p = t.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
+        // Convert to string first to handle Date objects from Sheets
+        let tStr = t.toString();
+
+        // Check for ISO string or full date string first
+        if (tStr.includes("T") || tStr.includes("1899") || tStr.length > 15) {
+             let tempD = new Date(tStr);
+             if(!isNaN(tempD.getTime())) {
+                 d.setHours(tempD.getHours(), tempD.getMinutes(), 0, 0);
+                 return d;
+             }
+        }
+
+        let p = tStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]);
             let m = parseInt(p[2]);
@@ -517,7 +566,7 @@
             return d;
         } 
         
-        let p2 = t.match(/(\d+):(\d+)/);
+        let p2 = tStr.match(/(\d+):(\d+)/);
         if(p2) {
             let h = parseInt(p2[1]);
             let m = parseInt(p2[2]);
@@ -530,6 +579,17 @@
 
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
+        
+        // Handle raw Date string from Sheets
+        if (timeStr.toString().length > 15) {
+             let tempD = new Date(timeStr);
+             if(!isNaN(tempD.getTime())) {
+                 let now = new Date();
+                 now.setHours(tempD.getHours(), tempD.getMinutes(), tempD.getSeconds(), 0);
+                 return now;
+             }
+        }
+
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
 
@@ -588,8 +648,39 @@
     }
 
     function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
-    function startClock(){setInterval(()=>{let n=new Date();document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});document.getElementById('dateDisplay').innerText=n.toLocaleDateString('ms-MY');},1000);}
     
+    // --- FUNGSI JAM & TARIKH DIPERBAIKI (ZON MASA MALAYSIA) ---
+    function startClock(){
+        setInterval(()=>{
+            let n = new Date();
+            // Paksa format Malaysia & Zon Masa Kuala Lumpur
+            document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-US', {
+                hour12: true, 
+                hour: "2-digit", 
+                minute: "2-digit",
+                timeZone: 'Asia/Kuala_Lumpur'
+            });
+            document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY', {
+                timeZone: 'Asia/Kuala_Lumpur'
+            });
+        }, 1000);
+    }
+    
+    function getHijriDate(){
+        let t = new Date();
+        // Tambah timeZone: 'Asia/Kuala_Lumpur' untuk ketepatan
+        let o = {
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric', 
+            calendar: 'islamic-umalqura',
+            timeZone: 'Asia/Kuala_Lumpur'
+        };
+        try{
+            document.getElementById('hijriDisplay').innerText = `🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura', o).format(t).replace('AH','').trim()}`;
+        }catch(e){}
+    }
+
     function checkSession() { 
         let s = JSON.parse(localStorage.getItem('ehadir_session')); 
         if(s && s.date === new Date().toISOString().slice(0,10)) { 
@@ -646,7 +737,6 @@
     }
 
     function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let im=new Image();im.src=e.target.result;im.onload=function(){let cv=document.createElement("canvas");let ctx=cv.getContext("2d");cv.width=400;cv.height=400*(im.height/im.width);ctx.drawImage(im,0,0,cv.width,cv.height);let d=cv.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=d;};};r.readAsDataURL(i.files[0]);}}
-    function getHijriDate(){let t=new Date();let o={day:'numeric',month:'long',year:'numeric',calendar:'islamic-umalqura'};try{document.getElementById('hijriDisplay').innerText=`🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura',o).format(t).replace('AH','').trim()}`;}catch(e){}}
     function checkKategori(){ if(document.getElementById('kategori').value==='PELAWAT') showPelawatForm(); }
     function showPelawatForm(){ document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
     function cancelPelawat(){ document.getElementById('pelawatPanel').style.display='none'; checkSession(); location.reload(); }
