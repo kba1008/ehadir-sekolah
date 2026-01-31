@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v18.0 (Live Timer)</title>
+    <title>Sistem Pelawat & Kehadiran v18.0 (Simple Timer)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -40,7 +40,7 @@
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
         
-        /* --- CSS LIST YANG DIKEMASKINI --- */
+        /* --- CSS LIST --- */
         .user-card { 
             background: #f9f9f9; 
             padding: 10px; 
@@ -88,6 +88,9 @@
             padding: 1px 4px;
             border-radius: 4px;
             border: 1px solid #fae5d3;
+            min-width: 50px; /* Lebar dikurangkan sedikit sebab tiada saat */
+            text-align: center;
+            display: inline-block;
         }
 
         .list-actions { 
@@ -278,7 +281,6 @@
 
         document.getElementById('btnMainSubmit').disabled = true;
         sendData({ action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() }, () => {
-            // Simpan sesi untuk lock nama di telefon ini
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
             location.reload();
         });
@@ -326,7 +328,6 @@
         });
     }
 
-    // Fungsi ini untuk butang 'X' dalam list (Perlu Passcode Admin)
     function keluarManual(namaUser) {
         let pass = prompt("⚠️ ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
         
@@ -382,7 +383,6 @@
         } return null;
     }
 
-    // Fungsi untuk menukar string masa (cth: "7:30 AM") ke objek Date hari ini
     function convertToDateObject(timeStr) {
         if (!timeStr) return null;
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
@@ -400,7 +400,7 @@
         return d;
     }
 
-    // Fungsi update live timer pada DOM
+    // --- FUNGSI TIMER YANG DIUBAHSUAI (JAM & MINIT SAHAJA) ---
     function updateLiveTimers() {
         let timers = document.querySelectorAll('.live-timer');
         let now = new Date();
@@ -415,10 +415,11 @@
 
                 let hours = Math.floor(diff / (1000 * 60 * 60));
                 let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-                // Format: 1j 30m 15s
-                el.innerText = `${hours}j ${minutes}m ${seconds}s`;
+                
+                // Format ringkas: 1j 30m
+                el.innerText = `${hours}j ${minutes}m`;
+            } else {
+                el.innerText = "--";
             }
         });
     }
@@ -442,7 +443,6 @@
     function checkSession() { 
         let s = JSON.parse(localStorage.getItem('ehadir_session')); 
         if(s && s.date === new Date().toISOString().slice(0,10)) { 
-            // Jika ada sesi, sembunyikan borang utama, tunjuk dashboard
             document.getElementById('defaultForm').style.display = 'none'; 
             document.getElementById('dashboardPanel').style.display = 'block'; 
             document.getElementById('sessionName').innerText = s.nama; 
@@ -459,34 +459,32 @@
             let h = ""; 
             
             currentList.forEach((i, idx) => { 
-                // 1. Ikon Gambar: HANYA untuk PELAWAT
                 let imgBtn = "";
                 if (i.kategori === "PELAWAT" && i.foto) {
                     imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">🖼️</span>`;
                 }
                 
-                // 2. Ikon Pangkah (Keluar Manual)
                 let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
                 
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
 
-                // 3. Masa Masuk untuk Live Timer
                 let masaMasuk = i.jam || "";
                 
-                // Susunan: NAMA > PEKERJAAN > TIMER > ICON GAMBAR > ICON PANGKAH
+                // Placeholder timer ditukar kepada 0j 0m
                 h += `<div class="user-card">
                         <div class="user-info">
                             <strong>${i.nama}</strong>
                             <div class="user-details">
                                 <span>${i.kategori}</span>
-                                <span class="live-timer" data-masuk="${masaMasuk}">Mengira...</span>
+                                <span class="live-timer" data-masuk="${masaMasuk}">0j 0m</span>
                             </div>
                         </div>
                         ${actionBtns}
                       </div>`; 
             }); 
             document.getElementById('listContainer').innerHTML = h || "Tiada rekod."; 
-            updateLiveTimers(); // Update terus lepas load
+            
+            updateLiveTimers(); 
         }); 
     }
 
