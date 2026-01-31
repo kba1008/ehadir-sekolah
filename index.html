@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v19.1 (Smart Logic)</title>
+    <title>Sistem Pelawat & Kehadiran v19.2 (Strict Schedule)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -242,7 +242,7 @@
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
 
-    let jamConfig = {}; 
+    let jamConfig = null; // Mula dengan null untuk check data dah sampai ke belum
     let isInZone = false; 
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
@@ -268,7 +268,7 @@
         .then(r => r.json()).then(res => { 
             if(res.status === "SUCCESS") {
                 jamConfig = res.data; 
-                console.log("Config Loaded:", jamConfig);
+                console.log("Jadual Waktu Diterima:", jamConfig);
             }
         });
     }
@@ -278,7 +278,7 @@
         let kat = document.getElementById('kategori').value;
         let infoBox = document.getElementById('scheduleInfo');
         
-        if (kat && jamConfig[kat]) {
+        if (jamConfig && kat && jamConfig[kat]) {
             let masuk = jamConfig[kat].masuk || "??";
             let keluar = jamConfig[kat].keluar || "??";
             infoBox.innerHTML = `<strong>📅 JADUAL WAKTU (${kat}):</strong><br>
@@ -296,7 +296,7 @@
         let area = document.getElementById('alasanMasuk');
         let now = new Date();
         
-        if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
+        if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             
@@ -324,7 +324,7 @@
         let dashboardSchedule = document.getElementById('dashboardSchedule');
         let userExitTime = document.getElementById('userExitTime');
         
-        if (s && jamConfig[s.kategori]) {
+        if (s && jamConfig && jamConfig[s.kategori]) {
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
             
             dashboardSchedule.style.display = "block";
@@ -343,6 +343,8 @@
 
     function hantarMasuk() {
         if(!isInZone) { alert("⛔ ANDA DI LUAR KAWASAN!"); return; }
+        if(!jamConfig) { alert("⏳ Sedang memuatkan jadual waktu... Sila tunggu sebentar."); return; }
+
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
@@ -456,15 +458,23 @@
         }); 
     }
 
+    // FUNGSI PARSE TIME YANG DIPERBAIKI (Support format H:mm:ss AM/PM)
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
         let d = new Date(r);
-        let p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
+        // Regex baru: Support jam:minit:saat AM/PM (contoh: 3:30:00 AM)
+        let p = t.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
+        
         if(p) {
-            let h = parseInt(p[1]), m = parseInt(p[2]);
-            if(p[3].toUpperCase() === "PM" && h < 12) h += 12;
-            if(p[3].toUpperCase() === "AM" && h === 12) h = 0;
-            d.setHours(h, m, 0, 0); 
+            let h = parseInt(p[1]);
+            let m = parseInt(p[2]);
+            let s = p[3] ? parseInt(p[3]) : 0; // Ambil saat jika ada
+            let ampm = p[4].toUpperCase();
+
+            if(ampm === "PM" && h < 12) h += 12;
+            if(ampm === "AM" && h === 12) h = 0;
+            
+            d.setHours(h, m, s, 0); 
             return d;
         } 
         return null;
@@ -472,6 +482,7 @@
 
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
+        // Regex sama untuk local timer
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
 
