@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v19.0 (Auto Jam)</title>
+    <title>Sistem Pelawat & Kehadiran v19.1 (Smart Logic)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -121,14 +121,16 @@
         /* INFO JADUAL BERTUGAS */
         #scheduleInfo {
             display: none;
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
+            background: #d1e7dd;
+            color: #0f5132;
+            padding: 12px;
             border-radius: 10px;
-            font-size: 12px;
-            margin-bottom: 10px;
-            border: 1px solid #c3e6cb;
+            font-size: 13px;
+            margin-bottom: 15px;
+            border: 1px solid #badbcc;
+            text-align: left;
         }
+        #scheduleInfo span { display: block; margin-top: 2px; }
         
         #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         .modal-content { margin: auto; display: block; max-width: 90%; max-height: 80%; border-radius: 10px; border: 2px solid white; }
@@ -169,23 +171,20 @@
             
             <!-- Paparan Waktu Keluar Sepatutnya -->
             <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:8px; border-radius:8px; margin-bottom:10px; display:none;">
-                Waktu Pulang: <span id="userExitTime" style="font-weight:bold;">--:--</span>
+                Waktu Pulang Rasmi: <span id="userExitTime" style="font-weight:bold;">--:--</span>
             </div>
 
             <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERTUGAS</p>
             
             <textarea id="alasanKeluar" placeholder="⚠️ ANDA BALIK AWAL DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
             
-            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR (DIRI SENDIRI)</button>
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
             <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ BANTU DAFTAR PELAWAT</button>
         </div>
 
         <!-- BORANG DAFTAR MASUK (HANYA MUNCUL JIKA BELUM LOGIN) -->
         <div id="defaultForm">
-            <!-- Paparan Jadual Bertugas -->
-            <div id="scheduleInfo">Sila pilih kategori untuk lihat waktu.</div>
-
             <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
                 <option value="" disabled selected>-- PILIH KATEGORI --</option>
                 <option value="GURU">GURU</option>
@@ -193,6 +192,10 @@
                 <option value="KEBERSIHAN">KEBERSIHAN</option>
                 <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
             </select>
+
+            <!-- Paparan Jadual Bertugas (Auto Muncul) -->
+            <div id="scheduleInfo"></div>
+
             <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
             
             <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
@@ -251,7 +254,6 @@
         fetchConfig(); // Tarik data JAM dari Google Sheet
         getHijriDate();
         
-        // Tunggu sekejap untuk config load sebelum check session
         setTimeout(() => {
             checkSession();
             setInterval(triggerAlasanKeluar, 5000); 
@@ -262,7 +264,6 @@
     };
 
     function fetchConfig() {
-        // Pastikan Backend menghantar data dari sheet 'JAM'
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             if(res.status === "SUCCESS") {
@@ -272,7 +273,7 @@
         });
     }
 
-    // Fungsi Paparan Jadual Waktu Mengikut Kategori
+    // FUNGSI 1: Papar Waktu Masuk & Keluar bila kategori dipilih
     function updateScheduleInfo() {
         let kat = document.getElementById('kategori').value;
         let infoBox = document.getElementById('scheduleInfo');
@@ -280,15 +281,16 @@
         if (kat && jamConfig[kat]) {
             let masuk = jamConfig[kat].masuk || "??";
             let keluar = jamConfig[kat].keluar || "??";
-            infoBox.innerHTML = `<strong>WAKTU ${kat}:</strong><br>MASUK: ${masuk} | KELUAR: ${keluar}`;
+            infoBox.innerHTML = `<strong>📅 JADUAL WAKTU (${kat}):</strong><br>
+                                 <span>🟢 Waktu Masuk: ${masuk}</span>
+                                 <span>🔴 Waktu Pulang: ${keluar}</span>`;
             infoBox.style.display = "block";
-        } else if (kat === "PELAWAT") {
-            infoBox.style.display = "none";
         } else {
             infoBox.style.display = "none";
         }
     }
 
+    // FUNGSI 2: Logik Alasan Masuk (Lewat vs OT)
     function triggerAlasanMasuk() {
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
@@ -296,18 +298,26 @@
         
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
+            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             
-            // Jika waktu sekarang LEBIH BESAR dari waktu masuk = LEWAT
-            if (limitMasuk && now > limitMasuk) {
-                area.style.display = "block";
-                area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${jamConfig[kat].masuk}). SILA NYATAKAN SEBAB:`;
-                return;
+            // LOGIK BARU:
+            // 1. Jika sekarang > Waktu Masuk DAN sekarang < Waktu Keluar = LEWAT (Kena isi alasan)
+            // 2. Jika sekarang > Waktu Keluar = OT/EXTRA (Bagus, tak perlu alasan)
+            
+            if (limitMasuk && limitKeluar) {
+                if (now > limitMasuk && now < limitKeluar) {
+                    area.style.display = "block";
+                    area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${jamConfig[kat].masuk}). SILA NYATAKAN SEBAB:`;
+                    return;
+                }
             }
         }
+        // Jika OT atau datang awal, sembunyikan kotak
         area.style.display = "none";
-        area.value = ""; // Kosongkan jika tak perlu
+        area.value = ""; 
     }
 
+    // FUNGSI 3: Logik Alasan Keluar (Balik Awal)
     function triggerAlasanKeluar() {
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let area = document.getElementById('alasanKeluar');
@@ -317,15 +327,15 @@
         if (s && jamConfig[s.kategori]) {
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
             
-            // Paparkan waktu keluar sepatutnya di dashboard
             dashboardSchedule.style.display = "block";
             userExitTime.innerText = jamConfig[s.kategori].keluar;
 
-            // Jika waktu sekarang KURANG dari waktu keluar = BALIK AWAL
+            // Jika sekarang < Waktu Keluar = BALIK AWAL
             if (limitKeluar && new Date() < limitKeluar) {
                 area.style.display = "block";
                 area.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${jamConfig[s.kategori].keluar}). SILA NYATAKAN SEBAB:`;
             } else {
+                // Jika sudah lepas waktu keluar (OT balik), tak perlu alasan
                 area.style.display = "none";
             }
         }
@@ -340,9 +350,18 @@
 
         if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
         
-        // Validasi Alasan Masuk
+        // Validasi Alasan Masuk (Hanya jika kotak dipaparkan)
         if (document.getElementById('alasanMasuk').style.display === "block" && alasan.trim() === "") {
             alert("⚠️ Anda lewat! Sila isi alasan kenapa daftar lewat."); return;
+        }
+
+        // Jika kotak tak papar (OT), set alasan automatik
+        if (document.getElementById('alasanMasuk').style.display === "none") {
+            // Cek jika OT (selepas waktu keluar)
+            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+            if (limitKeluar && now > limitKeluar) {
+                alasan = "KERJA LEBIH MASA / PROGRAM SEKOLAH";
+            }
         }
 
         document.getElementById('btnMainSubmit').disabled = true;
@@ -366,12 +385,12 @@
         let alasanInput = document.getElementById('alasanKeluar');
         let alasanValue = alasanInput.value.trim();
         
-        // Validasi Alasan Keluar
+        // Validasi Alasan Keluar (Hanya jika kotak dipaparkan)
         if (alasanInput.style.display === "block" && alasanValue === "") {
             alert("⚠️ Anda pulang awal! Sila isi alasan kenapa."); return;
         }
         
-        if (alasanValue === "") alasanValue = "PULANG MENGIKUT WAKTU";
+        if (alasanValue === "") alasanValue = "PULANG MENGIKUT WAKTU / LEBIH MASA";
 
         if(!confirm("Daftar Keluar sekarang?")) return;
         
@@ -439,7 +458,6 @@
 
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
-        // Format masa mestilah cth: "07:30 AM" atau "2:00 PM"
         let d = new Date(r);
         let p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
         if(p) {
