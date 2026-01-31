@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v18.0 (Simple Timer)</title>
+    <title>Sistem Pelawat & Kehadiran v18.4 (Jam Randik Live)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -80,17 +80,20 @@
             gap: 5px;
         }
 
+        /* --- CSS TIMER JAM RANDIK --- */
         .live-timer {
             color: #e67e22;
             font-weight: bold;
-            font-family: monospace;
+            font-family: 'Courier New', Courier, monospace; /* Font jam digital */
             background: #fffcf5;
-            padding: 1px 4px;
+            padding: 2px 8px;
             border-radius: 4px;
             border: 1px solid #fae5d3;
-            min-width: 50px; /* Lebar dikurangkan sedikit sebab tiada saat */
+            min-width: 80px;
             text-align: center;
             display: inline-block;
+            font-size: 11px;
+            letter-spacing: 1px;
         }
 
         .list-actions { 
@@ -229,7 +232,9 @@
         fetchConfig();
         getHijriDate();
         setInterval(triggerAlasanKeluar, 5000); 
-        // Mulakan timer live update setiap saat
+        
+        // --- MULA JAM RANDIK ---
+        // Ini akan mengemaskini masa setiap saat
         setInterval(updateLiveTimers, 1000);
     };
 
@@ -383,43 +388,63 @@
         } return null;
     }
 
-    function convertToDateObject(timeStr) {
+    // --- FUNGSI PARSE TIME UNTUK JAM RANDIK (DIPERBAIKI) ---
+    function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
-        let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
+        // Regex untuk tangkap HH:MM:SS dan AM/PM
+        let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
 
         let h = parseInt(parts[1]);
         let m = parseInt(parts[2]);
-        let ampm = parts[4].toUpperCase();
+        let s = parts[3] ? parseInt(parts[3]) : 0;
+        let ampm = parts[4] ? parts[4].toUpperCase() : null;
 
         if (ampm === "PM" && h < 12) h += 12;
         if (ampm === "AM" && h === 12) h = 0;
 
-        let d = new Date();
-        d.setHours(h, m, 0, 0);
+        let d = new Date(); 
+        d.setHours(h, m, s, 0); 
         return d;
     }
 
-    // --- FUNGSI TIMER YANG DIUBAHSUAI (JAM & MINIT SAHAJA) ---
+    // --- FUNGSI JAM RANDIK LIVE (DIPERBAIKI) ---
+    // Mengira tempoh sebenar dari waktu masuk hingga sekarang
     function updateLiveTimers() {
         let timers = document.querySelectorAll('.live-timer');
         let now = new Date();
 
         timers.forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
-            let masukDate = convertToDateObject(masukStr);
+            
+            if (!masukStr || masukStr === "undefined") {
+                el.innerText = "--:--:--";
+                return;
+            }
+
+            let masukDate = parseTimeLocal(masukStr);
             
             if (masukDate) {
+                // Kira beza masa (milisaat)
                 let diff = now - masukDate;
+                
+                // Jika negatif (masa depan), set 0
                 if (diff < 0) diff = 0;
 
-                let hours = Math.floor(diff / (1000 * 60 * 60));
-                let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                let totalSeconds = Math.floor(diff / 1000);
+                let hours = Math.floor(totalSeconds / 3600);
+                let minutes = Math.floor((totalSeconds % 3600) / 60);
+                let seconds = totalSeconds % 60;
                 
-                // Format ringkas: 1j 30m
-                el.innerText = `${hours}j ${minutes}m`;
+                // Format supaya jadi 00:00:00 (Pad dengan '0')
+                let hDisp = hours < 10 ? "0" + hours : hours;
+                let mDisp = minutes < 10 ? "0" + minutes : minutes;
+                let sDisp = seconds < 10 ? "0" + seconds : seconds;
+
+                // Paparan Jam Randik
+                el.innerText = `${hDisp}:${mDisp}:${sDisp}`;
             } else {
-                el.innerText = "--";
+                el.innerText = "00:00:00"; 
             }
         });
     }
@@ -468,15 +493,15 @@
                 
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
 
-                let masaMasuk = i.jam || "";
+                // Simpan masa masuk untuk dikira oleh jam randik
+                let masaMasuk = i.jam || ""; 
                 
-                // Placeholder timer ditukar kepada 0j 0m
                 h += `<div class="user-card">
                         <div class="user-info">
                             <strong>${i.nama}</strong>
                             <div class="user-details">
                                 <span>${i.kategori}</span>
-                                <span class="live-timer" data-masuk="${masaMasuk}">0j 0m</span>
+                                <span class="live-timer" data-masuk="${masaMasuk}">00:00:00</span>
                             </div>
                         </div>
                         ${actionBtns}
@@ -484,6 +509,7 @@
             }); 
             document.getElementById('listContainer').innerHTML = h || "Tiada rekod."; 
             
+            // Panggil update timer serta-merta
             updateLiveTimers(); 
         }); 
     }
