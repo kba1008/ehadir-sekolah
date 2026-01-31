@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v18.4 (Jam Randik Live)</title>
+    <title>Sistem Pelawat & Kehadiran v19.0 (Auto Jam)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -84,7 +84,7 @@
         .live-timer {
             color: #e67e22;
             font-weight: bold;
-            font-family: 'Courier New', Courier, monospace; /* Font jam digital */
+            font-family: 'Courier New', Courier, monospace; 
             background: #fffcf5;
             padding: 2px 8px;
             border-radius: 4px;
@@ -117,6 +117,18 @@
             transition: background 0.2s;
         }
         .icon-btn:hover { background: #eee; }
+
+        /* INFO JADUAL BERTUGAS */
+        #scheduleInfo {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #c3e6cb;
+        }
         
         #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         .modal-content { margin: auto; display: block; max-width: 90%; max-height: 80%; border-radius: 10px; border: 2px solid white; }
@@ -154,9 +166,15 @@
         <div id="dashboardPanel">
             <span class="user-welcome">👤 <span id="sessionName">--</span></span>
             <div class="locked-msg">Akaun ini dikunci pada peranti ini.</div>
+            
+            <!-- Paparan Waktu Keluar Sepatutnya -->
+            <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:8px; border-radius:8px; margin-bottom:10px; display:none;">
+                Waktu Pulang: <span id="userExitTime" style="font-weight:bold;">--:--</span>
+            </div>
+
             <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERTUGAS</p>
             
-            <textarea id="alasanKeluar" placeholder="⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
+            <textarea id="alasanKeluar" placeholder="⚠️ ANDA BALIK AWAL DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
             
             <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR (DIRI SENDIRI)</button>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
@@ -165,7 +183,10 @@
 
         <!-- BORANG DAFTAR MASUK (HANYA MUNCUL JIKA BELUM LOGIN) -->
         <div id="defaultForm">
-            <select id="kategori" onchange="checkKategori(); triggerAlasanMasuk();">
+            <!-- Paparan Jadual Bertugas -->
+            <div id="scheduleInfo">Sila pilih kategori untuk lihat waktu.</div>
+
+            <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
                 <option value="" disabled selected>-- PILIH KATEGORI --</option>
                 <option value="GURU">GURU</option>
                 <option value="AKP">AKP</option>
@@ -174,7 +195,7 @@
             </select>
             <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
             
-            <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
+            <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
 
             <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
         </div>
@@ -227,44 +248,83 @@
     window.onload = function() {
         startClock();
         startRadar();
-        checkSession();
-        loadList();
-        fetchConfig();
+        fetchConfig(); // Tarik data JAM dari Google Sheet
         getHijriDate();
-        setInterval(triggerAlasanKeluar, 5000); 
         
-        // --- MULA JAM RANDIK ---
-        // Ini akan mengemaskini masa setiap saat
+        // Tunggu sekejap untuk config load sebelum check session
+        setTimeout(() => {
+            checkSession();
+            setInterval(triggerAlasanKeluar, 5000); 
+        }, 2000);
+
+        loadList();
         setInterval(updateLiveTimers, 1000);
     };
 
     function fetchConfig() {
+        // Pastikan Backend menghantar data dari sheet 'JAM'
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
-        .then(r => r.json()).then(res => { if(res.status === "SUCCESS") jamConfig = res.data; });
+        .then(r => r.json()).then(res => { 
+            if(res.status === "SUCCESS") {
+                jamConfig = res.data; 
+                console.log("Config Loaded:", jamConfig);
+            }
+        });
+    }
+
+    // Fungsi Paparan Jadual Waktu Mengikut Kategori
+    function updateScheduleInfo() {
+        let kat = document.getElementById('kategori').value;
+        let infoBox = document.getElementById('scheduleInfo');
+        
+        if (kat && jamConfig[kat]) {
+            let masuk = jamConfig[kat].masuk || "??";
+            let keluar = jamConfig[kat].keluar || "??";
+            infoBox.innerHTML = `<strong>WAKTU ${kat}:</strong><br>MASUK: ${masuk} | KELUAR: ${keluar}`;
+            infoBox.style.display = "block";
+        } else if (kat === "PELAWAT") {
+            infoBox.style.display = "none";
+        } else {
+            infoBox.style.display = "none";
+        }
     }
 
     function triggerAlasanMasuk() {
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
         let now = new Date();
+        
         if (kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-            if (limitMasuk && limitKeluar && now > limitMasuk && now < limitKeluar) {
+            
+            // Jika waktu sekarang LEBIH BESAR dari waktu masuk = LEWAT
+            if (limitMasuk && now > limitMasuk) {
                 area.style.display = "block";
+                area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${jamConfig[kat].masuk}). SILA NYATAKAN SEBAB:`;
                 return;
             }
         }
         area.style.display = "none";
+        area.value = ""; // Kosongkan jika tak perlu
     }
 
     function triggerAlasanKeluar() {
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let area = document.getElementById('alasanKeluar');
+        let dashboardSchedule = document.getElementById('dashboardSchedule');
+        let userExitTime = document.getElementById('userExitTime');
+        
         if (s && jamConfig[s.kategori]) {
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
+            
+            // Paparkan waktu keluar sepatutnya di dashboard
+            dashboardSchedule.style.display = "block";
+            userExitTime.innerText = jamConfig[s.kategori].keluar;
+
+            // Jika waktu sekarang KURANG dari waktu keluar = BALIK AWAL
             if (limitKeluar && new Date() < limitKeluar) {
                 area.style.display = "block";
+                area.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${jamConfig[s.kategori].keluar}). SILA NYATAKAN SEBAB:`;
             } else {
                 area.style.display = "none";
             }
@@ -280,8 +340,9 @@
 
         if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
         
+        // Validasi Alasan Masuk
         if (document.getElementById('alasanMasuk').style.display === "block" && alasan.trim() === "") {
-            alert("Sila isi alasan kelewatan!"); return;
+            alert("⚠️ Anda lewat! Sila isi alasan kenapa daftar lewat."); return;
         }
 
         document.getElementById('btnMainSubmit').disabled = true;
@@ -305,13 +366,12 @@
         let alasanInput = document.getElementById('alasanKeluar');
         let alasanValue = alasanInput.value.trim();
         
-        if (alasanInput.style.display === "none" || alasanInput.style.display === "") {
-            alasanValue = "PULANG MENGIKUT WAKTU";
-        } else {
-            if (alasanValue === "") {
-                alert("⚠️ Sila isi alasan balik awal!"); return;
-            }
+        // Validasi Alasan Keluar
+        if (alasanInput.style.display === "block" && alasanValue === "") {
+            alert("⚠️ Anda pulang awal! Sila isi alasan kenapa."); return;
         }
+        
+        if (alasanValue === "") alasanValue = "PULANG MENGIKUT WAKTU";
 
         if(!confirm("Daftar Keluar sekarang?")) return;
         
@@ -379,19 +439,21 @@
 
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
-        let d = new Date(r), p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
+        // Format masa mestilah cth: "07:30 AM" atau "2:00 PM"
+        let d = new Date(r);
+        let p = t.match(/(\d+)[.:](\d+).*?(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]), m = parseInt(p[2]);
             if(p[3].toUpperCase() === "PM" && h < 12) h += 12;
             if(p[3].toUpperCase() === "AM" && h === 12) h = 0;
-            d.setHours(h, m, 0, 0); return d;
-        } return null;
+            d.setHours(h, m, 0, 0); 
+            return d;
+        } 
+        return null;
     }
 
-    // --- FUNGSI PARSE TIME UNTUK JAM RANDIK (DIPERBAIKI) ---
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
-        // Regex untuk tangkap HH:MM:SS dan AM/PM
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
 
@@ -408,40 +470,27 @@
         return d;
     }
 
-    // --- FUNGSI JAM RANDIK LIVE (DIPERBAIKI) ---
-    // Mengira tempoh sebenar dari waktu masuk hingga sekarang
     function updateLiveTimers() {
         let timers = document.querySelectorAll('.live-timer');
         let now = new Date();
 
         timers.forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
-            
             if (!masukStr || masukStr === "undefined") {
                 el.innerText = "--:--:--";
                 return;
             }
-
             let masukDate = parseTimeLocal(masukStr);
-            
             if (masukDate) {
-                // Kira beza masa (milisaat)
                 let diff = now - masukDate;
-                
-                // Jika negatif (masa depan), set 0
                 if (diff < 0) diff = 0;
-
                 let totalSeconds = Math.floor(diff / 1000);
                 let hours = Math.floor(totalSeconds / 3600);
                 let minutes = Math.floor((totalSeconds % 3600) / 60);
                 let seconds = totalSeconds % 60;
-                
-                // Format supaya jadi 00:00:00 (Pad dengan '0')
                 let hDisp = hours < 10 ? "0" + hours : hours;
                 let mDisp = minutes < 10 ? "0" + minutes : minutes;
                 let sDisp = seconds < 10 ? "0" + seconds : seconds;
-
-                // Paparan Jam Randik
                 el.innerText = `${hDisp}:${mDisp}:${sDisp}`;
             } else {
                 el.innerText = "00:00:00"; 
@@ -488,12 +537,8 @@
                 if (i.kategori === "PELAWAT" && i.foto) {
                     imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">🖼️</span>`;
                 }
-                
                 let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
-                
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
-
-                // Simpan masa masuk untuk dikira oleh jam randik
                 let masaMasuk = i.jam || ""; 
                 
                 h += `<div class="user-card">
@@ -508,8 +553,6 @@
                       </div>`; 
             }); 
             document.getElementById('listContainer').innerHTML = h || "Tiada rekod."; 
-            
-            // Panggil update timer serta-merta
             updateLiveTimers(); 
         }); 
     }
