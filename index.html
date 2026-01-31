@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v19.2 (Strict Schedule)</title>
+    <title>Sistem Pelawat & Kehadiran v20.2 (Minimalis)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
         .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 40px; }
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 12px; border: 1px solid #ddd; }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 600; font-size: 12px; border: 1px solid #eee; }
         .hijri-date { color: #27ae60; text-align: right; width: 50%; }
         .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
         .title-box { margin-bottom: 25px; }
-        h1, h2 { color: #1e3c72; margin: 0; font-weight: 900; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
+        h1, h2 { color: #1e3c72; margin: 0; font-weight: 800; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
         
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; font-family: inherit; }
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; }
+        select:focus, input:focus { border-color: #1e3c72; }
         textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e67e22; background: #fffcf5; }
 
-        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .btn-keluar { background: #c0392b; }
         .btn-pelawat { background: #27ae60; margin-top: 15px; } 
@@ -28,7 +30,7 @@
         
         /* Panel Dashboard (Lock Nama) */
         #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
-        .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 5px; display: block;}
+        .user-welcome { font-size: 18px; font-weight: 600; color: #16a085; margin-bottom: 5px; display: block;}
         .locked-msg { font-size: 10px; color: #7f8c8d; margin-bottom: 15px; font-style: italic; }
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
@@ -83,7 +85,7 @@
         /* --- CSS TIMER JAM RANDIK --- */
         .live-timer {
             color: #e67e22;
-            font-weight: bold;
+            font-weight: 600;
             font-family: 'Courier New', Courier, monospace; 
             background: #fffcf5;
             padding: 2px 8px;
@@ -118,26 +120,47 @@
         }
         .icon-btn:hover { background: #eee; }
 
-        /* INFO JADUAL BERTUGAS */
+        /* --- INFO JADUAL MINIMALIS (BARU) --- */
         #scheduleInfo {
             display: none;
-            background: #d1e7dd;
-            color: #0f5132;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 13px;
+            background: transparent;
+            padding: 0;
             margin-bottom: 15px;
-            border: 1px solid #badbcc;
-            text-align: left;
+            text-align: center;
+            animation: fadeIn 0.5s;
         }
-        #scheduleInfo span { display: block; margin-top: 2px; }
         
+        .schedule-minimal {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .time-pill {
+            background: #f1f3f5;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
         #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         .modal-content { margin: auto; display: block; max-width: 90%; max-height: 80%; border-radius: 10px; border: 2px solid white; }
         .close-modal { position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
 
         #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; }
+        
+        /* Loading Indicator */
+        #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
@@ -162,7 +185,7 @@
             <h2 id="schoolTitle">SK SELAMA (K)</h2>
         </div>
         
-        <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px; color: gray;">📡 Mencari GPS...</div>
+        <div id="statusText" style="font-size:11px; font-weight:600; margin-bottom:10px; color: gray;">📡 Mencari GPS...</div>
 
         <!-- PANEL DASHBOARD (LOCKED NAME) -->
         <div id="dashboardPanel">
@@ -183,8 +206,15 @@
             <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ BANTU DAFTAR PELAWAT</button>
         </div>
 
-        <!-- BORANG DAFTAR MASUK (HANYA MUNCUL JIKA BELUM LOGIN) -->
+        <!-- BORANG DAFTAR MASUK -->
         <div id="defaultForm">
+            
+            <!-- Loading Indicator untuk Config -->
+            <div id="loadingConfig">⏳ Sedang menyemak jadual terkini...</div>
+
+            <!-- Paparan Jadual Minimalis -->
+            <div id="scheduleInfo"></div>
+
             <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
                 <option value="" disabled selected>-- PILIH KATEGORI --</option>
                 <option value="GURU">GURU</option>
@@ -193,12 +223,9 @@
                 <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
             </select>
 
-            <!-- Paparan Jadual Bertugas (Auto Muncul) -->
-            <div id="scheduleInfo"></div>
-
             <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
             
-            <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
+            <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
 
             <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
         </div>
@@ -236,13 +263,13 @@
     </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxfVsm3JwPf8xa7LKfvCDc79CzZiBuZPsqGCvF75sUrsi4Y1rj29YXwVJEXUYlUuP7o/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzJYkZRwWaVQB5-dYQtygWxYm4dubYwByXIOC8DkCOn8sYq9tghEXCbT6Imrr2apOIm/exec'; 
     const PASSCODE = "101010";
     const SCHOOL_LAT = 5.227932478937475; 
     const SCHOOL_LNG = 100.69901604319402; 
     const RADIUS_METER = 1000; 
 
-    let jamConfig = null; // Mula dengan null untuk check data dah sampai ke belum
+    let jamConfig = null; 
     let isInZone = false; 
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
@@ -251,7 +278,7 @@
     window.onload = function() {
         startClock();
         startRadar();
-        fetchConfig(); // Tarik data JAM dari Google Sheet
+        fetchConfig(); 
         getHijriDate();
         
         setTimeout(() => {
@@ -264,33 +291,63 @@
     };
 
     function fetchConfig() {
+        document.getElementById('loadingConfig').style.display = 'block';
+        
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
-            if(res.status === "SUCCESS") {
-                jamConfig = res.data; 
-                console.log("Jadual Waktu Diterima:", jamConfig);
+            jamConfig = (res.status === "SUCCESS" && res.data) ? res.data : res;
+            
+            if(jamConfig) {
+                console.log("Jadual Berjaya Dimuat:", jamConfig);
+                document.getElementById('loadingConfig').style.display = 'none';
+                updateScheduleInfo();
+                triggerAlasanMasuk();
+            } else {
+                document.getElementById('loadingConfig').innerText = "⚠️ Format jadual salah.";
             }
+        })
+        .catch(err => {
+            console.error("Ralat sambungan:", err);
+            document.getElementById('loadingConfig').innerText = "⚠️ Ralat sambungan jadual.";
         });
     }
 
-    // FUNGSI 1: Papar Waktu Masuk & Keluar bila kategori dipilih
+    // --- FUNGSI JADUAL MINIMALIS (DIKEMASKINI) ---
     function updateScheduleInfo() {
         let kat = document.getElementById('kategori').value;
         let infoBox = document.getElementById('scheduleInfo');
         
-        if (jamConfig && kat && jamConfig[kat]) {
-            let masuk = jamConfig[kat].masuk || "??";
-            let keluar = jamConfig[kat].keluar || "??";
-            infoBox.innerHTML = `<strong>📅 JADUAL WAKTU (${kat}):</strong><br>
-                                 <span>🟢 Waktu Masuk: ${masuk}</span>
-                                 <span>🔴 Waktu Pulang: ${keluar}</span>`;
+        if (!jamConfig) {
+            if(kat && kat !== "PELAWAT") {
+                infoBox.style.display = "block";
+                infoBox.innerHTML = "<span style='font-size:11px; color:#666;'>⏳ Memuatkan jadual...</span>";
+            } else {
+                infoBox.style.display = "none";
+            }
+            return;
+        }
+
+        if (kat && jamConfig[kat]) {
+            let masuk = jamConfig[kat].masuk || "--:--";
+            let keluar = jamConfig[kat].keluar || "--:--";
+            
+            // Paparan Minimalis (Pil)
+            infoBox.innerHTML = `
+                <div class="schedule-minimal">
+                    <div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;">
+                        <span>🟢 MASUK: ${masuk}</span>
+                    </div>
+                    <div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;">
+                        <span>🔴 KELUAR: ${keluar}</span>
+                    </div>
+                </div>
+            `;
             infoBox.style.display = "block";
         } else {
             infoBox.style.display = "none";
         }
     }
 
-    // FUNGSI 2: Logik Alasan Masuk (Lewat vs OT)
     function triggerAlasanMasuk() {
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
@@ -300,10 +357,6 @@
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             
-            // LOGIK BARU:
-            // 1. Jika sekarang > Waktu Masuk DAN sekarang < Waktu Keluar = LEWAT (Kena isi alasan)
-            // 2. Jika sekarang > Waktu Keluar = OT/EXTRA (Bagus, tak perlu alasan)
-            
             if (limitMasuk && limitKeluar) {
                 if (now > limitMasuk && now < limitKeluar) {
                     area.style.display = "block";
@@ -312,12 +365,10 @@
                 }
             }
         }
-        // Jika OT atau datang awal, sembunyikan kotak
         area.style.display = "none";
         area.value = ""; 
     }
 
-    // FUNGSI 3: Logik Alasan Keluar (Balik Awal)
     function triggerAlasanKeluar() {
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let area = document.getElementById('alasanKeluar');
@@ -330,12 +381,10 @@
             dashboardSchedule.style.display = "block";
             userExitTime.innerText = jamConfig[s.kategori].keluar;
 
-            // Jika sekarang < Waktu Keluar = BALIK AWAL
             if (limitKeluar && new Date() < limitKeluar) {
                 area.style.display = "block";
                 area.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${jamConfig[s.kategori].keluar}). SILA NYATAKAN SEBAB:`;
             } else {
-                // Jika sudah lepas waktu keluar (OT balik), tak perlu alasan
                 area.style.display = "none";
             }
         }
@@ -343,7 +392,7 @@
 
     function hantarMasuk() {
         if(!isInZone) { alert("⛔ ANDA DI LUAR KAWASAN!"); return; }
-        if(!jamConfig) { alert("⏳ Sedang memuatkan jadual waktu... Sila tunggu sebentar."); return; }
+        if(!jamConfig) { alert("⏳ Sedang memuatkan jadual waktu... Sila tunggu."); return; }
 
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
@@ -352,14 +401,11 @@
 
         if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
         
-        // Validasi Alasan Masuk (Hanya jika kotak dipaparkan)
         if (document.getElementById('alasanMasuk').style.display === "block" && alasan.trim() === "") {
             alert("⚠️ Anda lewat! Sila isi alasan kenapa daftar lewat."); return;
         }
 
-        // Jika kotak tak papar (OT), set alasan automatik
         if (document.getElementById('alasanMasuk').style.display === "none") {
-            // Cek jika OT (selepas waktu keluar)
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             if (limitKeluar && now > limitKeluar) {
                 alasan = "KERJA LEBIH MASA / PROGRAM SEKOLAH";
@@ -387,7 +433,6 @@
         let alasanInput = document.getElementById('alasanKeluar');
         let alasanValue = alasanInput.value.trim();
         
-        // Validasi Alasan Keluar (Hanya jika kotak dipaparkan)
         if (alasanInput.style.display === "block" && alasanValue === "") {
             alert("⚠️ Anda pulang awal! Sila isi alasan kenapa."); return;
         }
@@ -416,11 +461,7 @@
 
     function keluarManual(namaUser) {
         let pass = prompt("⚠️ ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
-        
-        if (pass !== PASSCODE) {
-            alert("⛔ Kata laluan salah! Akses ditolak.");
-            return;
-        }
+        if (pass !== PASSCODE) { alert("⛔ Kata laluan salah! Akses ditolak."); return; }
 
         sendData({ 
             action: "KELUAR", 
@@ -458,17 +499,15 @@
         }); 
     }
 
-    // FUNGSI PARSE TIME YANG DIPERBAIKI (Support format H:mm:ss AM/PM)
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
         let d = new Date(r);
-        // Regex baru: Support jam:minit:saat AM/PM (contoh: 3:30:00 AM)
-        let p = t.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
         
+        let p = t.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]);
             let m = parseInt(p[2]);
-            let s = p[3] ? parseInt(p[3]) : 0; // Ambil saat jika ada
+            let s = p[3] ? parseInt(p[3]) : 0; 
             let ampm = p[4].toUpperCase();
 
             if(ampm === "PM" && h < 12) h += 12;
@@ -477,12 +516,20 @@
             d.setHours(h, m, s, 0); 
             return d;
         } 
-        return null;
+        
+        let p2 = t.match(/(\d+):(\d+)/);
+        if(p2) {
+            let h = parseInt(p2[1]);
+            let m = parseInt(p2[2]);
+            d.setHours(h, m, 0, 0);
+            return d;
+        }
+
+        return null; 
     }
 
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
-        // Regex sama untuk local timer
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
 
