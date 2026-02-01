@@ -34,73 +34,63 @@
         /* Container Utama */
         .container { background: white; padding: 0; border-radius: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 30px; }
         
-        /* --- HEADER CANGGIH (MODIFIED) --- */
+        /* --- HEADER KORPORAT BARU (DIKEMASKINI) --- */
         .header-bg {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 25px 20px 35px 20px;
+            background: linear-gradient(to right, #141e30, #243b55); /* Dark Corporate Blue */
+            padding: 15px 20px 30px 20px;
             color: white;
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 10px 20px rgba(30, 60, 114, 0.2);
-            position: relative;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             margin-bottom: 25px;
+            position: relative;
         }
 
-        .top-info {
+        /* Baris Atas: Tarikh, Masa, Hijri */
+        .top-bar-row {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            font-size: 13px;
-            opacity: 0.9;
-        }
-
-        .date-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
-            border-radius: 15px;
-            backdrop-filter: blur(5px);
-            font-weight: 500;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-        }
-
-        .clock-big {
-            font-size: 42px;
-            font-weight: 700;
-            line-height: 1;
-            margin: 10px 0 5px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            letter-spacing: -1px;
-        }
-
-        .hijri-text {
-            font-size: 14px;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: #cfd8dc; /* Off-white text */
             font-weight: 400;
-            color: #dbeafe;
-            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            white-space: nowrap;
         }
 
-        .school-name {
-            font-size: 18px;
-            font-weight: 700;
+        .top-bar-row span {
+            display: inline-block;
+        }
+
+        /* Blok Tajuk Utama */
+        .main-title-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .title-small {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #6dd5ed; /* Light Blue Accent */
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .title-big {
+            font-size: 24px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.3);
-            padding-top: 10px;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .app-title {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            letter-spacing: 2px;
-            opacity: 0.6;
-            font-weight: 600;
+            line-height: 1.2;
+            background: -webkit-linear-gradient(#fff, #a8c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         /* --- CONTENT AREA --- */
@@ -197,19 +187,22 @@
 
     <div class="container">
         
-        <!-- HEADER BARU YANG CANGGIH -->
+        <!-- HEADER BARU YANG CANGGIH & KORPORAT -->
         <div class="header-bg">
-            <div class="app-title">SISTEM E-HADIR</div>
-            
-            <div class="top-info">
-                <div class="date-badge">📅 <span id="dateDisplay">--/--/--</span></div>
-                <div class="date-badge" style="background: rgba(0,0,0,0.2);">📡 v21.0</div>
+            <!-- Baris Atas: Tarikh | Jam | Hijri (Sebaris Kecil) -->
+            <div class="top-bar-row">
+                <span id="dateDisplay">--/--/--</span> 
+                <span>|</span> 
+                <span id="clockDisplay">--:--</span> 
+                <span>|</span> 
+                <span id="hijriDisplay">🌙 ...</span>
             </div>
 
-            <div id="clockDisplay" class="clock-big">--:--</div>
-            <div id="hijriDisplay" class="hijri-text">🌙 Memuatkan...</div>
-            
-            <div class="school-name" id="schoolTitle">SK SELAMA (K)</div>
+            <!-- Tajuk Besar Korporat -->
+            <div class="main-title-block">
+                <div class="title-small">SISTEM PENGURUSAN</div>
+                <div class="title-big">E-HADIR SK SELAMA (K)</div>
+            </div>
         </div>
 
         <div class="content-padding">
