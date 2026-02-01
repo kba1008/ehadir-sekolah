@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycby6iECbU8tkSPYUkaKgOH6phkYd35phPNZT6A84fAVxu7tztMzamg5bfn-tDna3ZuUU/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyl8K_Q8LZvu_YL75mx4Qby9V3wrVmTpta64t3Bit3_MOdGHNqX3xwkvQmkUCDZNnq1/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -514,6 +514,9 @@
 
         if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); return; }
         
+        // Pastikan kategori bersih dari whitespace
+        kat = kat.trim();
+
         let isDuplicate = currentList.some(item => item.nama === nama);
         if(isDuplicate) {
             showModernAlert("Rekod Wujud", "Nama <b>" + nama + "</b> sudah ada dalam senarai hari ini.", "error");
