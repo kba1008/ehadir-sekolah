@@ -1,73 +1,70 @@
-// sw.js - E-HADIR (Fixed: No Duplicates & Auto-Update)
-const CACHE_NAME = 'ehadir-v41'; // Versi dinaikkan
+const CACHE_NAME = 'ehadir-v42';
 const DB_NAME = 'E-Hadir-Offline-DB';
 const STORE_NAME = 'attendance_queue';
 
+// Senarai fail untuk app berjalan tanpa internet (App Shell)
 const assetsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './logo.ico'
+  './logo.ico',
+  // Tambah fail CSS/JS anda di sini jika ada
 ];
 
-// 1. Install & Cache
+// --- INSTALL & ACTIVATE ---
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(assetsToCache))
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(assetsToCache)));
 });
 
-// 2. Activate & Clean Old Caches
 self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => Promise.all(
-      keys.map((k) => k !== CACHE_NAME && caches.delete(k))
-    ))
-  );
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.map((k) => k !== CACHE_NAME && caches.delete(k)))));
 });
 
-// 3. Logik Fetch (Network First untuk Update UI Segera)
+// --- LOGIK PINTAR: OFFLINE MODE ---
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
+  // Jika user hantar data kehadiran (POST)
   if (request.method === 'POST') {
     event.respondWith(
-      fetch(request.clone()).catch(async () => {
-        await saveToIndexedDB(request.clone());
-        return new Response(JSON.stringify({ result: 'success', offline: true }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      })
+      fetch(request.clone())
+        .then(async (response) => {
+          // Jika internet ada tapi server error (500), simpan offline juga
+          if (!response.ok) throw new Error('Server Error');
+          return response;
+        })
+        .catch(async () => {
+          // INTERNET MATI / LEMAH: Simpan dalam IndexedDB
+          await saveToIndexedDB(request.clone());
+          return new Response(JSON.stringify({ 
+            result: 'success', 
+            offline: true, 
+            msg: 'Data disimpan offline (Tiada Internet)' 
+          }), { headers: { 'Content-Type': 'application/json' } });
+        })
     );
     return;
   }
 
+  // Paparan UI: Ambil dari Cache jika Offline
   event.respondWith(
     fetch(request)
-      .then((response) => {
-        const resClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone));
-        return response;
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        return res;
       })
       .catch(() => caches.match(request))
   );
 });
 
-// --- FUNGSI INDEXEDDB YANG DIBAIKI ---
-
+// --- PENGURUSAN DATA OFFLINE (INDEXEDDB) ---
 function openDB() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        // PENTING: keyPath 'id' memastikan data boleh dipadam dengan tepat
-        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-      }
-    };
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
   });
 }
 
@@ -75,56 +72,48 @@ async function saveToIndexedDB(request) {
   const body = await request.text();
   const db = await openDB();
   const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
-  
-  await store.add({
+  await tx.objectStore(STORE_NAME).add({
     url: request.url,
     payload: body,
-    timestamp: Date.now()
+    time: new Date().toISOString()
   });
+  console.log("Data 'DILOCK' dalam storan peranti.");
 }
 
-// Lock untuk elak proses bertindih (Race Condition)
-let isSyncing = false;
-
+// Auto-Sync (Setiap 15 saat semak internet)
+let syncing = false;
 setInterval(async () => {
-  if (navigator.onLine && !isSyncing) {
-    isSyncing = true;
-    await sendOfflineData();
-    isSyncing = false;
+  if (navigator.onLine && !syncing) {
+    syncing = true;
+    await syncData();
+    syncing = false;
   }
 }, 15000);
 
-async function sendOfflineData() {
+async function syncData() {
   const db = await openDB();
   const tx = db.transaction(STORE_NAME, 'readonly');
-  const store = tx.objectStore(STORE_NAME);
-  
-  const allData = await new Promise(r => {
-    const res = store.getAll();
-    res.onsuccess = () => r(res.result);
+  const items = await new Promise(r => {
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => r(req.result);
   });
 
-  if (allData.length === 0) return;
-
-  for (const item of allData) {
+  for (const item of items) {
     try {
-      // Hantar data ke server
-      const response = await fetch(item.url, {
+      const res = await fetch(item.url, {
         method: 'POST',
         body: item.payload,
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
 
-      if (response.ok) {
-        // PADAM hanya jika server sahkan terima (HTTP 200)
+      if (res.ok) {
         const delTx = db.transaction(STORE_NAME, 'readwrite');
         await delTx.objectStore(STORE_NAME).delete(item.id);
-        console.log(`Data ID ${item.id} berjaya disinkronkan.`);
+        console.log("Data berjaya dihantar & dipadam dari peranti.");
       }
     } catch (e) {
-      console.error("Gagal hantar, internet mungkin tidak stabil.");
-      break; // Berhenti seketika, cuba lagi 15 saat kemudian
+      console.log("Internet masih lemah, simpan dulu...");
+      break; 
     }
   }
 }

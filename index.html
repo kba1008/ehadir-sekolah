@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.2 (Fixed Anti-Spam)</title>
+    <title>Sistem Pelawat & Kehadiran v22.3 (Offline Mode Added)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -231,6 +231,36 @@
     </div>
 
 <script>
+    // ==========================================
+    //       MOD OFFLINE (TAMBAHAN BARU)
+    // ==========================================
+    window.addEventListener('online', () => {
+      showStatus("Internet Kembali Pulih. Menghantar data...");
+    });
+
+    window.addEventListener('offline', () => {
+      showStatus("Anda berada dalam MOD OFFLINE. Data akan disimpan dalam telefon.", true);
+    });
+
+    function showStatus(msg, isOffline = false) {
+      const statusDiv = document.getElementById('status-bar') || document.createElement('div');
+      statusDiv.id = 'status-bar';
+      statusDiv.innerText = msg;
+      statusDiv.style.background = isOffline ? '#e74c3c' : '#2ecc71';
+      statusDiv.style.color = 'white';
+      statusDiv.style.padding = '10px';
+      statusDiv.style.textAlign = 'center';
+      statusDiv.style.position = 'fixed';
+      statusDiv.style.top = '0';
+      statusDiv.style.left = '0';
+      statusDiv.style.width = '100%';
+      statusDiv.style.zIndex = '10001'; // Pastikan ia di atas semua elemen
+      document.body.prepend(statusDiv);
+      
+      if(!isOffline) setTimeout(() => statusDiv.remove(), 3000);
+    }
+    // ==========================================
+
     let jamConfig = null; 
     let isInZone = false; 
     let currentDist = 0; 
