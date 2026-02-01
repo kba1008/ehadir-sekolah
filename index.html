@@ -172,7 +172,7 @@
 </head>
 <body oncontextmenu="return false;"> 
 
-    <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+    <div id="warningBox">?? SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
     <div id="imageModal">
         <span class="close-modal" onclick="closeModal()">&times;</span>
@@ -187,7 +187,7 @@
                 <span>|</span> 
                 <span id="clockDisplay">--:--</span> 
                 <span>|</span> 
-                <span id="hijriDisplay">🌙 ...</span>
+                <span id="hijriDisplay">?? ...</span>
             </div>
 
             <div class="main-title-block">
@@ -199,11 +199,11 @@
         </div>
 
         <div class="content-padding">
-            <div id="statusText">📡 Mencari GPS...</div>
+            <div id="statusText">?? Mencari GPS...</div>
 
             <!-- PANEL DASHBOARD (LOCKED NAME) -->
             <div id="dashboardPanel">
-                <span class="user-welcome">👋 Hai, <span id="sessionName">--</span></span>
+                <span class="user-welcome">?? Hai, <span id="sessionName">--</span></span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
                 
                 <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:15px; display:none; border: 1px solid #ffeeba;">
@@ -212,19 +212,19 @@
 
                 <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
                 
-                <textarea id="alasanKeluar" style="display:none;" placeholder="⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
+                <textarea id="alasanKeluar" style="display:none;" placeholder="?? ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">DAFTAR KELUAR</button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">➕ BANTU DAFTAR PELAWAT</button>
+                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">? BANTU DAFTAR PELAWAT</button>
                 </div>
             </div>
 
             <!-- BORANG DAFTAR MASUK -->
             <div id="defaultForm">
                 
-                <div id="loadingConfig">⏳ Sedang menyemak jadual terkini...</div>
+                <div id="loadingConfig">? Sedang menyemak jadual terkini...</div>
 
                 <div id="scheduleInfo"></div>
 
@@ -233,30 +233,30 @@
                     <option value="GURU">GURU</option>
                     <option value="AKP">AKP</option>
                     <option value="KEBERSIHAN">KEBERSIHAN</option>
-                    <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
+                    <option value="PELAWAT">?? PELAWAT (AWAM)</option>
                 </select>
 
                 <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
                 
-                <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
+                <textarea id="alasanMasuk" placeholder="?? ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
 
                 <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
             </div>
 
             <!-- PANEL PELAWAT -->
             <div id="pelawatPanel">
-                <h3 style="color:#27ae60; margin:0 0 5px 0;">📸 MOD PELAWAT</h3>
+                <h3 style="color:#27ae60; margin:0 0 5px 0;">?? MOD PELAWAT</h3>
                 <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
                 
                 <div class="cam-grid">
                     <label class="cam-btn">
-                        <span class="cam-icon">📸</span>BELAKANG
+                        <span class="cam-icon">??</span>BELAKANG
                         <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
                     </label>
                     <label class="cam-btn" style="background:#e67e22;">
-                        <span class="cam-icon">🤳</span>DEPAN
+                        <span class="cam-icon">??</span>DEPAN
                         <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
                     </label>
                 </div>
@@ -267,14 +267,14 @@
             </div>
 
             <div class="list-header">
-                <span>📋 Rekod Hari Ini (<span id="count">0</span>)</span>
-                <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer; color:#1e3c72;">🔄</button>
+                <span>?? Rekod Hari Ini (<span id="count">0</span>)</span>
+                <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer; color:#1e3c72;">??</button>
             </div>
             <div id="listContainer" class="list-container">
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
-            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem (Admin)</p>
+            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
         </div>
     </div>
 
@@ -314,12 +314,12 @@
                 updateScheduleInfo();
                 triggerAlasanMasuk();
             } else {
-                document.getElementById('loadingConfig').innerText = "⚠️ Format jadual salah.";
+                document.getElementById('loadingConfig').innerText = "?? Format jadual salah.";
             }
         })
         .catch(err => {
             console.error("Ralat sambungan:", err);
-            document.getElementById('loadingConfig').innerText = "⚠️ Ralat sambungan jadual.";
+            document.getElementById('loadingConfig').innerText = "?? Ralat sambungan jadual.";
         });
     }
 
@@ -340,7 +340,7 @@
         if (!jamConfig) {
             if(kat && kat !== "PELAWAT") {
                 infoBox.style.display = "block";
-                infoBox.innerHTML = "<span style='font-size:11px; color:#666;'>⏳ Memuatkan jadual...</span>";
+                infoBox.innerHTML = "<span style='font-size:11px; color:#666;'>? Memuatkan jadual...</span>";
             } else {
                 infoBox.style.display = "none";
             }
@@ -354,10 +354,10 @@
             infoBox.innerHTML = `
                 <div class="schedule-minimal">
                     <div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;">
-                        <span>🟢 ${masuk}</span>
+                        <span>?? ${masuk}</span>
                     </div>
                     <div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;">
-                        <span>🔴 ${keluar}</span>
+                        <span>?? ${keluar}</span>
                     </div>
                 </div>
             `;
@@ -379,7 +379,7 @@
             if (limitMasuk) {
                 if (now > limitMasuk) {
                     area.style.display = "block";
-                    area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
+                    area.placeholder = `?? ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
                     return;
                 }
             }
@@ -409,8 +409,8 @@
     }
 
     function hantarMasuk() {
-        if(!isInZone) { alert("⛔ ANDA DI LUAR KAWASAN!"); return; }
-        if(!jamConfig) { alert("⏳ Sedang memuatkan jadual waktu... Sila tunggu."); return; }
+        if(!isInZone) { alert("? ANDA DI LUAR KAWASAN!"); return; }
+        if(!jamConfig) { alert("? Sedang memuatkan jadual waktu... Sila tunggu."); return; }
 
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
@@ -426,8 +426,8 @@
             if (limitMasuk && now > limitMasuk) {
                 if (alasan.trim() === "") {
                     document.getElementById('alasanMasuk').style.display = "block";
-                    document.getElementById('alasanMasuk').placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
-                    alert("⚠️ MAAF, ANDA LEWAT!\n\nSila isi alasan di dalam kotak yang disediakan.");
+                    document.getElementById('alasanMasuk').placeholder = `?? ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
+                    alert("?? MAAF, ANDA LEWAT!\n\nSila isi alasan di dalam kotak yang disediakan.");
                     return; 
                 }
             }
@@ -456,7 +456,7 @@
             return;
         }
         if (lastLat === 0 || lastLng === 0) {
-            if(!isAuto) alert("📡 GPS sedang dicari... Sila tunggu.");
+            if(!isAuto) alert("?? GPS sedang dicari... Sila tunggu.");
             return;
         }
 
@@ -480,9 +480,9 @@
                 if (now < limitKeluar) {
                     if (alasanValue === "") {
                         alasanInput.style.display = "block";
-                        alasanInput.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
+                        alasanInput.placeholder = `?? ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
                         alasanInput.focus();
-                        alert("⚠️ MAAF, BELUM WAKTU PULANG!\n\nSila isi sebab pulang awal.");
+                        alert("?? MAAF, BELUM WAKTU PULANG!\n\nSila isi sebab pulang awal.");
                         return; 
                     }
                 }
@@ -491,7 +491,7 @@
         
         if (isAuto) {
             alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
-            alert("⚠️ MAKLUMAN: Sistem mendaftar keluar anda secara automatik (Luar Kawasan & Tamat Waktu).");
+            alert("?? MAKLUMAN: Sistem mendaftar keluar anda secara automatik (Luar Kawasan & Tamat Waktu).");
         } else if (alasanValue === "") {
             alasanValue = "PULANG MENGIKUT WAKTU / LEBIH MASA";
         }
@@ -510,15 +510,15 @@
             lng: lastLng,     
             clientTime: new Date().toISOString() 
         }, () => {
-            if(!isAuto) alert("✅ Berjaya Daftar Keluar!");
+            if(!isAuto) alert("? Berjaya Daftar Keluar!");
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
     }
 
     function keluarManual(namaUser) {
-        let pass = prompt("⚠️ ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
-        if (pass !== PASSCODE) { alert("⛔ Kata laluan salah! Akses ditolak."); return; }
+        let pass = prompt("?? ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
+        if (pass !== PASSCODE) { alert("? Kata laluan salah! Akses ditolak."); return; }
 
         sendData({ 
             action: "KELUAR", 
@@ -653,7 +653,7 @@
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
                 
-                document.getElementById('statusText').innerText = isInZone ? "✅ DALAM KAWASAN" : "🚫 LUAR KAWASAN (" + Math.round(currentDist) + "m)";
+                document.getElementById('statusText').innerText = isInZone ? "? DALAM KAWASAN" : "?? LUAR KAWASAN (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
                 document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
                 
@@ -698,10 +698,10 @@
             let hYear = parts.find(p => p.type === 'year').value;
             let hYearEra = hYear.split(" ")[0]; 
             let hMonthName = monthNames[hMonthIndex] || "Bulan Islam";
-            document.getElementById('hijriDisplay').innerText = `🌙 ${hDay} ${hMonthName} ${hYearEra}`;
+            document.getElementById('hijriDisplay').innerText = `?? ${hDay} ${hMonthName} ${hYearEra}`;
         } catch(e) {
             console.error("Hijri Error:", e);
-            document.getElementById('hijriDisplay').innerText = "🌙 Kalendar Islam";
+            document.getElementById('hijriDisplay').innerText = "?? Kalendar Islam";
         }
     }
 
@@ -730,9 +730,9 @@
             currentList.forEach((i, idx) => { 
                 let imgBtn = "";
                 if (i.kategori === "PELAWAT" && i.foto) {
-                    imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">🖼️</span>`;
+                    imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">???</span>`;
                 }
-                let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
+                let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">?</span>`;
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
                 let masaMasuk = i.jam || ""; 
                 
