@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.4 (Offline Sync)</title>
+    <title>Sistem Pelawat & Kehadiran v22.5 (Smooth Offline)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -420,7 +420,43 @@
         }
     }
 
-    function hantarMasuk() {
+    // ==========================================
+    //       FUNGSI HANTAR DATA (ASYNC/AWAIT)
+    // ==========================================
+    
+    // Fungsi generik untuk menghantar data dan mengesan offline
+    function sendData(data) {
+        return new Promise((resolve, reject) => {
+            // Jika browser memang offline
+            if (!navigator.onLine) {
+                saveToQueue(data);
+                resolve({ offline: true });
+                return;
+            }
+
+            // Jika online, cuba hantar
+            fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
+            .then(response => response.json())
+            .then(result => {
+                resolve({ offline: false, data: result });
+            })
+            .catch(error => {
+                // Jika fetch gagal (contoh: internet putus tiba-tiba)
+                console.error("Ralat Network:", error);
+                saveToQueue(data);
+                resolve({ offline: true });
+            });
+        });
+    }
+
+    // Fungsi simpan ke local storage
+    function saveToQueue(data) {
+        let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
+        queue.push(data);
+        localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
+    }
+
+    async function hantarMasuk() {
         if(isSubmitting) return; 
 
         if(!isInZone) { showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); return; }
@@ -461,13 +497,28 @@
         document.getElementById('btnMainSubmit').disabled = true;
         document.getElementById('btnMainSubmit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> SEDANG HANTAR...';
 
-        sendData({ action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() }, () => {
+        try {
+            const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() };
+            
+            const result = await sendData(payload);
+
+            if (result.offline) {
+                alert("?? Mod Offline: Data telah disimpan dalam telefon. Ia akan dihantar automatik bila ada internet.");
+            } else {
+                alert("? Data berjaya dihantar ke server!");
+            }
+
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
             location.reload();
-        });
+
+        } catch (error) {
+            console.error("Ralat:", error);
+            isSubmitting = false;
+            document.getElementById('btnMainSubmit').disabled = false;
+        }
     }
 
-    function hantarKeluar(isAuto = false) {
+    async function hantarKeluar(isAuto = false) {
         if(isSubmitting) return; 
 
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
@@ -497,16 +548,31 @@
             alasanValue = "PULANG MENGIKUT WAKTU";
         }
 
-        let proceed = () => {
+        let proceed = async () => {
             isSubmitting = true; 
             document.getElementById('btnKeluar').disabled = true;
             document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
 
-            sendData({ action: "KELUAR", passcode: PASSCODE, nama: session.nama.toUpperCase(), alasan: alasanValue, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() }, () => {
-                if(!isAuto) alert("? Terima kasih!"); 
+            try {
+                const payload = { action: "KELUAR", passcode: PASSCODE, nama: session.nama.toUpperCase(), alasan: alasanValue, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() };
+                
+                const result = await sendData(payload);
+
+                if(!isAuto) {
+                    if (result.offline) {
+                        alert("?? Mod Offline: Data keluar disimpan. Akan dihantar bila ada internet.");
+                    } else {
+                        alert("? Berjaya daftar keluar!");
+                    }
+                }
+                
                 localStorage.removeItem('ehadir_session');
                 location.reload();
-            });
+
+            } catch (error) {
+                console.error(error);
+                isSubmitting = false;
+            }
         };
 
         if(!isAuto) {
@@ -519,12 +585,17 @@
     function keluarManual(namaUser) {
         let pass = prompt("ADMIN: Passcode untuk keluarkan " + namaUser + ":");
         if (pass !== PASSCODE) { showModernAlert("Gagal", "Passcode salah.", "error"); return; }
-        sendData({ action: "KELUAR", passcode: PASSCODE, nama: namaUser, alasan: "Manual Admin", lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() }, () => {
-            showModernAlert("Berjaya", namaUser + " dikeluarkan.", "success"); loadList(); 
+        
+        // Manual override biasanya perlukan online, tapi kita guna sendData juga
+        sendData({ action: "KELUAR", passcode: PASSCODE, nama: namaUser, alasan: "Manual Admin", lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() })
+        .then(res => {
+             if(res.offline) alert("?? Disimpan offline.");
+             else showModernAlert("Berjaya", namaUser + " dikeluarkan.", "success"); 
+             loadList(); 
         });
     }
 
-    function hantarPelawat() {
+    async function hantarPelawat() {
         if(isSubmitting) return;
 
         let foto = document.getElementById('base64Foto').value;
@@ -537,44 +608,22 @@
         document.getElementById('btnPelawatSubmit').disabled = true;
         document.getElementById('btnPelawatSubmit').innerText = "SEDANG HANTAR...";
 
-        sendData({ action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng }, () => location.reload());
-    }
+        try {
+            const payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng };
+            
+            const result = await sendData(payload);
 
-    // ==========================================
-    //       FUNGSI SEND DATA (MODIFIED)
-    // ==========================================
-    function sendData(p, cb) { 
-        // Cek jika OFFLINE
-        if (!navigator.onLine) {
-            // Simpan dalam LocalStorage
-            let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
-            queue.push(p);
-            localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
-            
-            // Beritahu pengguna
-            showModernAlert("Mod Offline", "Tiada internet. Data disimpan dalam telefon dan akan dihantar automatik bila ada internet.", "info");
-            
-            // Reset butang supaya pengguna boleh teruskan hidup
+            if (result.offline) {
+                alert("?? Mod Offline: Data pelawat disimpan. Akan dihantar bila ada internet.");
+            } else {
+                alert("? Data pelawat berjaya dihantar!");
+            }
+            location.reload();
+
+        } catch (error) {
+            console.error(error);
             isSubmitting = false;
-            if(cb) cb(); // Jalankan callback seolah-olah berjaya
-            return;
         }
-
-        // Jika ONLINE, hantar terus
-        fetch(API_URL, { method: "POST", body: JSON.stringify(p) })
-        .then(() => cb())
-        .catch((e) => {
-            console.error("Ralat Network:", e);
-            // Jika fetch gagal (contohnya internet putus tiba-tiba), simpan juga ke offline
-            let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
-            queue.push(p);
-            localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
-            
-            showModernAlert("Ralat Sambungan", "Gagal hantar ke server. Data telah disimpan secara offline.", "info");
-            
-            isSubmitting = false;
-            if(cb) cb();
-        }); 
     }
 
     function parseTime(t, r) {
