@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v21.0 (UI Canggih & Hijri Fix)</title>
+    <title>Sistem Pelawat & Kehadiran v21.1 (Fix Kebersihan)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -34,9 +34,9 @@
         /* Container Utama */
         .container { background: white; padding: 0; border-radius: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 30px; }
         
-        /* --- HEADER KORPORAT BARU (DIKEMASKINI) --- */
+        /* --- HEADER KORPORAT BARU --- */
         .header-bg {
-            background: linear-gradient(to right, #141e30, #243b55); /* Dark Corporate Blue */
+            background: linear-gradient(to right, #141e30, #243b55);
             padding: 15px 20px 30px 20px;
             color: white;
             border-radius: 0 0 25px 25px;
@@ -45,14 +45,13 @@
             position: relative;
         }
 
-        /* Baris Atas: Tarikh, Masa, Hijri */
         .top-bar-row {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
             font-size: 11px;
-            color: #cfd8dc; /* Off-white text */
+            color: #cfd8dc;
             font-weight: 400;
             letter-spacing: 0.5px;
             padding-bottom: 15px;
@@ -61,11 +60,6 @@
             white-space: nowrap;
         }
 
-        .top-bar-row span {
-            display: inline-block;
-        }
-
-        /* Blok Tajuk Utama */
         .main-title-block {
             display: flex;
             flex-direction: column;
@@ -76,7 +70,7 @@
             font-size: 10px;
             letter-spacing: 3px;
             text-transform: uppercase;
-            color: #6dd5ed; /* Light Blue Accent */
+            color: #6dd5ed;
             margin-bottom: 5px;
             font-weight: 600;
         }
@@ -107,7 +101,7 @@
         .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 15px; } 
         .btn-cancel { background: #7f8c8d; margin-top: 10px; }
         
-        /* Panel Dashboard (Lock Nama) */
+        /* Panel Dashboard */
         #dashboardPanel { display: none; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
         .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: block;}
         .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
@@ -140,7 +134,6 @@
         .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
 
-        /* --- CSS TIMER JAM RANDIK --- */
         .live-timer {
             color: #e67e22; font-weight: 600; font-family: 'Courier New', Courier, monospace; 
             background: #fffcf5; padding: 2px 6px; border-radius: 4px; border: 1px solid #fae5d3;
@@ -187,9 +180,7 @@
 
     <div class="container">
         
-        <!-- HEADER BARU YANG CANGGIH & KORPORAT -->
         <div class="header-bg">
-            <!-- Baris Atas: Tarikh | Jam | Hijri (Sebaris Kecil) -->
             <div class="top-bar-row">
                 <span id="dateDisplay">--/--/--</span> 
                 <span>|</span> 
@@ -198,7 +189,6 @@
                 <span id="hijriDisplay">🌙 ...</span>
             </div>
 
-            <!-- Tajuk Besar Korporat -->
             <div class="main-title-block">
                 <div class="title-small">SISTEM PENGURUSAN</div>
                 <div class="title-big">E-HADIR SK SELAMA (K)</div>
@@ -213,12 +203,10 @@
                 <span class="user-welcome">👋 Hai, <span id="sessionName">--</span></span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
                 
-                <!-- Paparan Waktu Keluar Sepatutnya -->
                 <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:15px; display:none; border: 1px solid #ffeeba;">
                     Waktu Pulang Rasmi: <span id="userExitTime" style="font-weight:bold;">--:--</span>
                 </div>
 
-                <!-- Status Dinamik -->
                 <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
                 
                 <textarea id="alasanKeluar" style="display:none;" placeholder="⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
@@ -299,7 +287,7 @@
         startClock();
         startRadar();
         fetchConfig(); 
-        getHijriDate(); // Ini fungsi baru yang dah dibaiki
+        getHijriDate();
         
         setTimeout(() => {
             checkSession();
@@ -334,11 +322,10 @@
 
     function cleanTimeDisplay(val) {
         if (!val) return "--:--";
-        if (val.toString().length > 10 || val.toString().includes("1899")) {
-            let d = new Date(val);
-            if (!isNaN(d.getTime())) {
-                return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-            }
+        // Cuba parse guna Date object dulu
+        let d = parseTime(val, new Date());
+        if (d) {
+            return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         }
         return val;
     }
@@ -484,13 +471,17 @@
                 return; 
             }
 
-            if (!isAuto && limitKeluar && now < limitKeluar) {
-                if (alasanValue === "") {
-                    alasanInput.style.display = "block";
-                    alasanInput.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
-                    alasanInput.focus();
-                    alert("⚠️ MAAF, BELUM WAKTU PULANG!\n\nSila isi sebab pulang awal.");
-                    return; 
+            // --- LOGIK PENTING UNTUK KEBERSIHAN/AWAL BALIK ---
+            if (!isAuto && limitKeluar) {
+                // Jika masa sekarang KURANG daripada masa keluar
+                if (now < limitKeluar) {
+                    if (alasanValue === "") {
+                        alasanInput.style.display = "block";
+                        alasanInput.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
+                        alasanInput.focus();
+                        alert("⚠️ MAAF, BELUM WAKTU PULANG!\n\nSila isi sebab pulang awal.");
+                        return; 
+                    }
                 }
             }
         }
@@ -562,19 +553,23 @@
         }); 
     }
 
+    // --- FUNGSI PARSE TIME YANG DIBAIKI (FIX UNTUK KEBERSIHAN/GOOGLE SHEET) ---
     function parseTime(t, r) {
         if (!t || t.toString().toUpperCase() === "BEBAS") return null;
-        let d = new Date(r); 
+        let d = new Date(r); // Ambil tarikh hari ini
         let tStr = t.toString().trim();
 
-        if (tStr.includes("T") || tStr.includes("1899") || tStr.length > 15) {
+        // 1. Jika format ISO dari Google Sheet (cth: 1899-12-30T17:00:00.000Z)
+        if (tStr.includes("T") || tStr.includes("1899")) {
              let tempD = new Date(tStr);
              if(!isNaN(tempD.getTime())) {
+                 // Guna getHours tempatan, bukan UTC, untuk elak salah zon masa
                  d.setHours(tempD.getHours(), tempD.getMinutes(), 0, 0);
                  return d;
              }
         }
 
+        // 2. Jika format manual "5.00 PM" atau "5:00 PM"
         let p = tStr.match(/(\d+)[:.](\d+)(?:[:.](\d+))?\s*(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]);
@@ -586,6 +581,7 @@
             return d;
         } 
         
+        // 3. Jika format 24 jam "17:00"
         let p2 = tStr.match(/(\d+)[:.](\d+)/);
         if(p2) {
             let h = parseInt(p2[1]);
@@ -687,27 +683,18 @@
         }, 1000);
     }
     
-    // --- FUNGSI HIJRI YANG DIBAIKI (MANUAL MAPPING) ---
     function getHijriDate(){
         const monthNames = ["Muharram", "Safar", "Rabiulawal", "Rabiulakhir", "Jamadilawal", "Jamadilakhir", "Rejab", "Syaaban", "Ramadan", "Syawal", "Zulkaedah", "Zulhijjah"];
         let t = new Date();
-        
         try {
-            // Kita guna 'en-u-ca-islamic-umalqura-nu-latn' untuk dapatkan nombor bulan yang tepat
             let parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', {
-                day: 'numeric', 
-                month: 'numeric', 
-                year: 'numeric',
-                timeZone: 'Asia/Kuala_Lumpur'
+                day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur'
             }).formatToParts(t);
-
             let hDay = parts.find(p => p.type === 'day').value;
-            let hMonthIndex = parseInt(parts.find(p => p.type === 'month').value) - 1; // Index 0-11
+            let hMonthIndex = parseInt(parts.find(p => p.type === 'month').value) - 1; 
             let hYear = parts.find(p => p.type === 'year').value;
-            let hYearEra = hYear.split(" ")[0]; // Buang 'AH' jika ada
-
+            let hYearEra = hYear.split(" ")[0]; 
             let hMonthName = monthNames[hMonthIndex] || "Bulan Islam";
-            
             document.getElementById('hijriDisplay').innerText = `🌙 ${hDay} ${hMonthName} ${hYearEra}`;
         } catch(e) {
             console.error("Hijri Error:", e);
