@@ -1,16 +1,17 @@
+<!-- Version: 22.6.0 (Offline Pro Optimized) -->
 <!DOCTYPE html>
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.5 (Smooth Offline)</title>
+    <title>Sistem Pelawat & Kehadiran v22.6 (Offline Pro)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwY1w4aCdBDX2TNX4lNIOuJ3Abhg6E-fk2vqRuttFcvrWWHGkIB7dSctL5HJZgF4ErB/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyk_VPdH4FFpxe-s3fXRrwLLj7kDA-_g0ZVCnGHEq7an5VbO2X7EEFgIN1_c7k0JoL5/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -27,7 +28,6 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
@@ -35,7 +35,7 @@
         
         .header-bg { background: linear-gradient(to right, #141e30, #243b55); padding: 15px 20px 30px 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 25px; position: relative; }
         .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 11px; color: #cfd8dc; font-weight: 400; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; white-space: nowrap; }
-        .top-bar-row i { color: #6dd5ed; margin-right: 3px; }
+        
         .main-title-block { display: flex; flex-direction: column; align-items: center; }
         .title-small { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #6dd5ed; margin-bottom: 5px; font-weight: 600; }
         .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; background: -webkit-linear-gradient(#fff, #a8c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin: 2px 0; }
@@ -90,8 +90,14 @@
         #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
         #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 5px; }
 
-        .icon-3d { width: 20px; height: 20px; vertical-align: middle; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
-        .icon-3d-lg { width: 28px; height: 28px; vertical-align: middle; }
+        /* --- 3D ICONS STYLES --- */
+        .icon-3d-mini { width: 16px; height: 16px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+        .icon-3d-std { width: 22px; height: 22px; vertical-align: middle; margin-right: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
+        .icon-3d-lg { width: 32px; height: 32px; vertical-align: middle; }
+        .icon-3d-xl { width: 64px; height: 64px; margin-bottom: 10px; }
+        
+        @keyframes spin3d { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spin-3d { animation: spin3d 2s linear infinite; }
 
         #customModal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; animation: fadeIn 0.3s; }
         .custom-modal-content { background: white; padding: 30px 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
@@ -105,7 +111,7 @@
         .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
 
         /* Status Bar untuk Offline/Sync */
-        #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.5s ease; }
 
     </style>
 </head>
@@ -134,11 +140,20 @@
         
         <div class="header-bg">
             <div class="top-bar-row">
-                <span><i class="far fa-calendar-alt"></i> <span id="dateDisplay">--/--/--</span></span> 
+                <span>
+                    <img src="https://cdn-icons-png.flaticon.com/128/942/942748.png" class="icon-3d-mini"> 
+                    <span id="dateDisplay">--/--/--</span>
+                </span> 
                 <span>|</span> 
-                <span><i class="far fa-clock"></i> <span id="clockDisplay">--:--</span></span> 
+                <span>
+                    <img src="https://cdn-icons-png.flaticon.com/128/2928/2928756.png" class="icon-3d-mini"> 
+                    <span id="clockDisplay">--:--</span>
+                </span> 
                 <span>|</span> 
-                <span><i class="fas fa-moon"></i> <span id="hijriDisplay">...</span></span>
+                <span>
+                    <img src="https://cdn-icons-png.flaticon.com/128/7786/7786982.png" class="icon-3d-mini"> 
+                    <span id="hijriDisplay">...</span>
+                </span>
             </div>
 
             <div class="main-title-block">
@@ -149,7 +164,10 @@
         </div>
 
         <div class="content-padding">
-            <div id="statusText"><i class="fas fa-satellite-dish fa-spin"></i> Mencari GPS...</div>
+            <div id="statusText">
+                <img src="https://cdn-icons-png.flaticon.com/128/9077/9077975.png" class="icon-3d-mini spin-3d"> 
+                Mencari GPS...
+            </div>
 
             <div id="dashboardPanel">
                 <span class="user-welcome">
@@ -167,18 +185,20 @@
                 <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab pulang awal untuk makluman pentadbir..."></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
-                    <i class="fas fa-sign-out-alt"></i> DAFTAR KELUAR
+                    <img src="https://cdn-icons-png.flaticon.com/128/3580/3580154.png" class="icon-3d-std"> DAFTAR KELUAR
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
                     <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">
-                        <i class="fas fa-user-plus"></i> BANTU DAFTAR PELAWAT
+                        <img src="https://cdn-icons-png.flaticon.com/128/3135/3135768.png" class="icon-3d-std"> BANTU DAFTAR PELAWAT
                     </button>
                 </div>
             </div>
 
             <div id="defaultForm">
-                <div id="loadingConfig"><i class="fas fa-spinner fa-spin"></i> Sedang menyemak jadual terkini...</div>
+                <div id="loadingConfig">
+                    <img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> Sedang menyemak jadual terkini...
+                </div>
                 <div id="scheduleInfo"></div>
                 <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
                     <option value="" disabled selected>-- PILIH KATEGORI --</option>
@@ -190,13 +210,13 @@
                 <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
                 <textarea id="alasanMasuk" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
                 <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">
-                    <i class="fas fa-sign-in-alt"></i> DAFTAR MASUK
+                    <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> DAFTAR MASUK
                 </button>
             </div>
 
             <div id="pelawatPanel">
                 <h3 style="color:#27ae60; margin:0 0 5px 0; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="icon-3d"> MOD PELAWAT
+                    <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="icon-3d-lg"> MOD PELAWAT
                 </h3>
                 <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
@@ -215,15 +235,18 @@
                 <img id="previewImg">
                 <input type="hidden" id="base64Foto">
                 <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">
-                    <i class="fas fa-paper-plane"></i> HANTAR DATA
+                    <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> HANTAR DATA
                 </button>
                 <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
             </div>
 
             <div class="list-header">
-                <span><i class="fas fa-clipboard-list" style="color:#1e3c72;"></i> Rekod Hari Ini (<span id="count">0</span>)</span>
-                <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer; color:#1e3c72;">
-                    <i class="fas fa-sync-alt"></i>
+                <span>
+                    <img src="https://cdn-icons-png.flaticon.com/128/942/942799.png" class="icon-3d-std"> 
+                    Rekod Hari Ini (<span id="count">0</span>)
+                </span>
+                <button onclick="loadList()" style="border:none; background:none; cursor:pointer;">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3031/3031718.png" class="icon-3d-std">
                 </button>
             </div>
             <div id="listContainer" class="list-container">
@@ -243,9 +266,21 @@
     let isSubmitting = false; 
 
     // ==========================================
-    //       LOGIK MOD OFFLINE (DIKEMASKINI)
+    //       LOGIK MOD OFFLINE & SYNC PINTAR
     // ==========================================
+    
+    // 1. Pendaftaran Service Worker (Untuk Install App)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('SW Berjaya:', reg.scope);
+            }).catch(err => console.log('SW Gagal:', err));
+        });
+    }
+
+    // 2. Event Listener: Bila Internet Kembali
     window.addEventListener('online', () => {
+        console.log("Internet dikesan! Memulakan sinkronisasi...");
         showSyncBar("Internet Kembali Pulih. Menyegerakkan data...", "#2ecc71");
         syncOfflineData();
     });
@@ -262,6 +297,7 @@
         if(color === "#2ecc71") setTimeout(() => { bar.style.display = 'none'; }, 4000);
     }
 
+    // 3. Fungsi Sync Data Tertangguh
     function syncOfflineData() {
         if (!navigator.onLine) return;
         
@@ -275,6 +311,7 @@
         // Ambil item pertama dalam barisan
         let itemToSync = offlineQueue[0];
 
+        // Hantar ke server (itemToSync sudah ada 'actual_time' yang dibekukan)
         fetch(API_URL, { method: "POST", body: JSON.stringify(itemToSync) })
         .then(() => {
             // Jika berjaya, buang dari senarai
@@ -350,7 +387,7 @@
 
     function fetchConfig() {
         if(!navigator.onLine) {
-            document.getElementById('loadingConfig').innerHTML = "<i class='fas fa-wifi'></i> Mod Offline. Menggunakan tetapan asas.";
+            document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/189/189792.png' class='icon-3d-mini'> Mod Offline. Menggunakan tetapan asas.";
             return;
         }
         document.getElementById('loadingConfig').style.display = 'block';
@@ -361,7 +398,7 @@
                 document.getElementById('loadingConfig').style.display = 'none';
                 updateScheduleInfo(); triggerAlasanMasuk();
             }
-        }).catch(err => document.getElementById('loadingConfig').innerHTML = "<i class='fas fa-wifi'></i> Ralat sambungan.");
+        }).catch(err => document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/189/189792.png' class='icon-3d-mini'> Ralat sambungan.");
     }
 
     function cleanTimeDisplay(val) {
@@ -378,7 +415,8 @@
         if (kat && jamConfig[kat]) {
             let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
             let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
-            infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;"><span><i class="fas fa-check-circle"></i> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;"><span><i class="fas fa-times-circle"></i> ${keluar}</span></div></div>`;
+            // Guna ikon 3D untuk jadual
+            infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;"><span><img src="https://cdn-icons-png.flaticon.com/128/190/190411.png" class="icon-3d-mini"> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;"><span><img src="https://cdn-icons-png.flaticon.com/128/190/190406.png" class="icon-3d-mini"> ${keluar}</span></div></div>`;
             infoBox.style.display = "block";
         } else {
             infoBox.style.display = "none";
@@ -424,24 +462,25 @@
     //       FUNGSI HANTAR DATA (ASYNC/AWAIT)
     // ==========================================
     
-    // Fungsi generik untuk menghantar data dan mengesan offline
     function sendData(data) {
         return new Promise((resolve, reject) => {
-            // Jika browser memang offline
+            // INTEGRITI DATA: Bekukan masa sekarang sebagai 'actual_time'
+            // Ini memastikan masa direkod adalah masa butang ditekan, bukan masa sync
+            if (!data.actual_time) {
+                data.actual_time = new Date().toLocaleString('ms-MY');
+            }
+
             if (!navigator.onLine) {
                 saveToQueue(data);
                 resolve({ offline: true });
                 return;
             }
-
-            // Jika online, cuba hantar
             fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
             .then(response => response.json())
             .then(result => {
                 resolve({ offline: false, data: result });
             })
             .catch(error => {
-                // Jika fetch gagal (contoh: internet putus tiba-tiba)
                 console.error("Ralat Network:", error);
                 saveToQueue(data);
                 resolve({ offline: true });
@@ -449,7 +488,6 @@
         });
     }
 
-    // Fungsi simpan ke local storage
     function saveToQueue(data) {
         let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         queue.push(data);
@@ -461,7 +499,6 @@
 
         if(!isInZone) { showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); return; }
         
-        // Bypass check config jika offline
         if(!jamConfig && navigator.onLine) { showModernAlert("Sabar", "Sedang memuatkan jadual...", "info"); return; }
 
         let nama = document.getElementById('nama').value.toUpperCase().trim();
@@ -495,9 +532,11 @@
 
         isSubmitting = true;
         document.getElementById('btnMainSubmit').disabled = true;
-        document.getElementById('btnMainSubmit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> SEDANG HANTAR...';
+        // Guna ikon 3D loading
+        document.getElementById('btnMainSubmit').innerHTML = '<img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> SEDANG HANTAR...';
 
         try {
+            // Payload dengan clientTime (ISO) untuk rujukan sistem
             const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() };
             
             const result = await sendData(payload);
@@ -586,7 +625,6 @@
         let pass = prompt("ADMIN: Passcode untuk keluarkan " + namaUser + ":");
         if (pass !== PASSCODE) { showModernAlert("Gagal", "Passcode salah.", "error"); return; }
         
-        // Manual override biasanya perlukan online, tapi kita guna sendData juga
         sendData({ action: "KELUAR", passcode: PASSCODE, nama: namaUser, alasan: "Manual Admin", lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() })
         .then(res => {
              if(res.offline) alert("?? Disimpan offline.");
@@ -678,7 +716,8 @@
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
-                let icon = isInZone ? "<i class='fas fa-check-circle'></i>" : "<i class='fas fa-exclamation-circle'></i>";
+                // Guna Ikon 3D untuk status GPS
+                let icon = isInZone ? "<img src='https://cdn-icons-png.flaticon.com/128/190/190411.png' class='icon-3d-mini'>" : "<img src='https://cdn-icons-png.flaticon.com/128/190/190406.png' class='icon-3d-mini'>";
                 let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
                 document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
@@ -733,8 +772,9 @@
             document.getElementById('count').innerText = currentList.length; 
             let h = ""; 
             currentList.forEach((i, idx) => { 
-                let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><i class="fas fa-image" style="color:#2980b9;"></i></span>` : "";
-                let xBtn = `<span class="icon-btn" style="color:#c0392b;" onclick="keluarManual('${i.nama}')"><i class="fas fa-times"></i></span>`;
+                // Guna ikon 3D untuk butang dalam senarai
+                let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
+                let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
                 h += `<div class="user-card"><div class="user-info"><strong>${i.nama}</strong><div class="user-details"><span>${i.kategori}</span><span class="live-timer" data-masuk="${i.jam||""}">00:00:00</span></div></div><div class="list-actions">${imgBtn}${xBtn}</div></div>`; 
             }); 
             document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
