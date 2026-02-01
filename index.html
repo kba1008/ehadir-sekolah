@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v20.9 (Strict Mode)</title>
+    <title>Sistem Pelawat & Kehadiran v21.0 (UI Canggih & Hijri Fix)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -26,32 +26,101 @@
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #2c3e50; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { background: white; padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 40px; }
-        .info-bar { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 600; font-size: 12px; border: 1px solid #eee; }
-        .hijri-date { color: #27ae60; text-align: right; width: 50%; }
-        .masihi-date { color: #2c3e50; text-align: left; width: 50%; }
-        .title-box { margin-bottom: 25px; }
-        h1, h2 { color: #1e3c72; margin: 0; font-weight: 800; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 1px; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
         
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; }
-        select:focus, input:focus { border-color: #1e3c72; }
+        /* Container Utama */
+        .container { background: white; padding: 0; border-radius: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 30px; }
+        
+        /* --- HEADER CANGGIH (MODIFIED) --- */
+        .header-bg {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 25px 20px 35px 20px;
+            color: white;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 10px 20px rgba(30, 60, 114, 0.2);
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .top-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .date-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            font-weight: 500;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .clock-big {
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1;
+            margin: 10px 0 5px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: -1px;
+        }
+
+        .hijri-text {
+            font-size: 14px;
+            font-weight: 400;
+            color: #dbeafe;
+            margin-bottom: 15px;
+        }
+
+        .school-name {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            padding-top: 10px;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .app-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            font-weight: 600;
+        }
+
+        /* --- CONTENT AREA --- */
+        .content-padding { padding: 0 20px; }
+
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
+        select:focus, input:focus { border-color: #1e3c72; background: #fff; }
         textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e67e22; background: #fffcf5; }
 
-        .btn { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; }
         .btn:active { transform: scale(0.98); }
-        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .btn-keluar { background: #c0392b; }
-        .btn-pelawat { background: #27ae60; margin-top: 15px; } 
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
+        .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); }
+        .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 15px; } 
         .btn-cancel { background: #7f8c8d; margin-top: 10px; }
         
         /* Panel Dashboard (Lock Nama) */
-        #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
-        .user-welcome { font-size: 18px; font-weight: 600; color: #16a085; margin-bottom: 5px; display: block;}
-        .locked-msg { font-size: 10px; color: #7f8c8d; margin-bottom: 15px; font-style: italic; }
+        #dashboardPanel { display: none; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: block;}
+        .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
@@ -59,115 +128,50 @@
         .cam-icon { font-size: 24px; margin-bottom: 5px; }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
-        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
+        .list-header span { font-weight: 700; color: #1e3c72; font-size: 14px; }
+        .list-container { text-align: left; margin-top: 5px; max-height: 300px; overflow-y: auto; }
         
         /* --- CSS LIST --- */
         .user-card { 
-            background: #f9f9f9; 
-            padding: 10px; 
-            border-bottom: 1px solid #eee; 
+            background: #fff; 
+            padding: 12px; 
+            border: 1px solid #f0f0f0;
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             border-left: 4px solid #1e3c72; 
-            border-radius: 6px; 
-            margin-bottom: 6px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: 8px; 
+            margin-bottom: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
         }
         
-        .user-info {
-            flex-grow: 1;
-            min-width: 0; 
-            padding-right: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .user-info strong {
-            font-size: 14px; 
-            color: #2c3e50;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-details {
-            font-size: 11px;
-            color: #7f8c8d;
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
+        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
 
         /* --- CSS TIMER JAM RANDIK --- */
         .live-timer {
-            color: #e67e22;
-            font-weight: 600;
-            font-family: 'Courier New', Courier, monospace; 
-            background: #fffcf5;
-            padding: 2px 8px;
-            border-radius: 4px;
-            border: 1px solid #fae5d3;
-            min-width: 80px;
-            text-align: center;
-            display: inline-block;
-            font-size: 11px;
-            letter-spacing: 1px;
+            color: #e67e22; font-weight: 600; font-family: 'Courier New', Courier, monospace; 
+            background: #fffcf5; padding: 2px 6px; border-radius: 4px; border: 1px solid #fae5d3;
+            min-width: 70px; text-align: center; display: inline-block; font-size: 11px;
         }
 
-        .list-actions { 
-            display: flex; 
-            gap: 5px; 
-            align-items: center; 
-            flex-shrink: 0; 
-        }
-        
+        .list-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
         .icon-btn { 
-            cursor: pointer; 
-            font-size: 16px; 
-            width: 30px;
-            height: 30px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            border: 1px solid #eee;
-            transition: background 0.2s;
+            cursor: pointer; font-size: 14px; width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; background: #f8f9fa;
+            border: 1px solid #eee; transition: background 0.2s;
         }
-        .icon-btn:hover { background: #eee; }
+        .icon-btn:hover { background: #e2e6ea; }
 
         /* --- INFO JADUAL MINIMALIS --- */
-        #scheduleInfo {
-            display: none;
-            background: transparent;
-            padding: 0;
-            margin-bottom: 15px;
-            text-align: center;
-            animation: fadeIn 0.5s;
-        }
-        
-        .schedule-minimal {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            align-items: center;
-        }
-
+        #scheduleInfo { display: none; background: transparent; padding: 0; margin-bottom: 15px; text-align: center; animation: fadeIn 0.5s; }
+        .schedule-minimal { display: flex; justify-content: center; gap: 10px; align-items: center; }
         .time-pill {
-            background: #f1f3f5;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            background: #f1f3f5; padding: 6px 12px; border-radius: 20px; font-size: 11px;
+            font-weight: 600; display: flex; align-items: center; gap: 5px;
             border: 1px solid #e9ecef;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -176,11 +180,10 @@
         .modal-content { margin: auto; display: block; max-width: 90%; max-height: 80%; border-radius: 10px; border: 2px solid white; }
         .close-modal { position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
 
-        #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
-        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; }
+        #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); }
         
-        /* Loading Indicator */
         #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
+        #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
@@ -193,95 +196,102 @@
     </div>
 
     <div class="container">
-        <div id="connectionStatus"></div>
         
-        <div class="info-bar">
-            <div class="masihi-date"><span id="dateDisplay">--/--/--</span><br><span id="clockDisplay" style="color:#e67e22;">--:--</span></div>
-            <div class="hijri-date" id="hijriDisplay">🌙 Memuatkan...</div>
-        </div>
-
-        <div class="title-box">
-            <h1>E-HADIR</h1>
-            <h2 id="schoolTitle">SK SELAMA (K)</h2>
-        </div>
-        
-        <div id="statusText" style="font-size:11px; font-weight:600; margin-bottom:10px; color: gray;">📡 Mencari GPS...</div>
-
-        <!-- PANEL DASHBOARD (LOCKED NAME) -->
-        <div id="dashboardPanel">
-            <span class="user-welcome">👤 <span id="sessionName">--</span></span>
-            <div class="locked-msg">Akaun ini dikunci pada peranti ini.</div>
+        <!-- HEADER BARU YANG CANGGIH -->
+        <div class="header-bg">
+            <div class="app-title">SISTEM E-HADIR</div>
             
-            <!-- Paparan Waktu Keluar Sepatutnya -->
-            <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:8px; border-radius:8px; margin-bottom:10px; display:none;">
-                Waktu Pulang Rasmi: <span id="userExitTime" style="font-weight:bold;">--:--</span>
+            <div class="top-info">
+                <div class="date-badge">📅 <span id="dateDisplay">--/--/--</span></div>
+                <div class="date-badge" style="background: rgba(0,0,0,0.2);">📡 v21.0</div>
             </div>
 
-            <!-- Status Dinamik (Berubah ikut kategori) -->
-            <p id="dynamicStatus" style="margin:0 0 10px 0; font-size:12px; color:#666; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
+            <div id="clockDisplay" class="clock-big">--:--</div>
+            <div id="hijriDisplay" class="hijri-text">🌙 Memuatkan...</div>
             
-            <!-- Kotak Alasan (Hidden by default, muncul bila tekan butang jika awal) -->
-            <textarea id="alasanKeluar" style="display:none;" placeholder="⚠️ ANDA BALIK AWAL DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
-            
-            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">DAFTAR KELUAR</button>
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
-            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ BANTU DAFTAR PELAWAT</button>
+            <div class="school-name" id="schoolTitle">SK SELAMA (K)</div>
         </div>
 
-        <!-- BORANG DAFTAR MASUK -->
-        <div id="defaultForm">
-            
-            <!-- Loading Indicator untuk Config -->
-            <div id="loadingConfig">⏳ Sedang menyemak jadual terkini...</div>
+        <div class="content-padding">
+            <div id="statusText">📡 Mencari GPS...</div>
 
-            <!-- Paparan Jadual Minimalis -->
-            <div id="scheduleInfo"></div>
+            <!-- PANEL DASHBOARD (LOCKED NAME) -->
+            <div id="dashboardPanel">
+                <span class="user-welcome">👋 Hai, <span id="sessionName">--</span></span>
+                <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
+                
+                <!-- Paparan Waktu Keluar Sepatutnya -->
+                <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:15px; display:none; border: 1px solid #ffeeba;">
+                    Waktu Pulang Rasmi: <span id="userExitTime" style="font-weight:bold;">--:--</span>
+                </div>
 
-            <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
-                <option value="" disabled selected>-- PILIH KATEGORI --</option>
-                <option value="GURU">GURU</option>
-                <option value="AKP">AKP</option>
-                <option value="KEBERSIHAN">KEBERSIHAN</option>
-                <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
-            </select>
-
-            <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
-            
-            <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
-
-            <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
-        </div>
-
-        <!-- PANEL PELAWAT -->
-        <div id="pelawatPanel">
-            <h3 style="color:#27ae60; margin:0;">📸 MOD PELAWAT</h3>
-            <p style="font-size:11px; color:#666;">Sila ambil gambar & isi nama pelawat.</p>
-            
-            <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
-            
-            <div class="cam-grid">
-                <label class="cam-btn">
-                    <span class="cam-icon">📸</span>BELAKANG
-                    <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
-                </label>
-                <label class="cam-btn" style="background:#e67e22;">
-                    <span class="cam-icon">🤳</span>DEPAN
-                    <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
-                </label>
+                <!-- Status Dinamik -->
+                <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
+                
+                <textarea id="alasanKeluar" style="display:none;" placeholder="⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
+                
+                <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">DAFTAR KELUAR</button>
+                
+                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">➕ BANTU DAFTAR PELAWAT</button>
+                </div>
             </div>
-            <img id="previewImg">
-            <input type="hidden" id="base64Foto">
-            <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA</button>
-            <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
-        </div>
 
-        <div class="list-header">
-            <span>📋 Rekod Hari Ini: <strong id="count">0</strong></span>
-            <button onclick="loadList()" style="border:none; background:none; font-size:20px; cursor:pointer;">🔄</button>
+            <!-- BORANG DAFTAR MASUK -->
+            <div id="defaultForm">
+                
+                <div id="loadingConfig">⏳ Sedang menyemak jadual terkini...</div>
+
+                <div id="scheduleInfo"></div>
+
+                <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
+                    <option value="" disabled selected>-- PILIH KATEGORI --</option>
+                    <option value="GURU">GURU</option>
+                    <option value="AKP">AKP</option>
+                    <option value="KEBERSIHAN">KEBERSIHAN</option>
+                    <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
+                </select>
+
+                <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
+                
+                <textarea id="alasanMasuk" placeholder="⚠️ ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
+
+                <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
+            </div>
+
+            <!-- PANEL PELAWAT -->
+            <div id="pelawatPanel">
+                <h3 style="color:#27ae60; margin:0 0 5px 0;">📸 MOD PELAWAT</h3>
+                <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
+                
+                <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
+                
+                <div class="cam-grid">
+                    <label class="cam-btn">
+                        <span class="cam-icon">📸</span>BELAKANG
+                        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
+                    </label>
+                    <label class="cam-btn" style="background:#e67e22;">
+                        <span class="cam-icon">🤳</span>DEPAN
+                        <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
+                    </label>
+                </div>
+                <img id="previewImg">
+                <input type="hidden" id="base64Foto">
+                <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA</button>
+                <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
+            </div>
+
+            <div class="list-header">
+                <span>📋 Rekod Hari Ini (<span id="count">0</span>)</span>
+                <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer; color:#1e3c72;">🔄</button>
+            </div>
+            <div id="listContainer" class="list-container">
+                <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
+            </div>
+            
+            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem (Admin)</p>
         </div>
-        <div id="listContainer" class="list-container">Memuatkan...</div>
-        
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem (Admin)</p>
     </div>
 
 <script>
@@ -296,7 +306,7 @@
         startClock();
         startRadar();
         fetchConfig(); 
-        getHijriDate();
+        getHijriDate(); // Ini fungsi baru yang dah dibaiki
         
         setTimeout(() => {
             checkSession();
@@ -361,10 +371,10 @@
             infoBox.innerHTML = `
                 <div class="schedule-minimal">
                     <div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;">
-                        <span>🟢 MASUK: ${masuk}</span>
+                        <span>🟢 ${masuk}</span>
                     </div>
                     <div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;">
-                        <span>🔴 KELUAR: ${keluar}</span>
+                        <span>🔴 ${keluar}</span>
                     </div>
                 </div>
             `;
@@ -426,24 +436,20 @@
 
         if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
         
-        // --- LOGIK KETAT UNTUK LEWAT ---
         if (jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
             
-            // Jika masa sekarang > masa masuk, WAJIB ada alasan
             if (limitMasuk && now > limitMasuk) {
                 if (alasan.trim() === "") {
                     document.getElementById('alasanMasuk').style.display = "block";
                     document.getElementById('alasanMasuk').placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
-                    alert("⚠️ MAAF, ANDA LEWAT!\n\nSistem mengesan anda lewat masuk. Sila isi alasan di dalam kotak yang disediakan sebelum mendaftar.");
-                    return; // STOP DI SINI
+                    alert("⚠️ MAAF, ANDA LEWAT!\n\nSila isi alasan di dalam kotak yang disediakan.");
+                    return; 
                 }
             }
         }
-        // -------------------------------
 
-        // Logik jika kotak alasan tak muncul tapi sistem nak pastikan status
         if (document.getElementById('alasanMasuk').style.display === "none") {
             if (jamConfig[kat]) {
                 let limitKeluar = parseTime(jamConfig[kat].keluar, now);
@@ -481,26 +487,24 @@
             let displayKeluar = cleanTimeDisplay(jamConfig[session.kategori].keluar);
 
             if (!isAuto && currentDist > 1000 && limitKeluar && now < limitKeluar) {
-                alert("Maaf ya, sistem mengesan awak berada jauh dari kawasan sekolah (lebih 1km). Sila kembali ke kawasan bertugas jika belum tamat waktu, atau tunggu sehingga waktu pulang.");
+                alert("Maaf, anda berada jauh dari sekolah. Sila kembali ke kawasan bertugas.");
                 return; 
             }
 
-            // --- LOGIK KETAT UNTUK KELUAR AWAL ---
             if (!isAuto && limitKeluar && now < limitKeluar) {
-                // Jika masa sekarang < masa keluar, WAJIB ada alasan
                 if (alasanValue === "") {
                     alasanInput.style.display = "block";
                     alasanInput.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
-                    alert("⚠️ MAAF, BELUM WAKTU PULANG!\n\nSistem mengesan anda pulang awal. Sila isi sebab di dalam kotak yang baru muncul, kemudian tekan butang 'DAFTAR KELUAR' sekali lagi.");
-                    return; // STOP DI SINI
+                    alasanInput.focus();
+                    alert("⚠️ MAAF, BELUM WAKTU PULANG!\n\nSila isi sebab pulang awal.");
+                    return; 
                 }
             }
-            // -------------------------------------
         }
         
         if (isAuto) {
             alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
-            alert("⚠️ MAKLUMAN: Sistem mengesan anda sudah pulang (jauh dari sekolah) dan waktu kerja telah tamat. Sistem akan mendaftar keluar anda secara automatik sekarang.");
+            alert("⚠️ MAKLUMAN: Sistem mendaftar keluar anda secara automatik (Luar Kawasan & Tamat Waktu).");
         } else if (alasanValue === "") {
             alasanValue = "PULANG MENGIKUT WAKTU / LEBIH MASA";
         }
@@ -567,11 +571,9 @@
 
     function parseTime(t, r) {
         if (!t || t.toString().toUpperCase() === "BEBAS") return null;
-        
-        let d = new Date(r); // Gunakan tarikh rujukan (Hari ini)
-        let tStr = t.toString();
+        let d = new Date(r); 
+        let tStr = t.toString().trim();
 
-        // Jika format ISO/Date string penuh
         if (tStr.includes("T") || tStr.includes("1899") || tStr.length > 15) {
              let tempD = new Date(tStr);
              if(!isNaN(tempD.getTime())) {
@@ -580,29 +582,24 @@
              }
         }
 
-        // Jika format 12 jam (7:30 PM)
-        let p = tStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
+        let p = tStr.match(/(\d+)[:.](\d+)(?:[:.](\d+))?\s*(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]);
             let m = parseInt(p[2]);
             let ampm = p[4].toUpperCase();
-
             if(ampm === "PM" && h < 12) h += 12;
             if(ampm === "AM" && h === 12) h = 0;
-            
             d.setHours(h, m, 0, 0); 
             return d;
         } 
         
-        // Jika format 24 jam (14:30)
-        let p2 = tStr.match(/(\d+):(\d+)/);
+        let p2 = tStr.match(/(\d+)[:.](\d+)/);
         if(p2) {
             let h = parseInt(p2[1]);
             let m = parseInt(p2[2]);
             d.setHours(h, m, 0, 0);
             return d;
         }
-
         return null; 
     }
 
@@ -616,18 +613,14 @@
                  return now;
              }
         }
-
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
-
         let h = parseInt(parts[1]);
         let m = parseInt(parts[2]);
         let s = parts[3] ? parseInt(parts[3]) : 0;
         let ampm = parts[4] ? parts[4].toUpperCase() : null;
-
         if (ampm === "PM" && h < 12) h += 12;
         if (ampm === "AM" && h === 12) h = 0;
-
         let d = new Date(); 
         d.setHours(h, m, s, 0); 
         return d;
@@ -669,7 +662,8 @@
                 isInZone = (currentDist <= RADIUS_METER);
                 
                 document.getElementById('statusText').innerText = isInZone ? "✅ DALAM KAWASAN" : "🚫 LUAR KAWASAN (" + Math.round(currentDist) + "m)";
-                document.getElementById('statusText').style.color = isInZone ? "green" : "red";
+                document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
+                document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
                 
                 let session = JSON.parse(localStorage.getItem('ehadir_session'));
                 if(!session) {
@@ -694,23 +688,38 @@
                 timeZone: 'Asia/Kuala_Lumpur'
             });
             document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY', {
+                day: 'numeric', month: 'short', year: 'numeric',
                 timeZone: 'Asia/Kuala_Lumpur'
             });
         }, 1000);
     }
     
+    // --- FUNGSI HIJRI YANG DIBAIKI (MANUAL MAPPING) ---
     function getHijriDate(){
+        const monthNames = ["Muharram", "Safar", "Rabiulawal", "Rabiulakhir", "Jamadilawal", "Jamadilakhir", "Rejab", "Syaaban", "Ramadan", "Syawal", "Zulkaedah", "Zulhijjah"];
         let t = new Date();
-        let o = {
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric', 
-            calendar: 'islamic-umalqura',
-            timeZone: 'Asia/Kuala_Lumpur'
-        };
-        try{
-            document.getElementById('hijriDisplay').innerText = `🌙 ${new Intl.DateTimeFormat('ms-MY-u-ca-islamic-umalqura', o).format(t).replace('AH','').trim()}`;
-        }catch(e){}
+        
+        try {
+            // Kita guna 'en-u-ca-islamic-umalqura-nu-latn' untuk dapatkan nombor bulan yang tepat
+            let parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', {
+                day: 'numeric', 
+                month: 'numeric', 
+                year: 'numeric',
+                timeZone: 'Asia/Kuala_Lumpur'
+            }).formatToParts(t);
+
+            let hDay = parts.find(p => p.type === 'day').value;
+            let hMonthIndex = parseInt(parts.find(p => p.type === 'month').value) - 1; // Index 0-11
+            let hYear = parts.find(p => p.type === 'year').value;
+            let hYearEra = hYear.split(" ")[0]; // Buang 'AH' jika ada
+
+            let hMonthName = monthNames[hMonthIndex] || "Bulan Islam";
+            
+            document.getElementById('hijriDisplay').innerText = `🌙 ${hDay} ${hMonthName} ${hYearEra}`;
+        } catch(e) {
+            console.error("Hijri Error:", e);
+            document.getElementById('hijriDisplay').innerText = "🌙 Kalendar Islam";
+        }
     }
 
     function checkSession() { 
@@ -755,7 +764,7 @@
                         ${actionBtns}
                       </div>`; 
             }); 
-            document.getElementById('listContainer').innerHTML = h || "Tiada rekod."; 
+            document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
             updateLiveTimers(); 
         }); 
     }
