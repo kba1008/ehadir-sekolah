@@ -8,7 +8,7 @@ const assetsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './logo.ico',
+  './logo.png',
   // './style.css', // Tambah jika ada
   // './script.js'  // Tambah jika ada
 ];
