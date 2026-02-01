@@ -1,5 +1,5 @@
-// sw.js - E-HADIR (Auto-Update & Data Locking)
-const CACHE_NAME = 'ehadir-v40';
+// sw.js - E-HADIR (Fixed: No Duplicates & Auto-Update)
+const CACHE_NAME = 'ehadir-v41'; // Versi dinaikkan
 const DB_NAME = 'E-Hadir-Offline-DB';
 const STORE_NAME = 'attendance_queue';
 
@@ -27,15 +27,13 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// 3. Logik Pintar: Auto-Update UI & Lock Data Offline
+// 3. Logik Fetch (Network First untuk Update UI Segera)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // A. JIKA HANTAR DATA (POST)
   if (request.method === 'POST') {
     event.respondWith(
       fetch(request.clone()).catch(async () => {
-        // Simpan data asal (LOCK DATA) jika tiada internet
         await saveToIndexedDB(request.clone());
         return new Response(JSON.stringify({ result: 'success', offline: true }), {
           headers: { 'Content-Type': 'application/json' }
@@ -45,21 +43,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // B. JIKA BUKA PAPARAN (GET index.html / icon)
-  // Strategi: Network First (Ambil yang baru, jika gagal baru guna cache)
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Kemaskini cache dengan paparan terbaru dari server
         const resClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone));
         return response;
       })
-      .catch(() => caches.match(request)) // Jika offline, guna cache terakhir
+      .catch(() => caches.match(request))
   );
 });
 
-// --- FUNGSI INDEXEDDB (LOCKING SYSTEM) ---
+// --- FUNGSI INDEXEDDB YANG DIBAIKI ---
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        // PENTING: keyPath 'id' memastikan data boleh dipadam dengan tepat
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
 
 async function saveToIndexedDB(request) {
   const body = await request.text();
@@ -70,44 +80,51 @@ async function saveToIndexedDB(request) {
   await store.add({
     url: request.url,
     payload: body,
-    timeLabel: new Date().toLocaleTimeString() // Sekadar rujukan log
+    timestamp: Date.now()
   });
 }
 
-function openDB() {
-  return new Promise((resolve) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME, { autoIncrement: true });
-    req.onsuccess = () => resolve(req.result);
-  });
-}
+// Lock untuk elak proses bertindih (Race Condition)
+let isSyncing = false;
 
-// Auto-Sync bila internet kembali (Support Android & iOS)
-setInterval(() => {
-  if (navigator.onLine) sendOfflineData();
-}, 15000); // Semak setiap 15 saat
+setInterval(async () => {
+  if (navigator.onLine && !isSyncing) {
+    isSyncing = true;
+    await sendOfflineData();
+    isSyncing = false;
+  }
+}, 15000);
 
 async function sendOfflineData() {
   const db = await openDB();
-  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const tx = db.transaction(STORE_NAME, 'readonly');
   const store = tx.objectStore(STORE_NAME);
+  
   const allData = await new Promise(r => {
     const res = store.getAll();
     res.onsuccess = () => r(res.result);
   });
 
+  if (allData.length === 0) return;
+
   for (const item of allData) {
     try {
-      await fetch(item.url, {
+      // Hantar data ke server
+      const response = await fetch(item.url, {
         method: 'POST',
         body: item.payload,
-        mode: 'no-cors'
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
-      const delTx = db.transaction(STORE_NAME, 'readwrite');
-      delTx.objectStore(STORE_NAME).delete(item.id);
-      console.log("Data offline berjaya dihantar!");
+
+      if (response.ok) {
+        // PADAM hanya jika server sahkan terima (HTTP 200)
+        const delTx = db.transaction(STORE_NAME, 'readwrite');
+        await delTx.objectStore(STORE_NAME).delete(item.id);
+        console.log(`Data ID ${item.id} berjaya disinkronkan.`);
+      }
     } catch (e) {
-      console.log("Menunggu internet stabil...");
+      console.error("Gagal hantar, internet mungkin tidak stabil.");
+      break; // Berhenti seketika, cuba lagi 15 saat kemudian
     }
   }
 }
