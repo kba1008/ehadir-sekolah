@@ -1,0 +1,317 @@
+/**
+ * ============================================================
+ * E-HADIR SYSTEM BACKEND (VERSI 37.3 - STRICT SHEET INTEGRITY)
+ * DIKEMASKINI OLEH: CIKGU NAIM ROSLEE
+ * ============================================================
+ */
+
+// ID FOLDER FOTO (Pastikan folder ini wujud dan permission 'Anyone with link' = Viewer)
+var ID_FOLDER_FOTO = "1kq_-WFogP16zVK3KKff9X4ubj5wDmS8w"; 
+
+var PASSCODE_RAHSIA = "101010"; 
+var idSheet = SpreadsheetApp.getActiveSpreadsheet().getId();
+// SENARAI SHEET YANG DIBENARKAN SAHAJA. JANGAN UBAH INI KECUALI ANDA TAMBAH SHEET BARU.
+var SHEETS_LIST = ["GURU", "AKP", "KEBERSIHAN", "PELAWAT"];
+
+// --- FUNGSI KHAS: DAPATKAN WAKTU MALAYSIA ---
+function getMalaysiaTime() {
+  return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+}
+
+function doPost(e) {
+  // LockService penting untuk elak perlanggaran data bila internet slow
+  var lock = LockService.getScriptLock();
+  // Tunggu sehingga 30 saat untuk giliran
+  try {
+    lock.waitLock(30000); 
+  } catch (e) {
+    return sendResponse("error", "Server sibuk, sila cuba sebentar lagi.");
+  }
+
+  try {
+    var data = JSON.parse(e.postData.contents);
+
+    if (!data.passcode || data.passcode !== PASSCODE_RAHSIA) {
+       return sendResponse("error", "? AKSES DITOLAK!");
+    }
+
+    if (data.action == "MASUK") return daftarMasuk(data);
+    if (data.action == "KELUAR") return daftarKeluar(data); 
+    if (data.action == "CHECKOUT_VISITOR") return checkoutVisitor(data.nama);
+    if (data.action == "GET_LIST") return getSenaraiHadir();
+    if (data.action == "GET_CONFIG") return getJamConfig();
+
+  } catch (err) {
+    return sendResponse("error", "RALAT SERVER: " + err.toString());
+  } finally {
+    lock.releaseLock(); // Lepaskan kunci
+  }
+}
+
+// --- FUNGSI 1: DAFTAR MASUK (MULTI ENTRY + ANTI DUPLICATE) ---
+function daftarMasuk(data) {
+  // 1. STRICT SHEET SELECTION (PEMBAIKAN UTAMA)
+  // Pastikan kategori yang diterima adalah sah. Jika tidak, paksa ke PELAWAT.
+  // Ini menghalang penciptaan sheet baru bernama "data" atau seumpamanya.
+  var targetSheetName = data.kategori ? data.kategori.toString().toUpperCase().trim() : "PELAWAT";
+  
+  // VALIDASI KETAT: Jika nama sheet tiada dalam senarai rasmi, tukar ke PELAWAT.
+  if (SHEETS_LIST.indexOf(targetSheetName) === -1) {
+    targetSheetName = "PELAWAT";
+  }
+
+  var sheet = SpreadsheetApp.openById(idSheet).getSheetByName(targetSheetName);
+  
+  // Jika sheet masih tak jumpa (sangat mustahil), hentikan proses. Jangan create sheet baru.
+  if (!sheet) {
+    return sendResponse("error", "Ralat Kritikal: Sheet " + targetSheetName + " tidak dijumpai.");
+  }
+
+  // INTEGRITI DATA: Guna 'clientTime' dari client jika ada (untuk kes offline sync)
+  var now;
+  if (data.clientTime) {
+    now = new Date(data.clientTime); // Guna masa sebenar butang ditekan (ISO String)
+    
+    // --- PEMBETULAN TARIKH 1970 & INVALID DATE ---
+    // Jika parsing gagal atau jadi tahun 1970, paksa guna masa server Malaysia
+    if (isNaN(now.getTime()) || now.getFullYear() === 1970) {
+      now = getMalaysiaTime();
+    }
+  } else {
+    now = getMalaysiaTime(); // Fallback ke masa server
+  }
+
+  var masaString = Utilities.formatDate(now, "GMT+8", "hh:mm:ss a");
+  var inputNama = (targetSheetName === "PELAWAT") ? "PELAWAT " + (Math.max(1, sheet.getLastRow())) : data.nama.toUpperCase().trim();
+  var inputDevice = data.deviceId || "UNKNOWN_DEVICE"; 
+
+  // --- SEMAKAN DUPLICATE (ANTI-LAG) ---
+  // Jika nama sama masuk dalam tempoh 60 saat, kita anggap ia error internet
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var lastDateVal = sheet.getRange(lastRow, 1).getValue(); // Ambil masa baris terakhir
+    var lastNameVal = sheet.getRange(lastRow, 2).getValue(); // Ambil nama baris terakhir
+    
+    // Kira beza masa dalam saat
+    var diffSeconds = (now.getTime() - new Date(lastDateVal).getTime()) / 1000;
+    
+    // Jika nama sama DAN beza masa kurang 60 saat
+    if (String(lastNameVal).trim() == inputNama && diffSeconds < 60) {
+       // Kita return success supaya app berhenti loading, tapi tak simpan data baru
+       return sendResponse("success", "Data telah direkod (Duplicate Filter).");
+    }
+  }
+
+  // 1. Proses Gambar
+  var fotoUrl = "TIADA";
+  if (data.fotoBase64 && data.fotoBase64.length > 50) {
+    try {
+      var folder = DriveApp.getFolderById(ID_FOLDER_FOTO);
+      var blob = Utilities.newBlob(Utilities.base64Decode(data.fotoBase64.split(",")[1]), "image/jpeg", inputNama + "_" + Date.now() + ".jpg");
+      var file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); 
+      fotoUrl = "https://drive.google.com/thumbnail?id=" + file.getId() + "&sz=w1000";
+    } catch(e) { fotoUrl = "RALAT FOLDER"; }
+  }
+
+  // 2. Tentukan Status & Warna
+  var status = "HADIR"; 
+  var alasan = data.alasan || "-"; 
+  var warnaJam = "black"; 
+  
+  var lokasiLink = "SEKOLAH";
+  if (data.lat && data.lng) {
+      lokasiLink = "http://maps.google.com/maps?q=" + data.lat + "," + data.lng;
+  }
+
+  var config = JSON.parse(getJamConfig().getContent()); 
+  var rule = config[targetSheetName]; 
+    
+  if (rule && rule.masuk !== "BEBAS") {
+       var lM = parseTime(rule.masuk, now); 
+       var lK = parseTime(rule.keluar, now); 
+       
+       if (lM && lK) {
+           if (now > lK) {
+               status = "LUAR WAKTU"; 
+               warnaJam = "black"; 
+           } else if (now > lM) {
+               status = "LEWAT"; 
+               warnaJam = "red"; 
+           } else if (now < lM) {
+               warnaJam = "blue";
+           }
+       }
+  } else if (targetSheetName === "PELAWAT") {
+      status = "PELAWAT"; alasan = data.tujuan || "-";
+  }
+
+  // 3. Simpan Data Baru
+  sheet.appendRow([
+    now,              // A
+    inputNama,        // B
+    targetSheetName,  // C
+    data.plat || "-", // D
+    masaString,       // E
+    "",               // F
+    status,           // G
+    alasan,           // H
+    lokasiLink,       // I
+    fotoUrl,          // J
+    "",               // K
+    inputDevice       // L
+  ]);
+  
+  var lr = sheet.getLastRow(); 
+  if (warnaJam !== "black") {
+      sheet.getRange(lr, 5).setFontColor(warnaJam); 
+      if (warnaJam === "red") sheet.getRange(lr, 7).setFontColor("red"); 
+  }
+
+  return sendResponse("success", "Berjaya Daftar: " + inputNama);
+}
+
+// --- FUNGSI 2: DAFTAR KELUAR ---
+function daftarKeluar(data) {
+  var doc = SpreadsheetApp.openById(idSheet);
+  
+  // INTEGRITI DATA: Guna 'clientTime' dari client jika ada
+  var now;
+  if (data.clientTime) {
+    now = new Date(data.clientTime);
+  } else {
+    now = getMalaysiaTime();
+  }
+
+  var today = Utilities.formatDate(now, "GMT+8", "yyyy-MM-dd");
+  var masaString = Utilities.formatDate(now, "GMT+8", "hh:mm:ss a");
+  var nama = data.nama;
+
+  for (var s = 0; s < SHEETS_LIST.length; s++) {
+    var sheet = doc.getSheetByName(SHEETS_LIST[s]); if(!sheet) continue;
+    var rawData = sheet.getDataRange().getValues();
+    
+    // Loop dari bawah ke atas supaya kita jumpa rekod MASUK yang paling terkini
+    for (var i = rawData.length-1; i>=1; i--) {
+       var rowDate = Utilities.formatDate(new Date(rawData[i][0]),"GMT+8","yyyy-MM-dd");
+       var rowNama = String(rawData[i][1]).trim(); 
+       
+       // Cari rekod hari ini yang belum checkout (Column F kosong)
+       if(rowDate == today && rowNama == nama && rawData[i][5] == "") {
+         
+         var config = JSON.parse(getJamConfig().getContent());
+         var rule = config[SHEETS_LIST[s]];
+         var statusKeluar = "SELESAI";
+         var warnaJam = "black";
+
+         if (rule && rule.keluar !== "BEBAS") {
+             var limitKeluar = parseTime(rule.keluar, now);
+             if (limitKeluar) {
+                 if (now < limitKeluar) {
+                     statusKeluar = "BALIK AWAL"; 
+                     warnaJam = "red";
+                 } else if (now > limitKeluar) {
+                     warnaJam = "blue";
+                 }
+             }
+         }
+
+         sheet.getRange(i+1, 6).setValue(masaString);   
+         sheet.getRange(i+1, 7).setValue(statusKeluar); 
+         
+         if (data.alasan && data.alasan !== "-") {
+             var oldReason = rawData[i][7]; 
+             var newReason = (oldReason == "-" || oldReason == "") ? data.alasan : oldReason + " | Keluar: " + data.alasan;
+             sheet.getRange(i+1, 8).setValue(newReason);
+         }
+
+         if (data.lat && data.lng) {
+             var mapLink = "http://maps.google.com/maps?q=" + data.lat + "," + data.lng;
+             sheet.getRange(i+1, 9).setValue(mapLink);
+         }
+         
+         if(warnaJam !== "black") {
+             sheet.getRange(i+1, 6).setFontColor(warnaJam); 
+             if (warnaJam === "red") sheet.getRange(i+1, 7).setFontColor("red"); 
+         }
+
+         return sendResponse("success", "Jumpa lagi " + nama);
+       }
+    }
+  }
+  return sendResponse("error", "Tiada rekod masuk aktif hari ini.");
+}
+
+// --- FUNGSI 3: BACA CONFIG JAM ---
+function getJamConfig() { 
+  var s = SpreadsheetApp.openById(idSheet).getSheetByName("JAM"); 
+  if(!s) return ContentService.createTextOutput("{}"); 
+  
+  var d = s.getDataRange().getValues(); 
+  
+  function formatMasa(rawVal) {
+    if (rawVal instanceof Date) {
+      return Utilities.formatDate(rawVal, "GMT+8", "hh:mm:ss a");
+    }
+    return rawVal ? String(rawVal) : "BEBAS";
+  }
+  
+  var config = {
+    "GURU":       { masuk: formatMasa(d[1][1]), keluar: formatMasa(d[2][1]) },
+    "AKP":        { masuk: formatMasa(d[1][2]), keluar: formatMasa(d[2][2]) },
+    "KEBERSIHAN": { masuk: formatMasa(d[1][3]), keluar: formatMasa(d[2][3]) },
+    "PELAWAT":    { masuk: formatMasa(d[1][4]), keluar: formatMasa(d[2][4]) }
+  };
+
+  return ContentService.createTextOutput(JSON.stringify(config)).setMimeType(ContentService.MimeType.JSON); 
+}
+
+// --- FUNGSI SOKONGAN LAIN ---
+function checkoutVisitor(nama) { 
+  var s=SpreadsheetApp.openById(idSheet).getSheetByName("PELAWAT"); 
+  var d=getMalaysiaTime(); 
+  var t=Utilities.formatDate(d,"GMT+8","yyyy-MM-dd"); 
+  var v=s.getDataRange().getValues(); 
+  for(var i=v.length-1;i>=1;i--){ 
+    if(Utilities.formatDate(new Date(v[i][0]),"GMT+8","yyyy-MM-dd")==t && String(v[i][1]).trim()==nama && v[i][5]==""){ 
+      s.getRange(i+1,6).setValue(Utilities.formatDate(d,"GMT+8","hh:mm:ss a")); 
+      s.getRange(i+1,7).setValue("SELESAI"); 
+      return sendResponse("success","Pelawat Checkout OK"); 
+    } 
+  } 
+  return sendResponse("error","Gagal"); 
+}
+
+function getSenaraiHadir() { 
+  var d=SpreadsheetApp.openById(idSheet); 
+  var t=Utilities.formatDate(getMalaysiaTime(),"GMT+8","yyyy-MM-dd"); 
+  var l=[]; 
+  for(var s=0;s<SHEETS_LIST.length;s++){ 
+    var sh=d.getSheetByName(SHEETS_LIST[s]); 
+    if(!sh)continue; 
+    var v=sh.getDataRange().getValues(); 
+    for(var i=1;i<v.length;i++){ 
+      if(Utilities.formatDate(new Date(v[i][0]),"GMT+8","yyyy-MM-dd")==t && v[i][5]==""){ 
+        l.push({nama:v[i][1], kategori:SHEETS_LIST[s], foto:v[i][9]||""}); 
+      } 
+    } 
+  } 
+  return ContentService.createTextOutput(JSON.stringify(l)).setMimeType(ContentService.MimeType.JSON); 
+}
+
+function parseTime(t,r){ 
+  if(!t || t=="BEBAS")return null; 
+  var d=new Date(r); 
+  var p=t.match(/(\d+)[.:](\d+).*?(AM|PM)/i); 
+  if(p){
+    var h=parseInt(p[1]),m=parseInt(p[2]); 
+    if(p[3]=="PM"&&h<12)h+=12; 
+    if(p[3]=="AM"&&h==12)h=0; 
+    d.setHours(h,m,0,0); 
+    return d;
+  } 
+  return null; 
+}
+
+function sendResponse(s,m) { return ContentService.createTextOutput(JSON.stringify({"result":s,"msg":m})).setMimeType(ContentService.MimeType.JSON); }
+function testPermission() { DriveApp.getFolderById(ID_FOLDER_FOTO); }

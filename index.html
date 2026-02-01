@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycby4LfIdFnccNloRiVKd4wNcluofmtXvnfI1zK67Hjx-ZfZd1lhOQq2araOEQyUhZsEm/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwo31L4K14ZoK_lEV_3NBFAlXOqqm-gaoMcCkitBT_rBPqmiCanQt4Owa6JTO0TBWC5/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -616,12 +616,25 @@
         let now = new Date();
         let limitKeluar = null;
         
+        // --- LOGIK LANGKAH 5: LUAR KAWASAN ---
+        let isOutOfZone = (!isAuto && currentDist > 1000);
+
         if (jamConfig && jamConfig[session.kategori]) {
             limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
-            if (!isAuto && currentDist > 1000 && limitKeluar && now < limitKeluar) {
-                showModernAlert("Jauh", "Anda jauh dari sekolah.", "error"); return; 
+            
+            // Jika Luar Kawasan (Langkah 5), WAJIB isi alasan
+            if (isOutOfZone) {
+                if (alasanValue === "") {
+                    alasanInput.style.display = "block";
+                    alasanInput.placeholder = "Anda di LUAR KAWASAN. Wajib nyatakan sebab...";
+                    showModernAlert("Luar Kawasan", "Anda berada jauh dari sekolah (" + Math.round(currentDist) + "m). Sila isi alasan.", "error");
+                    return;
+                }
+                // Tambah tag supaya backend tahu ini kes kuning
+                alasanValue = "[LUAR KAWASAN] " + alasanValue;
             }
-            if (!isAuto && limitKeluar && now < limitKeluar && alasanValue === "") {
+            // Jika Dalam Kawasan tapi Awal (Langkah 3)
+            else if (!isAuto && limitKeluar && now < limitKeluar && alasanValue === "") {
                 alasanInput.style.display = "block";
                 showModernAlert("Pulang Awal", "Sila nyatakan sebab pulang awal.", "error");
                 return; 
@@ -630,7 +643,7 @@
         
         if (isAuto) {
             alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
-        } else if (alasanValue === "") {
+        } else if (alasanValue === "" && !isOutOfZone) {
             alasanValue = "PULANG MENGIKUT WAKTU";
         }
 
@@ -667,7 +680,8 @@
         };
 
         if(!isAuto) {
-            showModernAlert("Pengesahan", "Daftar keluar sekarang?", "confirm", proceed);
+            let msgConfirm = isOutOfZone ? "Anda di luar kawasan. Teruskan?" : "Daftar keluar sekarang?";
+            showModernAlert("Pengesahan", msgConfirm, "confirm", proceed);
         } else {
             proceed();
         }
