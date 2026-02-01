@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwY1w4aCdBDX2TNX4lNIOuJ3Abhg6E-fk2vqRuttFcvrWWHGkIB7dSctL5HJZgF4ErB/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxAknRP5HcYYmRbHBr-wduZ3mc8omLr5vbiLoDZxWq6yc3E9CKmkPo5QnSxAO2ZESXk/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -215,12 +215,12 @@
 </head>
 <body oncontextmenu="return false;"> 
 
-    <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+    <div id="warningBox">?? SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
     <!-- CIKGU NAIM: MODAL CANGGIH -->
     <div id="customModal">
         <div class="custom-modal-content">
-            <span id="modalIcon" class="modal-icon-top">🔔</span>
+            <span id="modalIcon" class="modal-icon-top">??</span>
             <div id="modalTitle" class="modal-title">Tajuk</div>
             <div id="modalMsg" class="modal-msg">Mesej di sini...</div>
             <div class="modal-btn-row" id="modalBtnRow">
@@ -297,7 +297,7 @@
                     <option value="GURU">GURU</option>
                     <option value="AKP">AKP</option>
                     <option value="KEBERSIHAN">KEBERSIHAN</option>
-                    <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
+                    <option value="PELAWAT">?? PELAWAT (AWAM)</option>
                 </select>
 
                 <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
@@ -351,7 +351,7 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
-            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem (Admin)</p>
+            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
         </div>
     </div>
 
@@ -375,15 +375,15 @@
         mMsg.innerHTML = msg; // Boleh guna HTML dalam msg
         
         if(type === 'error') {
-            mIcon.innerText = "⚠️";
+            mIcon.innerText = "??";
             mTitle.style.color = "#c0392b";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>`;
         } else if(type === 'success') {
-            mIcon.innerText = "✅";
+            mIcon.innerText = "?";
             mTitle.style.color = "#27ae60";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Terbaik</button>`;
         } else if(type === 'confirm') {
-            mIcon.innerText = "🤔";
+            mIcon.innerText = "??";
             mTitle.style.color = "#1e3c72";
             // Kita simpan callback dalam window supaya boleh dipanggil
             window.tempCallback = callback;
@@ -392,7 +392,7 @@
                 <button class="modal-btn btn-ok" onclick="confirmAction()">Teruskan</button>
             `;
         } else {
-            mIcon.innerText = "🔔";
+            mIcon.innerText = "??";
             mTitle.style.color = "#2c3e50";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Tutup</button>`;
         }
@@ -641,14 +641,14 @@
             lng: lastLng,     
             clientTime: new Date().toISOString() 
         }, () => {
-            if(!isAuto) alert("✅ Terima kasih. Jumpa lagi!"); // Alert simple last sekali ok
+            if(!isAuto) alert("? Terima kasih. Jumpa lagi!"); // Alert simple last sekali ok
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
     }
 
     function keluarManual(namaUser) {
-        let pass = prompt("⚠️ ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
+        let pass = prompt("?? ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
         if (pass !== PASSCODE) { showModernAlert("Akses Ditolak", "Kata laluan salah.", "error"); return; }
 
         sendData({ 
