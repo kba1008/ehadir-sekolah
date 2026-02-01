@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwo31L4K14ZoK_lEV_3NBFAlXOqqm-gaoMcCkitBT_rBPqmiCanQt4Owa6JTO0TBWC5/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyCQR5GxTOI6paWKoWHOznkgpeeAZmFy8DJXnH8L9916NIZCj46kZLS1IBLNs2KuE38/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -199,7 +199,7 @@
 
                 <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
                 
-                <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab pulang awal untuk makluman pentadbir..."></textarea>
+                <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab..."></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
                     <img src="https://cdn-icons-png.flaticon.com/128/3580/3580154.png" class="icon-3d-std"> DAFTAR KELUAR
@@ -616,35 +616,49 @@
         let now = new Date();
         let limitKeluar = null;
         
-        // --- LOGIK LANGKAH 5: LUAR KAWASAN ---
-        let isOutOfZone = (!isAuto && currentDist > 1000);
+        // --- LOGIK BARU (WARNA & ALASAN) ---
+        let isLuarKawasan = (currentDist > RADIUS_METER);
+        let isAwal = false;
+        let isLateOrOnTime = false;
 
         if (jamConfig && jamConfig[session.kategori]) {
             limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
-            
-            // Jika Luar Kawasan (Langkah 5), WAJIB isi alasan
-            if (isOutOfZone) {
+            if (limitKeluar) {
+                isAwal = (now < limitKeluar);
+                isLateOrOnTime = (now >= limitKeluar);
+            }
+        }
+
+        if (!isAuto) {
+            // 1. KES LUAR KAWASAN (KUNING)
+            if (isLuarKawasan) {
                 if (alasanValue === "") {
                     alasanInput.style.display = "block";
-                    alasanInput.placeholder = "Anda di LUAR KAWASAN. Wajib nyatakan sebab...";
-                    showModernAlert("Luar Kawasan", "Anda berada jauh dari sekolah (" + Math.round(currentDist) + "m). Sila isi alasan.", "error");
+                    alasanInput.placeholder = "Anda di luar kawasan. Wajib nyatakan sebab...";
+                    showModernAlert("Luar Kawasan", "Anda berada jauh dari sekolah (" + Math.round(currentDist) + "m).<br>Sila nyatakan sebab untuk teruskan.", "error");
                     return;
                 }
-                // Tambah tag supaya backend tahu ini kes kuning
-                alasanValue = "[LUAR KAWASAN] " + alasanValue;
+                // Tambah tag supaya backend tahu ini luar kawasan
+                alasanValue += " [LUAR KAWASAN]";
             }
-            // Jika Dalam Kawasan tapi Awal (Langkah 3)
-            else if (!isAuto && limitKeluar && now < limitKeluar && alasanValue === "") {
-                alasanInput.style.display = "block";
-                showModernAlert("Pulang Awal", "Sila nyatakan sebab pulang awal.", "error");
-                return; 
+            // 2. KES BALIK AWAL (MERAH)
+            else if (isAwal) {
+                if (alasanValue === "") {
+                    alasanInput.style.display = "block";
+                    alasanInput.placeholder = "Balik awal. Mohon nyatakan sebab...";
+                    showModernAlert("Pulang Awal", "Waktu bekerja belum tamat. Sila nyatakan sebab.", "error");
+                    return;
+                }
+            }
+            // 3. KES LUPA CHECKOUT / BALIK TEPAT (HIJAU)
+            else if (isLateOrOnTime) {
+                // Tidak perlu alasan jika dah habis waktu kerja
+                if (alasanValue === "") alasanValue = "PULANG MENGIKUT WAKTU";
             }
         }
         
         if (isAuto) {
             alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
-        } else if (alasanValue === "" && !isOutOfZone) {
-            alasanValue = "PULANG MENGIKUT WAKTU";
         }
 
         let proceed = async () => {
@@ -661,7 +675,6 @@
                     if (result.offline) {
                         alert("?? Mod Offline: Data keluar disimpan. Akan dihantar bila ada internet.");
                     } else {
-                        // Jika ada mesej khas dari server (cth: kata semangat), paparkan
                         if(result.data && result.data.msg) {
                             alert("? " + result.data.msg);
                         } else {
@@ -680,7 +693,7 @@
         };
 
         if(!isAuto) {
-            let msgConfirm = isOutOfZone ? "Anda di luar kawasan. Teruskan?" : "Daftar keluar sekarang?";
+            let msgConfirm = isLuarKawasan ? "Anda di luar kawasan. Teruskan daftar keluar?" : "Daftar keluar sekarang?";
             showModernAlert("Pengesahan", msgConfirm, "confirm", proceed);
         } else {
             proceed();
