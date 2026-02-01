@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v20.3 (Fix Timezone)</title>
+    <title>Sistem Pelawat & Kehadiran v20.6 (Smart Auto-Logic)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -202,7 +202,6 @@
 
         <div class="title-box">
             <h1>E-HADIR</h1>
-            <!-- Anda boleh ubah tajuk sekolah di sini juga jika mahu hardcode -->
             <h2 id="schoolTitle">SK SELAMA (K)</h2>
         </div>
         
@@ -218,11 +217,13 @@
                 Waktu Pulang Rasmi: <span id="userExitTime" style="font-weight:bold;">--:--</span>
             </div>
 
-            <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERTUGAS</p>
+            <!-- Status Dinamik (Berubah ikut kategori) -->
+            <p id="dynamicStatus" style="margin:0 0 10px 0; font-size:12px; color:#666; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
             
-            <textarea id="alasanKeluar" placeholder="⚠️ ANDA BALIK AWAL DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
+            <!-- Kotak Alasan (Hidden by default, muncul bila tekan butang jika awal) -->
+            <textarea id="alasanKeluar" style="display:none;" placeholder="⚠️ ANDA BALIK AWAL DARI WAKTU DITETAPKAN. SILA NYATAKAN SEBAB:"></textarea>
             
-            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">DAFTAR KELUAR</button>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
             <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ BANTU DAFTAR PELAWAT</button>
         </div>
@@ -284,11 +285,9 @@
     </div>
 
 <script>
-    // NOTA: Tetapan API_URL, PASSCODE, dan KOORDINAT telah dipindahkan ke bahagian atas (dalam tag <head>)
-    // supaya lebih mudah diedit oleh pengguna.
-
     let jamConfig = null; 
     let isInZone = false; 
+    let currentDist = 0; // Pembolehubah baru untuk simpan jarak
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let timerInterval = null;
@@ -301,7 +300,8 @@
         
         setTimeout(() => {
             checkSession();
-            setInterval(triggerAlasanKeluar, 5000); 
+            // Interval ini semak info dashboard DAN logik auto-checkout
+            setInterval(updateDashboardInfo, 5000); 
         }, 2000);
 
         loadList();
@@ -330,21 +330,17 @@
         });
     }
 
-    // --- FUNGSI PEMBERSIH JAM (FIX 1899 DATE) ---
     function cleanTimeDisplay(val) {
         if (!val) return "--:--";
-        // Jika data masuk adalah string panjang (ISO) atau ada tahun 1899
         if (val.toString().length > 10 || val.toString().includes("1899")) {
             let d = new Date(val);
             if (!isNaN(d.getTime())) {
-                // Ambil masa sahaja, buang tarikh dan timezone pelik
                 return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             }
         }
-        return val; // Jika data memang dah cantik (cth: "07:30 AM"), pulangkan saja
+        return val;
     }
 
-    // --- FUNGSI JADUAL MINIMALIS (DIKEMASKINI) ---
     function updateScheduleInfo() {
         let kat = document.getElementById('kategori').value;
         let infoBox = document.getElementById('scheduleInfo');
@@ -360,11 +356,9 @@
         }
 
         if (kat && jamConfig[kat]) {
-            // Guna cleanTimeDisplay untuk bersihkan paparan
             let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
             let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
             
-            // Paparan Minimalis (Pil)
             infoBox.innerHTML = `
                 <div class="schedule-minimal">
                     <div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;">
@@ -389,8 +383,6 @@
         if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-            
-            // Paparan bersih untuk placeholder
             let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
 
             if (limitMasuk && limitKeluar) {
@@ -405,24 +397,25 @@
         area.value = ""; 
     }
 
-    function triggerAlasanKeluar() {
+    // --- FUNGSI KEMASKINI INFO DASHBOARD & AUTO CHECKOUT LOGIC ---
+    function updateDashboardInfo() {
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
-        let area = document.getElementById('alasanKeluar');
         let dashboardSchedule = document.getElementById('dashboardSchedule');
         let userExitTime = document.getElementById('userExitTime');
         
         if (s && jamConfig && jamConfig[s.kategori]) {
-            let limitKeluar = parseTime(jamConfig[s.kategori].keluar, new Date());
             let displayKeluar = cleanTimeDisplay(jamConfig[s.kategori].keluar);
-            
             dashboardSchedule.style.display = "block";
             userExitTime.innerText = displayKeluar;
 
-            if (limitKeluar && new Date() < limitKeluar) {
-                area.style.display = "block";
-                area.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
-            } else {
-                area.style.display = "none";
+            // === LOGIK AUTO CHECKOUT JIKA LUPA & DAH SAMPAI RUMAH ===
+            let now = new Date();
+            let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
+            
+            // Syarat: Jarak > 1KM, Masa > Waktu Keluar, Masih ada sesi
+            if (currentDist > 1000 && limitKeluar && now > limitKeluar) {
+                console.log("Auto Checkout Triggered: Jauh & Lewat Waktu");
+                hantarKeluar(true); // TRUE bermaksud Auto Checkout
             }
         }
     }
@@ -456,30 +449,60 @@
         });
     }
 
-    function hantarKeluar() {
+    // --- FUNGSI KELUAR (MANUAL & AUTO) ---
+    function hantarKeluar(isAuto = false) {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) {
-            alert("Ralat Sesi: Sila tekan 'Reset Sistem' di bahagian bawah.");
+            if(!isAuto) alert("Ralat Sesi: Sila tekan 'Reset Sistem' di bahagian bawah.");
             return;
         }
         if (lastLat === 0 || lastLng === 0) {
-            alert("📡 GPS sedang dicari... Sila tunggu.");
+            if(!isAuto) alert("📡 GPS sedang dicari... Sila tunggu.");
             return;
         }
 
         let alasanInput = document.getElementById('alasanKeluar');
         let alasanValue = alasanInput.value.trim();
+        let now = new Date();
+        let limitKeluar = null;
         
-        if (alasanInput.style.display === "block" && alasanValue === "") {
-            alert("⚠️ Anda pulang awal! Sila isi alasan kenapa."); return;
+        if (jamConfig && jamConfig[session.kategori]) {
+            limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
+            let displayKeluar = cleanTimeDisplay(jamConfig[session.kategori].keluar);
+
+            // LOGIK 1: JIKA MANUAL, AWAL, DAN JAUH DARI KAWASAN (>1KM)
+            if (!isAuto && currentDist > 1000 && limitKeluar && now < limitKeluar) {
+                alert("Maaf ya, sistem mengesan awak berada jauh dari kawasan sekolah (lebih 1km). Sila kembali ke kawasan bertugas jika belum tamat waktu, atau tunggu sehingga waktu pulang.");
+                return; // Sekat keluar
+            }
+
+            // LOGIK 2: JIKA MANUAL, AWAL, TAPI DALAM KAWASAN (Minta Alasan)
+            if (!isAuto && limitKeluar && now < limitKeluar) {
+                if (alasanInput.style.display === "none") {
+                    alasanInput.style.display = "block";
+                    alasanInput.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
+                    alert("⚠️ Sistem mengesan anda pulang awal dari waktu ditetapkan.\n\nSila isi sebab di dalam kotak yang baru muncul, kemudian tekan butang 'DAFTAR KELUAR' sekali lagi.");
+                    return;
+                }
+                if (alasanValue === "") {
+                    alert("⚠️ Sila nyatakan sebab kenapa anda pulang awal.");
+                    return;
+                }
+            }
         }
         
-        if (alasanValue === "") alasanValue = "PULANG MENGIKUT WAKTU / LEBIH MASA";
+        // Tetapan Alasan
+        if (isAuto) {
+            alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
+            alert("⚠️ MAKLUMAN: Sistem mengesan anda sudah pulang (jauh dari sekolah) dan waktu kerja telah tamat. Sistem akan mendaftar keluar anda secara automatik sekarang.");
+        } else if (alasanValue === "") {
+            alasanValue = "PULANG MENGIKUT WAKTU / LEBIH MASA";
+        }
 
-        if(!confirm("Daftar Keluar sekarang?")) return;
+        if(!isAuto && !confirm("Daftar Keluar sekarang?")) return;
         
         document.getElementById('btnKeluar').disabled = true;
-        document.getElementById('btnKeluar').innerText = "SEDANG PROSES...";
+        document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
 
         sendData({ 
             action: "KELUAR", 
@@ -490,7 +513,7 @@
             lng: lastLng,     
             clientTime: new Date().toISOString() 
         }, () => {
-            alert("✅ Berjaya Daftar Keluar!");
+            if(!isAuto) alert("✅ Berjaya Daftar Keluar!");
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
@@ -539,11 +562,8 @@
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
         let d = new Date(r);
-        
-        // Convert to string first to handle Date objects from Sheets
         let tStr = t.toString();
 
-        // Check for ISO string or full date string first
         if (tStr.includes("T") || tStr.includes("1899") || tStr.length > 15) {
              let tempD = new Date(tStr);
              if(!isNaN(tempD.getTime())) {
@@ -579,8 +599,6 @@
 
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
-        
-        // Handle raw Date string from Sheets
         if (timeStr.toString().length > 15) {
              let tempD = new Date(timeStr);
              if(!isNaN(tempD.getTime())) {
@@ -638,22 +656,30 @@
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(pos => {
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
-                let dist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG);
-                isInZone = (dist <= RADIUS_METER);
-                document.getElementById('statusText').innerText = isInZone ? "✅ DALAM KAWASAN" : "🚫 LUAR KAWASAN (" + Math.round(dist) + "m)";
+                currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); // Simpan jarak dalam variable global
+                isInZone = (currentDist <= RADIUS_METER);
+                
+                document.getElementById('statusText').innerText = isInZone ? "✅ DALAM KAWASAN" : "🚫 LUAR KAWASAN (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "green" : "red";
-                document.getElementById('warningBox').style.display = isInZone ? "none" : "block";
+                
+                // Warning box hanya muncul jika di luar kawasan DAN belum login (borang default)
+                // Jika dah login, kita guna soft notification bila tekan butang
+                let session = JSON.parse(localStorage.getItem('ehadir_session'));
+                if(!session) {
+                    document.getElementById('warningBox').style.display = isInZone ? "none" : "block";
+                } else {
+                    document.getElementById('warningBox').style.display = "none";
+                }
+
             }, null, {enableHighAccuracy: true});
         }
     }
 
     function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
     
-    // --- FUNGSI JAM & TARIKH DIPERBAIKI (ZON MASA MALAYSIA) ---
     function startClock(){
         setInterval(()=>{
             let n = new Date();
-            // Paksa format Malaysia & Zon Masa Kuala Lumpur
             document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-US', {
                 hour12: true, 
                 hour: "2-digit", 
@@ -668,7 +694,6 @@
     
     function getHijriDate(){
         let t = new Date();
-        // Tambah timeZone: 'Asia/Kuala_Lumpur' untuk ketepatan
         let o = {
             day: 'numeric', 
             month: 'long', 
@@ -687,7 +712,11 @@
             document.getElementById('defaultForm').style.display = 'none'; 
             document.getElementById('dashboardPanel').style.display = 'block'; 
             document.getElementById('sessionName').innerText = s.nama; 
-            triggerAlasanKeluar(); 
+            
+            let statusText = "STATUS: " + s.kategori + " (SEDANG BERTUGAS)";
+            document.getElementById('dynamicStatus').innerText = statusText;
+
+            updateDashboardInfo(); 
         } 
     }
     
