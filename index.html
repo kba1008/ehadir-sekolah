@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.6 (Offline Integrity)</title>
+    <title>Sistem Pelawat & Kehadiran v22.7 (Opera Fix)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxug9L4-I-cJtqwKLkZ_f7PBG67EQrVYLVSU88M4KholkQVY6EchuIQFpAcf1mq1dAo/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw0F2fbQtWsy1kgLrdl-1S1Qi5S3F1wN677-fD7zht_jonG1ZhP4fvMGLxzWQA8X2TF/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -57,8 +57,8 @@
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
-        .cam-icon { width: 32px; height: 32px; margin-bottom: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; min-height: 70px; }
+        .cam-icon { width: 28px; height: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
@@ -220,6 +220,7 @@
                 </h3>
                 <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
+                
                 <div class="cam-grid">
                     <label class="cam-btn">
                         <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="cam-icon">
@@ -231,7 +232,14 @@
                         DEPAN
                         <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
                     </label>
+                    <!-- FIX OPERA: Butang Universal tanpa 'capture' -->
+                    <label class="cam-btn" style="background:#7f8c8d; grid-column: span 2;">
+                        <img src="https://cdn-icons-png.flaticon.com/128/1042/1042339.png" class="cam-icon">
+                        KAMERA (OPERA/LAIN)
+                        <input type="file" accept="image/*" style="display:none" onchange="processImage(this)">
+                    </label>
                 </div>
+
                 <img id="previewImg">
                 <input type="hidden" id="base64Foto">
                 <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">
@@ -318,13 +326,11 @@
 
         let itemToSync = offlineQueue[0];
 
-        // PEMBAIKAN UTAMA: Pastikan payload bersih dan kategori wujud
-        if (!itemToSync.kategori) {
-            console.error("Data rosak dikesan dalam queue, membuang...", itemToSync);
-            offlineQueue.shift();
-            localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
-            syncOfflineData();
-            return;
+        // FIX CHROME OFFLINE: Pastikan kategori wujud. Jika undefined, set ke PELAWAT.
+        // Ini mengelakkan Google Sheet mencipta sheet baru bernama "undefined" atau error.
+        if (!itemToSync.kategori || itemToSync.kategori === "undefined" || itemToSync.kategori === null) {
+            console.warn("Data kategori rosak dikesan, set default ke PELAWAT.");
+            itemToSync.kategori = "PELAWAT";
         }
 
         fetch(API_URL, { method: "POST", body: JSON.stringify(itemToSync) })
@@ -499,6 +505,9 @@
     }
 
     function saveToQueue(data) {
+        // FIX: Pastikan kategori wujud sebelum simpan ke queue
+        if (!data.kategori) data.kategori = "PELAWAT";
+        
         let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         queue.push(data);
         localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
