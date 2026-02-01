@@ -1,5 +1,5 @@
-// sw.js - Versi Ultra-Offline v44 (Sync Ready)
-const CACHE_NAME = 'ehadir-v44';
+// sw.js - Versi Ultra-Offline v45 (Sync Ready)
+const CACHE_NAME = 'ehadir-v45';
 const DB_NAME = 'E-Hadir-Offline-DB';
 const STORE_NAME = 'attendance_queue';
 

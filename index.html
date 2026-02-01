@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.5 (Offline Pro)</title>
+    <title>Sistem Pelawat & Kehadiran v22.6 (Offline Integrity)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzKf4MOLwsBsPCcWMLolDwS_wDRn3MPRS2a2S7c0URnK037kILpATM0JeA74ngWL0GT/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycby6iECbU8tkSPYUkaKgOH6phkYd35phPNZT6A84fAVxu7tztMzamg5bfn-tDna3ZuUU/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -66,6 +66,7 @@
         .list-container { text-align: left; margin-top: 5px; max-height: 300px; overflow-y: auto; }
         
         .user-card { background: #fff; padding: 12px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1e3c72; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .user-card.offline-item { border-left: 4px solid #e67e22; background: #fffcf5; }
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
         .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
@@ -268,12 +269,10 @@
     //       LOGIK MOD OFFLINE & SYNC PINTAR
     // ==========================================
     
-    // 1. Pendaftaran Service Worker (Untuk Install App)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(reg => {
                 console.log('SW Berjaya:', reg.scope);
-                // Jika browser sokong SyncManager (Android/Chrome)
                 if ('SyncManager' in window) {
                     reg.sync.register('sync-attendance').catch(err => console.log("Sync bg gagal", err));
                 }
@@ -281,19 +280,16 @@
         });
     }
 
-    // 2. Event Listener: Bila Internet Kembali
     window.addEventListener('online', () => {
         console.log("Internet dikesan! Memulakan sinkronisasi...");
         showSyncBar("Internet Kembali Pulih. Menyegerakkan data...", "#2ecc71");
         
-        // Logik SyncManager (Android) atau Fallback (iPhone)
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
             navigator.serviceWorker.ready.then(sw => {
                 return sw.sync.register('sync-attendance');
             });
         } else {
-            // Fallback untuk iPhone/Safari
-            fetch('/sw.js'); // Trigger SW wake up
+            fetch('/sw.js'); 
         }
         
         syncOfflineData();
@@ -311,41 +307,43 @@
         if(color === "#2ecc71") setTimeout(() => { bar.style.display = 'none'; }, 4000);
     }
 
-    // 3. Fungsi Sync Data Tertangguh
     function syncOfflineData() {
         if (!navigator.onLine) return;
         
-        // Ambil data dari storage
         let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         
-        if (offlineQueue.length === 0) return; // Tiada data untuk dihantar
+        if (offlineQueue.length === 0) return; 
 
         showSyncBar("Menghantar " + offlineQueue.length + " data tertangguh...", "#3498db");
 
-        // Ambil item pertama dalam barisan
         let itemToSync = offlineQueue[0];
 
-        // Hantar ke server (itemToSync sudah ada 'actual_time' yang dibekukan)
+        // PEMBAIKAN UTAMA: Parse JSON response untuk pastikan server terima
         fetch(API_URL, { method: "POST", body: JSON.stringify(itemToSync) })
-        .then(() => {
-            // Jika berjaya, buang dari senarai
-            offlineQueue.shift(); 
-            localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
-            
-            // Panggil semula fungsi ini untuk item seterusnya (Recursive)
-            if (offlineQueue.length > 0) {
-                syncOfflineData(); 
+        .then(response => response.json())
+        .then(res => {
+            if (res.result === "success") {
+                // HANYA PADAM JIKA SERVER KATA SUCCESS
+                offlineQueue.shift(); 
+                localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
+                
+                if (offlineQueue.length > 0) {
+                    syncOfflineData(); 
+                } else {
+                    showSyncBar("? Semua data offline telah berjaya dihantar!", "#27ae60");
+                    loadList(); 
+                }
             } else {
-                showSyncBar("? Semua data offline telah berjaya dihantar!", "#27ae60");
-                loadList(); // Refresh senarai
+                // JIKA SERVER REJECT, JANGAN PADAM & BERITAHU USER
+                console.error("Server Reject:", res.msg);
+                showSyncBar("Ralat Server: " + res.msg, "#c0392b");
             }
         })
         .catch(err => {
             console.error("Gagal sync:", err);
-            showSyncBar("Ralat sync. Akan cuba sebentar lagi.", "#e67e22");
+            showSyncBar("Ralat Network. Akan cuba sebentar lagi.", "#e67e22");
         });
     }
-    // ==========================================
 
     function showModernAlert(title, msg, type, callback) {
         let modal = document.getElementById('customModal');
@@ -386,9 +384,8 @@
         fetchConfig(); 
         getHijriDate();
         
-        // Cek status internet semasa load
         if(!navigator.onLine) showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
-        else syncOfflineData(); // Cuba sync jika ada baki data lama
+        else syncOfflineData(); 
 
         setTimeout(() => {
             checkSession();
@@ -429,7 +426,6 @@
         if (kat && jamConfig[kat]) {
             let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
             let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
-            // Guna ikon 3D untuk jadual
             infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;"><span><img src="https://cdn-icons-png.flaticon.com/128/190/190411.png" class="icon-3d-mini"> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;"><span><img src="https://cdn-icons-png.flaticon.com/128/190/190406.png" class="icon-3d-mini"> ${keluar}</span></div></div>`;
             infoBox.style.display = "block";
         } else {
@@ -472,16 +468,12 @@
         }
     }
 
-    // ==========================================
-    //       FUNGSI HANTAR DATA (ASYNC/AWAIT)
-    // ==========================================
-    
     function sendData(data) {
         return new Promise((resolve, reject) => {
-            // INTEGRITI DATA: Bekukan masa sekarang sebagai 'actual_time'
-            // Ini memastikan masa direkod adalah masa butang ditekan, bukan masa sync
-            if (!data.actual_time) {
-                data.actual_time = new Date().toLocaleString('ms-MY');
+            // INTEGRITI DATA: Bekukan masa sekarang sebagai 'clientTime'
+            // Ini memastikan masa direkod adalah masa butang ditekan
+            if (!data.clientTime) {
+                data.clientTime = new Date().toISOString();
             }
 
             if (!navigator.onLine) {
@@ -546,11 +538,9 @@
 
         isSubmitting = true;
         document.getElementById('btnMainSubmit').disabled = true;
-        // Guna ikon 3D loading
         document.getElementById('btnMainSubmit').innerHTML = '<img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> SEDANG HANTAR...';
 
         try {
-            // Payload dengan clientTime (ISO) untuk rujukan sistem
             const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() };
             
             const result = await sendData(payload);
@@ -661,7 +651,7 @@
         document.getElementById('btnPelawatSubmit').innerText = "SEDANG HANTAR...";
 
         try {
-            const payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng };
+            const payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() };
             
             const result = await sendData(payload);
 
@@ -730,7 +720,6 @@
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
-                // Guna Ikon 3D untuk status GPS
                 let icon = isInZone ? "<img src='https://cdn-icons-png.flaticon.com/128/190/190411.png' class='icon-3d-mini'>" : "<img src='https://cdn-icons-png.flaticon.com/128/190/190406.png' class='icon-3d-mini'>";
                 let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
                 document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
@@ -776,24 +765,49 @@
     }
     
     function loadList() { 
+        // 1. Ambil data offline queue (jika ada)
+        let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
+        let offlineItems = offlineQueue.filter(q => q.action === "MASUK").map(q => ({
+            nama: q.nama,
+            kategori: q.kategori,
+            jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit'}),
+            isOffline: true
+        }));
+
+        // 2. Jika offline, paparkan queue sahaja
         if(!navigator.onLine) {
-            document.getElementById('listContainer').innerHTML = "<div style='padding:20px; color:#e67e22; font-size:12px;'>Senarai tidak tersedia dalam Mod Offline.</div>";
+            renderList(offlineItems);
             return;
         }
+
+        // 3. Jika online, fetch server dan gabungkan
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
-            currentList = res.data || res; 
-            document.getElementById('count').innerText = currentList.length; 
-            let h = ""; 
-            currentList.forEach((i, idx) => { 
-                // Guna ikon 3D untuk butang dalam senarai
-                let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
-                let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
-                h += `<div class="user-card"><div class="user-info"><strong>${i.nama}</strong><div class="user-details"><span>${i.kategori}</span><span class="live-timer" data-masuk="${i.jam||""}">00:00:00</span></div></div><div class="list-actions">${imgBtn}${xBtn}</div></div>`; 
-            }); 
-            document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
-            updateLiveTimers(); 
+            let serverItems = res.data || res; 
+            // Gabungkan: Offline items di atas, Server items di bawah
+            currentList = [...offlineItems, ...serverItems];
+            renderList(currentList);
+        }).catch(() => {
+            // Fallback jika fetch gagal
+            renderList(offlineItems);
+        });
+    }
+
+    function renderList(items) {
+        document.getElementById('count').innerText = items.length; 
+        let h = ""; 
+        items.forEach((i, idx) => { 
+            let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
+            let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
+            
+            // Tanda visual untuk item offline
+            let offlineClass = i.isOffline ? "offline-item" : "";
+            let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
+
+            h += `<div class="user-card ${offlineClass}"><div class="user-info"><strong>${offlineIcon}${i.nama}</strong><div class="user-details"><span>${i.kategori}</span><span class="live-timer" data-masuk="${i.jam||""}">00:00:00</span></div></div><div class="list-actions">${imgBtn}${xBtn}</div></div>`; 
         }); 
+        document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
+        updateLiveTimers();
     }
 
     function viewImage(index) {
