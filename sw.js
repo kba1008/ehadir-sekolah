@@ -1,49 +1,60 @@
-// Version: 22.6.0
-const CACHE_NAME = 'ehadir-pro-v22-6';
-const FILES_TO_CACHE = [
+// sw.js - Versi Ultra-Offline v44
+const CACHE_NAME = 'ehadir-v44';
+const DB_NAME = 'E-Hadir-Offline-DB';
+const STORE_NAME = 'attendance_queue';
+
+// Pastikan SEMUA fail (CSS/JS) didaftarkan di sini supaya app tak 'pecah' masa offline
+const assetsToCache = [
   './',
   './index.html',
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'
+  './logo.ico',
+  // './style.css', // Tambah jika ada
+  // './script.js'  // Tambah jika ada
 ];
 
-// Install Service Worker
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Caching app shell');
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
+// Install: Simpan aset 'seketul' dalam telefon
+self.addEventListener('install', (e) => {
   self.skipWaiting();
-});
-
-// Activate Service Worker & Clean Old Cache
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
-          console.log('[ServiceWorker] Removing old cache', key);
-          return caches.delete(key);
-        }
-      }));
-    })
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(assetsToCache))
   );
-  self.clients.claim();
 });
 
-// Fetch Strategy: Network First, Fallback to Cache
+// Fetch: Strategi Cache-First untuk aset agar laju
 self.addEventListener('fetch', (event) => {
-  // Ignore Google Script calls from caching logic (handled by app logic)
-  if (event.request.url.includes('script.google.com')) {
+  const { request } = event;
+
+  if (request.method === 'POST') {
+    event.respondWith(
+      fetch(request.clone()).catch(async () => {
+        await saveToIndexedDB(request.clone());
+        return new Response(JSON.stringify({ offline: true }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
+    return;
+  }
+
+  // Navigasi sentiasa ke index.html jika offline
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('./index.html'))
+    );
     return;
   }
 
   event.respondWith(
-    fetch(event.request)
-      .catch(() => {
-        return caches.match(event.request);
-      })
+    caches.match(request).then((res) => res || fetch(request))
   );
 });
+
+// Background Sync (Hanya Android/Chrome sokong penuh buat masa ini)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-attendance') {
+    event.waitUntil(sendOfflineData());
+  }
+});
+
+// Kekalkan fungsi openDB dan sendOfflineData anda yang sedia ada
