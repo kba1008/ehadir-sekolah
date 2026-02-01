@@ -1,13 +1,15 @@
-// sw.js - Versi 37 (Advanced Offline Sync)
+// sw.js - Sistem Kehadiran Offline (Data Locking)
 const CACHE_NAME = 'ehadir-cache-v37';
-const QUEUE_NAME = 'offline-attendance-queue';
+const DB_NAME = 'OfflineAttendanceDB';
+const STORE_NAME = 'pending_submissions';
+
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  'https://cdn-icons-png.flaticon.com/512/2910/2910756.png'
 ];
 
-// 1. Install & Cache Files
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -15,98 +17,82 @@ self.addEventListener('install', event => {
   );
 });
 
-// 2. Activate & Clean Old Cache
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => Promise.all(
-      cacheNames.map(cacheName => {
-        if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
-      })
+    caches.keys().then(keys => Promise.all(
+      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
     ))
   );
 });
 
-// 3. Intercept Fetch Requests
 self.addEventListener('fetch', event => {
   const { request } = event;
 
-  // Jika permintaan dihantar ke Google Apps Script (API_URL)
-  if (request.url.includes('script.google.com')) {
+  if (request.method === 'POST' && request.url.includes('script.google.com')) {
     event.respondWith(
       fetch(request.clone()).catch(async () => {
-        // Jika gagal (Offline), simpan data asal ke dalam "Queue"
-        await saveToQueue(request);
-        return new Response(JSON.stringify({ status: 'offline_saved' }), {
+        // LOCK DATA: Simpan data asal (timestamp asal) ke IndexedDB
+        await saveToIndexedDB(request.clone());
+        return new Response(JSON.stringify({ result: 'success', offline: true }), {
           headers: { 'Content-Type': 'application/json' }
         });
       })
     );
   } else {
-    // Untuk fail biasa (HTML/JSON), ambil dari cache jika offline
     event.respondWith(
       fetch(request).catch(() => caches.match(request))
     );
   }
 });
 
-// Fungsi untuk simpan data ke IndexedDB (Kunci Data Asal)
-async function saveToQueue(request) {
-  const body = await request.clone().text();
+async function saveToIndexedDB(request) {
+  const body = await request.text();
   const db = await openDB();
-  const tx = db.transaction(QUEUE_NAME, 'readwrite');
-  const store = tx.objectStore(QUEUE_NAME);
-  
-  // Data disimpan dengan timestamp asal dari HTML
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
   await store.add({
     url: request.url,
-    method: request.method,
     body: body,
-    timeSaved: new Date().toISOString()
+    timestamp: new Date().getTime()
   });
 }
 
-// Fungsi untuk buka IndexedDB
 function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('ECheckDB', 1);
+  return new Promise((resolve) => {
+    const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = () => {
-      request.result.createObjectStore(QUEUE_NAME, { autoIncrement: true });
+      request.result.createObjectStore(STORE_NAME, { autoIncrement: true });
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
   });
 }
 
-// 4. Background Sync: Hantar data bila ada internet
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-attendance') {
-    event.waitUntil(sendQueueToServer());
+    event.waitUntil(processQueue());
   }
 });
 
-// Semakan berkala atau bila internet kembali
-async function sendQueueToServer() {
+async function processQueue() {
   const db = await openDB();
-  const tx = db.transaction(QUEUE_NAME, 'readwrite');
-  const store = tx.objectStore(QUEUE_NAME);
-  const allRequests = await new Promise(r => {
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  const allEntries = await new Promise(r => {
     const req = store.getAll();
     req.onsuccess = () => r(req.result);
   });
 
-  for (const item of allRequests) {
+  for (const entry of allEntries) {
     try {
-      await fetch(item.url, {
-        method: item.method,
-        body: item.body,
+      await fetch(entry.url, {
+        method: 'POST',
+        body: entry.body,
         mode: 'no-cors'
       });
-      // Jika berjaya hantar, padam dari queue
-      const deleteTx = db.transaction(QUEUE_NAME, 'readwrite');
-      const deleteStore = deleteTx.objectStore(QUEUE_NAME);
-      // Nota: Logik ini perlu disesuaikan dengan ID item
-    } catch (err) {
-      console.error('Gagal hantar semula:', err);
+      const deleteTx = db.transaction(STORE_NAME, 'readwrite');
+      deleteTx.objectStore(STORE_NAME).delete(entry.id);
+    } catch (e) {
+      console.log("Masih offline...");
     }
   }
 }
