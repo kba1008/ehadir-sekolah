@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.9 (Stopwatch Mode)</title>
+    <title>Sistem Pelawat & Kehadiran v24.0 (Tech Edition)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwZeAimKGh4EgqZ7BXO6Q3e0eP1YLlGOGspO0XC1TW7C41B47uNnM7k_5TXL046_iA/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw7Djf2Kqz33FowdY0fec9CpM1osYH_fGC5uTQTVT75ZDs1eYCwR-YvbpzfCgc2RyyA/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -29,46 +29,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+        body { font-family: 'Poppins', sans-serif; background: #f4f7f6; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
         .container { background: white; padding: 0; border-radius: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 30px; }
         
-        .header-bg { background: linear-gradient(to right, #141e30, #243b55); padding: 15px 20px 30px 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 25px; position: relative; }
-        .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 11px; color: #cfd8dc; font-weight: 400; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; white-space: nowrap; }
+        .header-bg { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); padding: 15px 20px 30px 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin-bottom: 25px; position: relative; }
+        .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 11px; color: #ecf0f1; font-weight: 500; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 20px; white-space: nowrap; }
         
         .main-title-block { display: flex; flex-direction: column; align-items: center; }
-        .title-small { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #6dd5ed; margin-bottom: 5px; font-weight: 600; }
-        .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; background: -webkit-linear-gradient(#fff, #a8c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin: 2px 0; }
+        .title-small { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #00d2ff; margin-bottom: 5px; font-weight: 600; }
+        .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 2px 0; }
 
         .content-padding { padding: 0 20px; }
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
-        select:focus, input:focus { border-color: #1e3c72; background: #fff; }
-        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #e0e0e0; background: #f9f9f9; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
+        select:focus, input:focus { border-color: #00d2ff; background: #fff; box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1); }
+        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e74c3c; background: #fff5f5; }
 
-        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn { width: 100%; padding: 16px; background: #2c3e50; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn:active { transform: scale(0.98); }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
-        .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); }
-        .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 15px; } 
-        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
+        .btn-keluar { background: linear-gradient(to right, #c0392b, #e74c3c); box-shadow: 0 4px 15px rgba(192, 57, 43, 0.3); }
+        .btn-pelawat { background: linear-gradient(to right, #16a085, #1abc9c); margin-top: 15px; box-shadow: 0 4px 15px rgba(22, 160, 133, 0.3); } 
+        .btn-cancel { background: #95a5a6; margin-top: 10px; }
         
-        #dashboardPanel { display: none; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px;}
-        .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
+        #dashboardPanel { display: none; background: #fff; padding: 25px 20px; border-radius: 20px; border: 1px solid #eee; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .user-welcome { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 10px;}
+        .locked-msg { font-size: 11px; color: #7f8c8d; margin-bottom: 20px; }
         
-        #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
+        #pelawatPanel { display: none; border: 2px dashed #16a085; padding: 15px; border-radius: 15px; background: #e8f8f5; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
         .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; min-height: 70px; }
         .cam-icon { width: 28px; height: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
-        .list-header span { font-weight: 700; color: #1e3c72; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .list-header span { font-weight: 700; color: #2c3e50; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .list-container { text-align: left; margin-top: 5px; max-height: 300px; overflow-y: auto; }
         
-        .user-card { background: #fff; padding: 12px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1e3c72; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .user-card { background: #fff; padding: 12px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #00d2ff; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); transition: transform 0.2s; }
+        .user-card:hover { transform: translateX(2px); }
         .user-card.offline-item { border-left: 4px solid #e67e22; background: #fffcf5; }
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
-        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
         .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
         
         /* STYLE JAM RANDIK */
@@ -107,9 +108,9 @@
         #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
         #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* --- 3D ICONS STYLES --- */
-        .icon-3d-mini { width: 16px; height: 16px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
-        .icon-3d-std { width: 22px; height: 22px; vertical-align: middle; margin-right: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
+        /* --- PROFESSIONAL ICONS STYLES --- */
+        .icon-3d-mini { width: 16px; height: 16px; vertical-align: middle; margin-right: 2px; }
+        .icon-3d-std { width: 20px; height: 20px; vertical-align: middle; margin-right: 5px; }
         .icon-3d-lg { width: 32px; height: 32px; vertical-align: middle; }
         .icon-3d-xl { width: 64px; height: 64px; margin-bottom: 10px; }
         
@@ -124,7 +125,7 @@
         .modal-msg { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5; }
         .modal-btn-row { display: flex; gap: 10px; justify-content: center; }
         .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
-        .btn-ok { background: #1e3c72; color: white; }
+        .btn-ok { background: #2c3e50; color: white; }
         .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
 
         /* Status Bar untuk Offline/Sync */
@@ -158,17 +159,20 @@
         <div class="header-bg">
             <div class="top-bar-row">
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/942/942748.png" class="icon-3d-mini"> 
+                    <!-- Icon Calendar Digital -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/2907/2907150.png" class="icon-3d-mini"> 
                     <span id="dateDisplay">--/--/--</span>
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/2928/2928756.png" class="icon-3d-mini"> 
+                    <!-- Icon Smartwatch -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/3176/3176366.png" class="icon-3d-mini"> 
                     <span id="clockDisplay">--:--</span>
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/7786/7786982.png" class="icon-3d-mini"> 
+                    <!-- Icon Cloud Data -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/2906/2906274.png" class="icon-3d-mini"> 
                     <span id="hijriDisplay">...</span>
                 </span>
             </div>
@@ -182,13 +186,15 @@
 
         <div class="content-padding">
             <div id="statusText">
-                <img src="https://cdn-icons-png.flaticon.com/128/9077/9077975.png" class="icon-3d-mini spin-3d"> 
+                <!-- Icon Satellite -->
+                <img src="https://cdn-icons-png.flaticon.com/128/3284/3284630.png" class="icon-3d-mini spin-3d"> 
                 Mencari GPS...
             </div>
 
             <div id="dashboardPanel">
                 <span class="user-welcome">
-                    <img src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
+                    <!-- Icon Robot Head -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/4712/4712035.png" class="icon-3d-lg"> 
                     Hai, <span id="sessionName">--</span>
                 </span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
@@ -202,19 +208,22 @@
                 <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab..."></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3580/3580154.png" class="icon-3d-std"> DAFTAR KELUAR
+                    <!-- Icon Power Button -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/1828/1828427.png" class="icon-3d-std"> DAFTAR KELUAR
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
                     <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">
-                        <img src="https://cdn-icons-png.flaticon.com/128/3135/3135768.png" class="icon-3d-std"> BANTU DAFTAR PELAWAT
+                        <!-- Icon Face Scan -->
+                        <img src="https://cdn-icons-png.flaticon.com/128/3281/3281289.png" class="icon-3d-std"> BANTU DAFTAR PELAWAT
                     </button>
                 </div>
             </div>
 
             <div id="defaultForm">
                 <div id="loadingConfig">
-                    <img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> Sedang menyemak jadual terkini...
+                    <!-- Icon Loading Chip -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/9357/9357448.png" class="icon-3d-mini spin-3d"> Sedang menyemak jadual terkini...
                 </div>
                 <div id="scheduleInfo"></div>
                 <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
@@ -227,31 +236,36 @@
                 <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
                 <textarea id="alasanMasuk" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
                 <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">
-                    <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> DAFTAR MASUK
+                    <!-- Icon Cloud Upload -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/2891/2891462.png" class="icon-3d-std"> DAFTAR MASUK
                 </button>
             </div>
 
             <div id="pelawatPanel">
-                <h3 style="color:#27ae60; margin:0 0 5px 0; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="icon-3d-lg"> MOD PELAWAT
+                <h3 style="color:#16a085; margin:0 0 5px 0; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    <!-- Icon Face Scan Large -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/3281/3281289.png" class="icon-3d-lg"> MOD PELAWAT
                 </h3>
                 <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
                 
                 <div class="cam-grid">
                     <label class="cam-btn">
-                        <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="cam-icon">
+                        <!-- Icon CCTV/Lens -->
+                        <img src="https://cdn-icons-png.flaticon.com/128/3687/3687412.png" class="cam-icon">
                         BELAKANG
                         <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
                     </label>
                     <label class="cam-btn" style="background:#e67e22;">
-                        <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="cam-icon">
+                        <!-- Icon CCTV/Lens -->
+                        <img src="https://cdn-icons-png.flaticon.com/128/3687/3687412.png" class="cam-icon">
                         DEPAN
                         <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
                     </label>
                     <!-- FIX OPERA: Butang Universal tanpa 'capture' -->
                     <label class="cam-btn" style="background:#7f8c8d; grid-column: span 2;">
-                        <img src="https://cdn-icons-png.flaticon.com/128/1042/1042339.png" class="cam-icon">
+                        <!-- Icon Camera Tech -->
+                        <img src="https://cdn-icons-png.flaticon.com/128/3178/3178179.png" class="cam-icon">
                         KAMERA (OPERA/LAIN)
                         <input type="file" accept="image/*" style="display:none" onchange="processImage(this)">
                     </label>
@@ -260,18 +274,21 @@
                 <img id="previewImg">
                 <input type="hidden" id="base64Foto">
                 <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">
-                    <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> HANTAR DATA
+                    <!-- Icon Cloud Upload -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/2891/2891462.png" class="icon-3d-std"> HANTAR DATA
                 </button>
                 <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
             </div>
 
             <div class="list-header">
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/942/942799.png" class="icon-3d-std"> 
+                    <!-- Icon Server/Database -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/2906/2906206.png" class="icon-3d-std"> 
                     Rekod Hari Ini (<span id="count">0</span>)
                 </span>
                 <button onclick="loadList()" style="border:none; background:none; cursor:pointer;">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3031/3031718.png" class="icon-3d-std">
+                    <!-- Icon Sync -->
+                    <img src="https://cdn-icons-png.flaticon.com/128/10626/10626882.png" class="icon-3d-std">
                 </button>
             </div>
             <div id="listContainer" class="list-container">
@@ -427,7 +444,7 @@
 
     function fetchConfig() {
         if(!navigator.onLine) {
-            document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/189/189792.png' class='icon-3d-mini'> Mod Offline. Menggunakan tetapan asas.";
+            document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/9357/9357448.png' class='icon-3d-mini'> Mod Offline. Menggunakan tetapan asas.";
             return;
         }
         document.getElementById('loadingConfig').style.display = 'block';
@@ -438,7 +455,7 @@
                 document.getElementById('loadingConfig').style.display = 'none';
                 updateScheduleInfo(); triggerAlasanMasuk();
             }
-        }).catch(err => document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/189/189792.png' class='icon-3d-mini'> Ralat sambungan.");
+        }).catch(err => document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/9357/9357448.png' class='icon-3d-mini'> Ralat sambungan.");
     }
 
     function cleanTimeDisplay(val) {
@@ -455,7 +472,8 @@
         if (kat && jamConfig[kat]) {
             let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
             let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
-            infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;"><span><img src="https://cdn-icons-png.flaticon.com/128/190/190411.png" class="icon-3d-mini"> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;"><span><img src="https://cdn-icons-png.flaticon.com/128/190/190406.png" class="icon-3d-mini"> ${keluar}</span></div></div>`;
+            // Icon Login & Logout Tech
+            infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;"><span><img src="https://cdn-icons-png.flaticon.com/128/3580/3580235.png" class="icon-3d-mini" style="transform:rotate(180deg)"> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;"><span><img src="https://cdn-icons-png.flaticon.com/128/3580/3580235.png" class="icon-3d-mini"> ${keluar}</span></div></div>`;
             infoBox.style.display = "block";
         } else {
             infoBox.style.display = "none";
@@ -581,7 +599,7 @@
 
         isSubmitting = true;
         document.getElementById('btnMainSubmit').disabled = true;
-        document.getElementById('btnMainSubmit').innerHTML = '<img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> SEDANG HANTAR...';
+        document.getElementById('btnMainSubmit').innerHTML = '<img src="https://cdn-icons-png.flaticon.com/128/9357/9357448.png" class="icon-3d-mini spin-3d"> SEDANG HANTAR...';
 
         try {
             const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() };
@@ -798,7 +816,8 @@
         document.querySelectorAll('.live-timer').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
             if (!masukStr || masukStr === "undefined") { 
-                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; 
+                // Icon Hourglass
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2906/2906274.png" style="width:12px;height:12px;vertical-align:middle"> --`; 
                 return; 
             }
             
@@ -813,9 +832,9 @@
                 
                 // FORMAT: Jam dan Minit sahaja (HURUF BESAR H & M) + ICON GAMBAR
                 // Guna innerHTML sebab nak masukkan image
-                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> ${h}H ${m}M`;
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2906/2906274.png" style="width:12px;height:12px;vertical-align:middle"> ${h}H ${m}M`;
             } else { 
-                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M`; 
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2906/2906274.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M`; 
             }
         });
     }
@@ -826,7 +845,8 @@
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
-                let icon = isInZone ? "<img src='https://cdn-icons-png.flaticon.com/128/190/190411.png' class='icon-3d-mini'>" : "<img src='https://cdn-icons-png.flaticon.com/128/190/190406.png' class='icon-3d-mini'>";
+                // Icon Satellite Green/Red
+                let icon = isInZone ? "<img src='https://cdn-icons-png.flaticon.com/128/3284/3284630.png' class='icon-3d-mini'>" : "<img src='https://cdn-icons-png.flaticon.com/128/3284/3284630.png' class='icon-3d-mini' style='filter:grayscale(100%)'>";
                 let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
                 document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
@@ -897,21 +917,39 @@
     function renderList(items) {
         document.getElementById('count').innerText = items.length; 
         let h = ""; 
+        
+        // --- SENARAI IKON TEKNOLOGI UNTUK AVATAR RAWAK ---
+        const techIcons = [
+            "https://cdn-icons-png.flaticon.com/128/4712/4712109.png", // Robot
+            "https://cdn-icons-png.flaticon.com/128/3067/3067260.png", // Computer
+            "https://cdn-icons-png.flaticon.com/128/2666/2666505.png", // Chip
+            "https://cdn-icons-png.flaticon.com/128/1067/1067566.png", // Rocket
+            "https://cdn-icons-png.flaticon.com/128/3067/3067252.png"  // Drone
+        ];
+
         items.forEach((i, idx) => { 
-            let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
+            // Icon View Image (Eye/Scan)
+            let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3281/3281289.png" class="icon-3d-mini"></span>` : "";
+            // Icon Delete (Trash/Bin)
             let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
             
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
 
-            // JAM RANDIK: Ditambah ikon IMAGE (bukan emoji) dan format H M
+            // PILIH ICON TECH SECARA RAWAK
+            let randomTech = techIcons[Math.floor(Math.random() * techIcons.length)];
+
             h += `<div class="user-card ${offlineClass}">
                     <div class="user-info">
-                        <strong>${offlineIcon}${i.nama}</strong>
+                        <strong>
+                            ${offlineIcon}
+                            <img src="${randomTech}" class="icon-3d-mini" style="margin-right:5px;"> 
+                            ${i.nama}
+                        </strong>
                         <div class="user-details">
                             <span>${i.kategori}</span>
                             <span class="live-timer" data-masuk="${i.jam||""}">
-                                <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M
+                                <img src="https://cdn-icons-png.flaticon.com/128/2906/2906274.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M
                             </span>
                         </div>
                     </div>
