@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxtLVhMtRtWdd3Lc_RpbAgOpOVufPpeC62Sbw2HVAcy9puR78LVJWit93nMPJ0xRER9/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycby4LfIdFnccNloRiVKd4wNcluofmtXvnfI1zK67Hjx-ZfZd1lhOQq2araOEQyUhZsEm/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -468,7 +468,13 @@
         let now = new Date();
         if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            if (limitMasuk && now > limitMasuk) {
+            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+            
+            // LOGIK BARU: Jika masuk SELEPAS waktu keluar (kerja lebih masa/datang semula), 
+            // JANGAN minta alasan.
+            let isAfterHours = (limitKeluar && now > limitKeluar);
+
+            if (limitMasuk && now > limitMasuk && !isAfterHours) {
                 area.style.display = "block";
                 area.placeholder = `Lewat hadir. Mohon nyatakan sebab...`;
                 return;
@@ -554,7 +560,12 @@
 
         if (jamConfig && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            if (limitMasuk && now > limitMasuk && alasan.trim() === "") {
+            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+            
+            // LOGIK BARU: Jika masuk SELEPAS waktu keluar, abaikan amaran lewat.
+            let isAfterHours = (limitKeluar && now > limitKeluar);
+
+            if (limitMasuk && now > limitMasuk && !isAfterHours && alasan.trim() === "") {
                 document.getElementById('alasanMasuk').style.display = "block";
                 showModernAlert("Lewat Hadir", "Sila isi sebab kelewatan.", "error");
                 return; 
@@ -637,7 +648,12 @@
                     if (result.offline) {
                         alert("?? Mod Offline: Data keluar disimpan. Akan dihantar bila ada internet.");
                     } else {
-                        alert("? Berjaya daftar keluar!");
+                        // Jika ada mesej khas dari server (cth: kata semangat), paparkan
+                        if(result.data && result.data.msg) {
+                            alert("? " + result.data.msg);
+                        } else {
+                            alert("? Berjaya daftar keluar!");
+                        }
                     }
                 }
                 
@@ -755,7 +771,7 @@
         document.querySelectorAll('.live-timer').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
             if (!masukStr || masukStr === "undefined") { 
-                el.innerText = "--"; 
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; 
                 return; 
             }
             
@@ -768,10 +784,11 @@
                 let h = Math.floor(diff / 3600);
                 let m = Math.floor((diff % 3600) / 60);
                 
-                // FORMAT: Jam dan Minit sahaja (contoh: ?? 1j 30m)
-                el.innerText = `?? ${h}j ${m}m`;
+                // FORMAT: Jam dan Minit sahaja (HURUF BESAR H & M) + ICON GAMBAR
+                // Guna innerHTML sebab nak masukkan image
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> ${h}H ${m}M`;
             } else { 
-                el.innerText = "?? 0j 0m"; 
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M`; 
             }
         });
     }
@@ -860,13 +877,15 @@
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
 
-            // JAM RANDIK: Ditambah ikon ?? dan data-masuk
+            // JAM RANDIK: Ditambah ikon IMAGE (bukan emoji) dan format H M
             h += `<div class="user-card ${offlineClass}">
                     <div class="user-info">
                         <strong>${offlineIcon}${i.nama}</strong>
                         <div class="user-details">
                             <span>${i.kategori}</span>
-                            <span class="live-timer" data-masuk="${i.jam||""}">?? 0j 0m</span>
+                            <span class="live-timer" data-masuk="${i.jam||""}">
+                                <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M
+                            </span>
                         </div>
                     </div>
                     <div class="list-actions">${imgBtn}${xBtn}</div>
