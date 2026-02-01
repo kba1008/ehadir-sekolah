@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.3 (Offline Mode Added)</title>
+    <title>Sistem Pelawat & Kehadiran v22.4 (Offline Sync)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -104,10 +104,14 @@
         .btn-ok { background: #1e3c72; color: white; }
         .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
 
+        /* Status Bar untuk Offline/Sync */
+        #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+
     </style>
 </head>
 <body oncontextmenu="return false;"> 
 
+    <div id="syncStatusBar"></div>
     <div id="warningBox">?? SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
     <div id="customModal">
@@ -231,42 +235,66 @@
     </div>
 
 <script>
-    // ==========================================
-    //       MOD OFFLINE (TAMBAHAN BARU)
-    // ==========================================
-    window.addEventListener('online', () => {
-      showStatus("Internet Kembali Pulih. Menghantar data...");
-    });
-
-    window.addEventListener('offline', () => {
-      showStatus("Anda berada dalam MOD OFFLINE. Data akan disimpan dalam telefon.", true);
-    });
-
-    function showStatus(msg, isOffline = false) {
-      const statusDiv = document.getElementById('status-bar') || document.createElement('div');
-      statusDiv.id = 'status-bar';
-      statusDiv.innerText = msg;
-      statusDiv.style.background = isOffline ? '#e74c3c' : '#2ecc71';
-      statusDiv.style.color = 'white';
-      statusDiv.style.padding = '10px';
-      statusDiv.style.textAlign = 'center';
-      statusDiv.style.position = 'fixed';
-      statusDiv.style.top = '0';
-      statusDiv.style.left = '0';
-      statusDiv.style.width = '100%';
-      statusDiv.style.zIndex = '10001'; // Pastikan ia di atas semua elemen
-      document.body.prepend(statusDiv);
-      
-      if(!isOffline) setTimeout(() => statusDiv.remove(), 3000);
-    }
-    // ==========================================
-
     let jamConfig = null; 
     let isInZone = false; 
     let currentDist = 0; 
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
-    let isSubmitting = false; // CIKGU NAIM: Flag penting untuk elak spam
+    let isSubmitting = false; 
+
+    // ==========================================
+    //       LOGIK MOD OFFLINE (DIKEMASKINI)
+    // ==========================================
+    window.addEventListener('online', () => {
+        showSyncBar("Internet Kembali Pulih. Menyegerakkan data...", "#2ecc71");
+        syncOfflineData();
+    });
+
+    window.addEventListener('offline', () => {
+        showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
+    });
+
+    function showSyncBar(msg, color) {
+        const bar = document.getElementById('syncStatusBar');
+        bar.innerText = msg;
+        bar.style.background = color;
+        bar.style.display = 'block';
+        if(color === "#2ecc71") setTimeout(() => { bar.style.display = 'none'; }, 4000);
+    }
+
+    function syncOfflineData() {
+        if (!navigator.onLine) return;
+        
+        // Ambil data dari storage
+        let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
+        
+        if (offlineQueue.length === 0) return; // Tiada data untuk dihantar
+
+        showSyncBar("Menghantar " + offlineQueue.length + " data tertangguh...", "#3498db");
+
+        // Ambil item pertama dalam barisan
+        let itemToSync = offlineQueue[0];
+
+        fetch(API_URL, { method: "POST", body: JSON.stringify(itemToSync) })
+        .then(() => {
+            // Jika berjaya, buang dari senarai
+            offlineQueue.shift(); 
+            localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
+            
+            // Panggil semula fungsi ini untuk item seterusnya (Recursive)
+            if (offlineQueue.length > 0) {
+                syncOfflineData(); 
+            } else {
+                showSyncBar("? Semua data offline telah berjaya dihantar!", "#27ae60");
+                loadList(); // Refresh senarai
+            }
+        })
+        .catch(err => {
+            console.error("Gagal sync:", err);
+            showSyncBar("Ralat sync. Akan cuba sebentar lagi.", "#e67e22");
+        });
+    }
+    // ==========================================
 
     function showModernAlert(title, msg, type, callback) {
         let modal = document.getElementById('customModal');
@@ -284,6 +312,9 @@
         } else if(type === 'success') {
             mIcon.innerText = "?"; mTitle.style.color = "#27ae60";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Terbaik</button>`;
+        } else if(type === 'info') {
+            mIcon.innerText = "??"; mTitle.style.color = "#2980b9";
+            mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">OK</button>`;
         } else if(type === 'confirm') {
             mIcon.innerText = "??"; mTitle.style.color = "#1e3c72";
             window.tempCallback = callback;
@@ -304,6 +335,10 @@
         fetchConfig(); 
         getHijriDate();
         
+        // Cek status internet semasa load
+        if(!navigator.onLine) showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
+        else syncOfflineData(); // Cuba sync jika ada baki data lama
+
         setTimeout(() => {
             checkSession();
             setInterval(updateDashboardInfo, 5000); 
@@ -314,6 +349,10 @@
     };
 
     function fetchConfig() {
+        if(!navigator.onLine) {
+            document.getElementById('loadingConfig').innerHTML = "<i class='fas fa-wifi'></i> Mod Offline. Menggunakan tetapan asas.";
+            return;
+        }
         document.getElementById('loadingConfig').style.display = 'block';
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_CONFIG", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
@@ -374,7 +413,6 @@
             let now = new Date();
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
             
-            // CIKGU NAIM: Elak gelung maut (infinite loop)
             if (!isSubmitting && currentDist > 1000 && limitKeluar && now > limitKeluar) {
                 console.log("Auto Checkout Triggered");
                 hantarKeluar(true); 
@@ -383,10 +421,12 @@
     }
 
     function hantarMasuk() {
-        if(isSubmitting) return; // CIKGU NAIM: Kunci jika sedang proses
+        if(isSubmitting) return; 
 
         if(!isInZone) { showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); return; }
-        if(!jamConfig) { showModernAlert("Sabar", "Sedang memuatkan jadual...", "info"); return; }
+        
+        // Bypass check config jika offline
+        if(!jamConfig && navigator.onLine) { showModernAlert("Sabar", "Sedang memuatkan jadual...", "info"); return; }
 
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
@@ -395,14 +435,13 @@
 
         if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); return; }
         
-        // CIKGU NAIM: Semak Duplicate (Elak Spam Nama Sama)
         let isDuplicate = currentList.some(item => item.nama === nama);
         if(isDuplicate) {
             showModernAlert("Rekod Wujud", "Nama <b>" + nama + "</b> sudah ada dalam senarai hari ini.", "error");
             return;
         }
 
-        if (jamConfig[kat]) {
+        if (jamConfig && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             if (limitMasuk && now > limitMasuk && alasan.trim() === "") {
                 document.getElementById('alasanMasuk').style.display = "block";
@@ -412,13 +451,12 @@
         }
 
         if (document.getElementById('alasanMasuk').style.display === "none") {
-            if (jamConfig[kat]) {
+            if (jamConfig && jamConfig[kat]) {
                 let limitKeluar = parseTime(jamConfig[kat].keluar, now);
                 if (limitKeluar && now > limitKeluar) alasan = "KERJA LEBIH MASA / PROGRAM";
             }
         }
 
-        // Kunci butang
         isSubmitting = true;
         document.getElementById('btnMainSubmit').disabled = true;
         document.getElementById('btnMainSubmit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> SEDANG HANTAR...';
@@ -430,7 +468,7 @@
     }
 
     function hantarKeluar(isAuto = false) {
-        if(isSubmitting) return; // CIKGU NAIM: Penting untuk elak loop auto-checkout
+        if(isSubmitting) return; 
 
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) { if(!isAuto) showModernAlert("Ralat", "Sila reset sistem.", "error"); return; }
@@ -460,7 +498,7 @@
         }
 
         let proceed = () => {
-            isSubmitting = true; // Kunci proses
+            isSubmitting = true; 
             document.getElementById('btnKeluar').disabled = true;
             document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
 
@@ -502,19 +540,40 @@
         sendData({ action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng }, () => location.reload());
     }
 
+    // ==========================================
+    //       FUNGSI SEND DATA (MODIFIED)
+    // ==========================================
     function sendData(p, cb) { 
+        // Cek jika OFFLINE
+        if (!navigator.onLine) {
+            // Simpan dalam LocalStorage
+            let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
+            queue.push(p);
+            localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
+            
+            // Beritahu pengguna
+            showModernAlert("Mod Offline", "Tiada internet. Data disimpan dalam telefon dan akan dihantar automatik bila ada internet.", "info");
+            
+            // Reset butang supaya pengguna boleh teruskan hidup
+            isSubmitting = false;
+            if(cb) cb(); // Jalankan callback seolah-olah berjaya
+            return;
+        }
+
+        // Jika ONLINE, hantar terus
         fetch(API_URL, { method: "POST", body: JSON.stringify(p) })
         .then(() => cb())
         .catch((e) => {
             console.error("Ralat Network:", e);
-            isSubmitting = false; // Buka kunci jika gagal
-            document.getElementById('btnMainSubmit').disabled = false;
-            document.getElementById('btnMainSubmit').innerHTML = '<i class="fas fa-sign-in-alt"></i> DAFTAR MASUK';
-            document.getElementById('btnKeluar').disabled = false;
-            document.getElementById('btnKeluar').innerHTML = '<i class="fas fa-sign-out-alt"></i> DAFTAR KELUAR';
-            document.getElementById('btnPelawatSubmit').disabled = false;
-            document.getElementById('btnPelawatSubmit').innerHTML = '<i class="fas fa-paper-plane"></i> HANTAR DATA';
-            alert("Ralat sambungan internet. Sila cuba lagi.");
+            // Jika fetch gagal (contohnya internet putus tiba-tiba), simpan juga ke offline
+            let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
+            queue.push(p);
+            localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
+            
+            showModernAlert("Ralat Sambungan", "Gagal hantar ke server. Data telah disimpan secara offline.", "info");
+            
+            isSubmitting = false;
+            if(cb) cb();
         }); 
     }
 
@@ -615,6 +674,10 @@
     }
     
     function loadList() { 
+        if(!navigator.onLine) {
+            document.getElementById('listContainer').innerHTML = "<div style='padding:20px; color:#e67e22; font-size:12px;'>Senarai tidak tersedia dalam Mod Offline.</div>";
+            return;
+        }
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             currentList = res.data || res; 
