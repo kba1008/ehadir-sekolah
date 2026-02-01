@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v21.2 (Fix Icon 3D)</title>
+    <title>Sistem Pelawat & Kehadiran v22.0 (Sopan & Canggih)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -98,7 +98,7 @@
 
         select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
         select:focus, input:focus { border-color: #1e3c72; background: #fff; }
-        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e67e22; background: #fffcf5; }
+        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
 
         .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
@@ -177,11 +177,57 @@
         /* CIKGU NAIM ADD: Class untuk Ikon 3D */
         .icon-3d { width: 20px; height: 20px; vertical-align: middle; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
         .icon-3d-lg { width: 28px; height: 28px; vertical-align: middle; }
+
+        /* --- CIKGU NAIM: CUSTOM MODERN MODAL (PENGGANTI ALERT) --- */
+        #customModal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .custom-modal-content {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            animation: popUp 0.3s forwards;
+        }
+        @keyframes popUp { to { transform: scale(1); } }
+        .modal-icon-top { font-size: 50px; margin-bottom: 15px; display: block; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 10px; }
+        .modal-msg { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn-row { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .btn-ok { background: #1e3c72; color: white; }
+        .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
+
     </style>
 </head>
 <body oncontextmenu="return false;"> 
 
-    <div id="warningBox">?? SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+    <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
+
+    <!-- CIKGU NAIM: MODAL CANGGIH -->
+    <div id="customModal">
+        <div class="custom-modal-content">
+            <span id="modalIcon" class="modal-icon-top">🔔</span>
+            <div id="modalTitle" class="modal-title">Tajuk</div>
+            <div id="modalMsg" class="modal-msg">Mesej di sini...</div>
+            <div class="modal-btn-row" id="modalBtnRow">
+                <button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>
+            </div>
+        </div>
+    </div>
 
     <div id="imageModal">
         <span class="close-modal" onclick="closeModal()">&times;</span>
@@ -225,7 +271,8 @@
 
                 <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
                 
-                <textarea id="alasanKeluar" style="display:none;" placeholder="?? ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
+                <!-- CIKGU NAIM: Placeholder lebih sopan -->
+                <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab pulang awal untuk makluman pentadbir..."></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
                     <i class="fas fa-sign-out-alt"></i> DAFTAR KELUAR
@@ -250,12 +297,13 @@
                     <option value="GURU">GURU</option>
                     <option value="AKP">AKP</option>
                     <option value="KEBERSIHAN">KEBERSIHAN</option>
-                    <option value="PELAWAT">?? PELAWAT (AWAM)</option>
+                    <option value="PELAWAT">👤 PELAWAT (AWAM)</option>
                 </select>
 
                 <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
                 
-                <textarea id="alasanMasuk" placeholder="?? ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
+                <!-- CIKGU NAIM: Placeholder lebih sopan -->
+                <textarea id="alasanMasuk" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
 
                 <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">
                     <i class="fas fa-sign-in-alt"></i> DAFTAR MASUK
@@ -303,7 +351,7 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
-            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
+            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem (Admin)</p>
         </div>
     </div>
 
@@ -314,6 +362,53 @@
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let timerInterval = null;
+
+    // --- CIKGU NAIM: FUNGSI MODAL CANGGIH ---
+    function showModernAlert(title, msg, type, callback) {
+        let modal = document.getElementById('customModal');
+        let mTitle = document.getElementById('modalTitle');
+        let mMsg = document.getElementById('modalMsg');
+        let mIcon = document.getElementById('modalIcon');
+        let mBtns = document.getElementById('modalBtnRow');
+
+        mTitle.innerText = title;
+        mMsg.innerHTML = msg; // Boleh guna HTML dalam msg
+        
+        if(type === 'error') {
+            mIcon.innerText = "⚠️";
+            mTitle.style.color = "#c0392b";
+            mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>`;
+        } else if(type === 'success') {
+            mIcon.innerText = "✅";
+            mTitle.style.color = "#27ae60";
+            mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Terbaik</button>`;
+        } else if(type === 'confirm') {
+            mIcon.innerText = "🤔";
+            mTitle.style.color = "#1e3c72";
+            // Kita simpan callback dalam window supaya boleh dipanggil
+            window.tempCallback = callback;
+            mBtns.innerHTML = `
+                <button class="modal-btn btn-cancel-modal" onclick="closeCustomModal()">Batal</button>
+                <button class="modal-btn btn-ok" onclick="confirmAction()">Teruskan</button>
+            `;
+        } else {
+            mIcon.innerText = "🔔";
+            mTitle.style.color = "#2c3e50";
+            mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Tutup</button>`;
+        }
+
+        modal.style.display = "flex";
+    }
+
+    function closeCustomModal() {
+        document.getElementById('customModal').style.display = "none";
+    }
+
+    function confirmAction() {
+        closeCustomModal();
+        if(window.tempCallback) window.tempCallback();
+    }
+    // ----------------------------------------
 
     window.onload = function() {
         startClock();
@@ -407,7 +502,8 @@
             if (limitMasuk) {
                 if (now > limitMasuk) {
                     area.style.display = "block";
-                    area.placeholder = `?? ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
+                    // CIKGU NAIM: Ayat sopan
+                    area.placeholder = `Lewat hadir (Sepatutnya ${displayMasuk}). Mohon nyatakan sebab di sini...`;
                     return;
                 }
             }
@@ -437,25 +533,24 @@
     }
 
     function hantarMasuk() {
-        if(!isInZone) { alert("? ANDA DI LUAR KAWASAN!"); return; }
-        if(!jamConfig) { alert("? Sedang memuatkan jadual waktu... Sila tunggu."); return; }
+        if(!isInZone) { showModernAlert("Luar Kawasan", "Maaf, anda berada di luar kawasan sekolah. Sila masuk ke kawasan sekolah untuk mendaftar.", "error"); return; }
+        if(!jamConfig) { showModernAlert("Sabar Sekejap", "Sedang memuatkan jadual waktu... Sila cuba sebentar lagi.", "info"); return; }
 
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
         let now = new Date();
 
-        if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
+        if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Sila pastikan Nama dan Kategori telah dipilih.", "error"); return; }
         
         if (jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
             
             if (limitMasuk && now > limitMasuk) {
                 if (alasan.trim() === "") {
                     document.getElementById('alasanMasuk').style.display = "block";
-                    document.getElementById('alasanMasuk').placeholder = `?? ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
-                    alert("?? MAAF, ANDA LEWAT!\n\nSila isi alasan di dalam kotak yang disediakan.");
+                    // CIKGU NAIM: Ayat sopan
+                    showModernAlert("Makluman Kelewatan", "Salam sejahtera. Sistem mendapati anda mendaftar lewat sedikit daripada waktu yang ditetapkan.<br><br>Sila isi ruangan sebab untuk rekod pentadbiran.", "error");
                     return; 
                 }
             }
@@ -480,11 +575,11 @@
     function hantarKeluar(isAuto = false) {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) {
-            if(!isAuto) alert("Ralat Sesi: Sila tekan 'Reset Sistem' di bahagian bawah.");
+            if(!isAuto) showModernAlert("Ralat Sesi", "Sila tekan 'Reset Sistem' di bahagian bawah.", "error");
             return;
         }
         if (lastLat === 0 || lastLng === 0) {
-            if(!isAuto) alert("?? GPS sedang dicari... Sila tunggu.");
+            if(!isAuto) showModernAlert("Mencari GPS", "Sila tunggu sebentar, sedang mendapatkan lokasi tepat...", "info");
             return;
         }
 
@@ -498,7 +593,7 @@
             let displayKeluar = cleanTimeDisplay(jamConfig[session.kategori].keluar);
 
             if (!isAuto && currentDist > 1000 && limitKeluar && now < limitKeluar) {
-                alert("Maaf, anda berada jauh dari sekolah. Sila kembali ke kawasan bertugas.");
+                showModernAlert("Jauh Dari Lokasi", "Maaf, anda berada jauh dari sekolah. Sila kembali ke kawasan bertugas untuk daftar keluar.", "error");
                 return; 
             }
 
@@ -506,9 +601,10 @@
                 if (now < limitKeluar) {
                     if (alasanValue === "") {
                         alasanInput.style.display = "block";
-                        alasanInput.placeholder = `?? ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
+                        // CIKGU NAIM: Ayat sopan
+                        alasanInput.placeholder = `Pulang awal (Sepatutnya ${displayKeluar}). Mohon nyatakan sebab...`;
                         alasanInput.focus();
-                        alert("?? MAAF, BELUM WAKTU PULANG!\n\nSila isi sebab pulang awal.");
+                        showModernAlert("Pengesahan Pulang Awal", "Salam sejahtera. Waktu persekolahan belum tamat.<br><br>Mohon nyatakan sebab pulang awal di ruangan yang disediakan.", "error");
                         return; 
                     }
                 }
@@ -517,13 +613,22 @@
         
         if (isAuto) {
             alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
-            alert("?? MAKLUMAN: Sistem mendaftar keluar anda secara automatik (Luar Kawasan & Tamat Waktu).");
+            showModernAlert("Auto Keluar", "Sistem mendaftar keluar anda secara automatik (Luar Kawasan & Tamat Waktu).", "info");
         } else if (alasanValue === "") {
             alasanValue = "PULANG MENGIKUT WAKTU / LEBIH MASA";
         }
 
-        if(!isAuto && !confirm("Daftar Keluar sekarang?")) return;
-        
+        if(!isAuto) {
+            // CIKGU NAIM: Guna Custom Confirm
+            showModernAlert("Pengesahan", "Adakah anda pasti mahu mendaftar keluar sekarang?", "confirm", function() {
+                proceedKeluar(session, alasanValue, isAuto);
+            });
+        } else {
+            proceedKeluar(session, alasanValue, isAuto);
+        }
+    }
+
+    function proceedKeluar(session, alasanValue, isAuto) {
         document.getElementById('btnKeluar').disabled = true;
         document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
 
@@ -536,15 +641,15 @@
             lng: lastLng,     
             clientTime: new Date().toISOString() 
         }, () => {
-            if(!isAuto) alert("? Berjaya Daftar Keluar!");
+            if(!isAuto) alert("✅ Terima kasih. Jumpa lagi!"); // Alert simple last sekali ok
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
     }
 
     function keluarManual(namaUser) {
-        let pass = prompt("?? ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
-        if (pass !== PASSCODE) { alert("? Kata laluan salah! Akses ditolak."); return; }
+        let pass = prompt("⚠️ ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
+        if (pass !== PASSCODE) { showModernAlert("Akses Ditolak", "Kata laluan salah.", "error"); return; }
 
         sendData({ 
             action: "KELUAR", 
@@ -555,7 +660,7 @@
             lng: lastLng, 
             clientTime: new Date().toISOString() 
         }, () => {
-            alert(namaUser + " telah didaftar keluar secara manual.");
+            showModernAlert("Berjaya", namaUser + " telah didaftar keluar secara manual.", "success");
             loadList(); 
         });
     }
@@ -564,8 +669,8 @@
         let foto = document.getElementById('base64Foto').value;
         let namaPelawat = document.getElementById('namaPelawatInput').value.toUpperCase();
         
-        if (!foto) { alert("Sila ambil gambar pelawat dahulu!"); return; }
-        if (!namaPelawat) { alert("Sila isi Nama Pelawat!"); return; }
+        if (!foto) { showModernAlert("Tiada Gambar", "Sila ambil gambar pelawat dahulu!", "error"); return; }
+        if (!namaPelawat) { showModernAlert("Tiada Nama", "Sila isi Nama Pelawat!", "error"); return; }
 
         document.getElementById('btnPelawatSubmit').disabled = true;
         document.getElementById('btnPelawatSubmit').innerText = "SEDANG HANTAR...";
@@ -674,9 +779,13 @@
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
                 
-                // Update Status Text dengan FontAwesome
+                // --- CIKGU NAIM EDIT: PAPARAN JARAK LIVE ---
                 let icon = isInZone ? "<i class='fas fa-check-circle'></i>" : "<i class='fas fa-exclamation-circle'></i>";
-                document.getElementById('statusText').innerHTML = icon + (isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN (" + Math.round(currentDist) + "m)");
+                let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
+                
+                // Kita gabungkan Status + Jarak dalam kurungan
+                document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
+                
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
                 document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
                 
