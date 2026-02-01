@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v20.8 (Fix Alasan Lewat)</title>
+    <title>Sistem Pelawat & Kehadiran v20.9 (Strict Mode)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -140,7 +140,7 @@
         }
         .icon-btn:hover { background: #eee; }
 
-        /* --- INFO JADUAL MINIMALIS (BARU) --- */
+        /* --- INFO JADUAL MINIMALIS --- */
         #scheduleInfo {
             display: none;
             background: transparent;
@@ -379,15 +379,11 @@
         let area = document.getElementById('alasanMasuk');
         let now = new Date();
         
-        // Safety check: Pastikan config wujud untuk kategori ini
         if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
 
             if (limitMasuk) {
-                // MODIFIKASI: Buang buffer 5 minit & buang had limitKeluar.
-                // Jika masa sekarang (now) > waktu masuk (limitMasuk), terus minta alasan.
-                
                 if (now > limitMasuk) {
                     area.style.display = "block";
                     area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
@@ -395,7 +391,6 @@
                 }
             }
         }
-        // Jika on-time atau data tak lengkap, sembunyikan kotak alasan
         area.style.display = "none";
         area.value = ""; 
     }
@@ -431,13 +426,25 @@
 
         if (!nama || !kat) { alert("Sila isi Nama & Kategori!"); return; }
         
-        if (document.getElementById('alasanMasuk').style.display === "block" && alasan.trim() === "") {
-            alert("⚠️ Anda lewat! Sila isi alasan kenapa daftar lewat."); return;
+        // --- LOGIK KETAT UNTUK LEWAT ---
+        if (jamConfig[kat]) {
+            let limitMasuk = parseTime(jamConfig[kat].masuk, now);
+            let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
+            
+            // Jika masa sekarang > masa masuk, WAJIB ada alasan
+            if (limitMasuk && now > limitMasuk) {
+                if (alasan.trim() === "") {
+                    document.getElementById('alasanMasuk').style.display = "block";
+                    document.getElementById('alasanMasuk').placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
+                    alert("⚠️ MAAF, ANDA LEWAT!\n\nSistem mengesan anda lewat masuk. Sila isi alasan di dalam kotak yang disediakan sebelum mendaftar.");
+                    return; // STOP DI SINI
+                }
+            }
         }
+        // -------------------------------
 
-        // Logik Tambahan: Jika kotak alasan tak muncul, tapi sistem nak pastikan status
+        // Logik jika kotak alasan tak muncul tapi sistem nak pastikan status
         if (document.getElementById('alasanMasuk').style.display === "none") {
-            // Pastikan config wujud sebelum akses .keluar
             if (jamConfig[kat]) {
                 let limitKeluar = parseTime(jamConfig[kat].keluar, now);
                 if (limitKeluar && now > limitKeluar) {
@@ -478,18 +485,17 @@
                 return; 
             }
 
+            // --- LOGIK KETAT UNTUK KELUAR AWAL ---
             if (!isAuto && limitKeluar && now < limitKeluar) {
-                if (alasanInput.style.display === "none") {
+                // Jika masa sekarang < masa keluar, WAJIB ada alasan
+                if (alasanValue === "") {
                     alasanInput.style.display = "block";
                     alasanInput.placeholder = `⚠️ ANDA PULANG AWAL (SEPATUTNYA ${displayKeluar}). SILA NYATAKAN SEBAB:`;
-                    alert("⚠️ Sistem mengesan anda pulang awal dari waktu ditetapkan.\n\nSila isi sebab di dalam kotak yang baru muncul, kemudian tekan butang 'DAFTAR KELUAR' sekali lagi.");
-                    return;
-                }
-                if (alasanValue === "") {
-                    alert("⚠️ Sila nyatakan sebab kenapa anda pulang awal.");
-                    return;
+                    alert("⚠️ MAAF, BELUM WAKTU PULANG!\n\nSistem mengesan anda pulang awal. Sila isi sebab di dalam kotak yang baru muncul, kemudian tekan butang 'DAFTAR KELUAR' sekali lagi.");
+                    return; // STOP DI SINI
                 }
             }
+            // -------------------------------------
         }
         
         if (isAuto) {
@@ -560,12 +566,12 @@
     }
 
     function parseTime(t, r) {
-        // Handle kes "BEBAS" atau kosong supaya tak error
         if (!t || t.toString().toUpperCase() === "BEBAS") return null;
         
-        let d = new Date(r);
+        let d = new Date(r); // Gunakan tarikh rujukan (Hari ini)
         let tStr = t.toString();
 
+        // Jika format ISO/Date string penuh
         if (tStr.includes("T") || tStr.includes("1899") || tStr.length > 15) {
              let tempD = new Date(tStr);
              if(!isNaN(tempD.getTime())) {
@@ -574,20 +580,21 @@
              }
         }
 
+        // Jika format 12 jam (7:30 PM)
         let p = tStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]);
             let m = parseInt(p[2]);
-            let s = p[3] ? parseInt(p[3]) : 0; 
             let ampm = p[4].toUpperCase();
 
             if(ampm === "PM" && h < 12) h += 12;
             if(ampm === "AM" && h === 12) h = 0;
             
-            d.setHours(h, m, s, 0); 
+            d.setHours(h, m, 0, 0); 
             return d;
         } 
         
+        // Jika format 24 jam (14:30)
         let p2 = tStr.match(/(\d+):(\d+)/);
         if(p2) {
             let h = parseInt(p2[1]);
