@@ -1,17 +1,16 @@
-<!-- Version: 22.6.0 (Offline Pro Optimized) -->
 <!DOCTYPE html>
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.6 (Offline Pro)</title>
+    <title>Sistem Pelawat & Kehadiran v22.5 (Offline Pro)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyk_VPdH4FFpxe-s3fXRrwLLj7kDA-_g0ZVCnGHEq7an5VbO2X7EEFgIN1_c7k0JoL5/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzKf4MOLwsBsPCcWMLolDwS_wDRn3MPRS2a2S7c0URnK037kILpATM0JeA74ngWL0GT/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -111,7 +110,7 @@
         .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
 
         /* Status Bar untuk Offline/Sync */
-        #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.5s ease; }
+        #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
     </style>
 </head>
@@ -274,6 +273,10 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(reg => {
                 console.log('SW Berjaya:', reg.scope);
+                // Jika browser sokong SyncManager (Android/Chrome)
+                if ('SyncManager' in window) {
+                    reg.sync.register('sync-attendance').catch(err => console.log("Sync bg gagal", err));
+                }
             }).catch(err => console.log('SW Gagal:', err));
         });
     }
@@ -282,6 +285,17 @@
     window.addEventListener('online', () => {
         console.log("Internet dikesan! Memulakan sinkronisasi...");
         showSyncBar("Internet Kembali Pulih. Menyegerakkan data...", "#2ecc71");
+        
+        // Logik SyncManager (Android) atau Fallback (iPhone)
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            navigator.serviceWorker.ready.then(sw => {
+                return sw.sync.register('sync-attendance');
+            });
+        } else {
+            // Fallback untuk iPhone/Safari
+            fetch('/sw.js'); // Trigger SW wake up
+        }
+        
         syncOfflineData();
     });
 

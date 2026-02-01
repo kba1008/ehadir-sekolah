@@ -1,4 +1,4 @@
-// sw.js - Versi Ultra-Offline v44
+// sw.js - Versi Ultra-Offline v44 (Sync Ready)
 const CACHE_NAME = 'ehadir-v44';
 const DB_NAME = 'E-Hadir-Offline-DB';
 const STORE_NAME = 'attendance_queue';
@@ -28,7 +28,8 @@ self.addEventListener('fetch', (event) => {
   if (request.method === 'POST') {
     event.respondWith(
       fetch(request.clone()).catch(async () => {
-        await saveToIndexedDB(request.clone());
+        // Jika POST gagal (offline), kita return JSON offline
+        // Data sebenar disimpan di localStorage client-side (index.html)
         return new Response(JSON.stringify({ offline: true }), {
           headers: { 'Content-Type': 'application/json' }
         });
@@ -53,8 +54,9 @@ self.addEventListener('fetch', (event) => {
 // Background Sync (Hanya Android/Chrome sokong penuh buat masa ini)
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-attendance') {
-    event.waitUntil(sendOfflineData());
+    console.log("Background Sync Triggered!");
+    // Nota: SW tidak boleh akses localStorage. 
+    // Logik sync sebenar diuruskan oleh window.addEventListener('online') di index.html
+    // Event ini hanya untuk 'wake up' browser jika perlu.
   }
 });
-
-// Kekalkan fungsi openDB dan sendOfflineData anda yang sedia ada
