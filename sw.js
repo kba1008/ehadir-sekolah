@@ -7,7 +7,7 @@ const assetsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './logo.png'
+  './logo.ico'
 ];
 
 // 1. Install & Cache
