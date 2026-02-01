@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v21.1 (Fix Kebersihan)</title>
+    <title>Sistem Pelawat & Kehadiran v21.2 (Fix Icon 3D)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -27,6 +27,9 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CIKGU NAIM ADD: FontAwesome untuk Ikon Stabil -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
@@ -59,6 +62,8 @@
             margin-bottom: 20px;
             white-space: nowrap;
         }
+        
+        .top-bar-row i { color: #6dd5ed; margin-right: 3px; }
 
         .main-title-block {
             display: flex;
@@ -80,12 +85,12 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            line-height: 1.1; /* Sedikit rapatkan jarak baris */
+            line-height: 1.1; 
             background: -webkit-linear-gradient(#fff, #a8c0ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            margin: 2px 0; /* Jarak antara dua baris tajuk */
+            margin: 2px 0; 
         }
 
         /* --- CONTENT AREA --- */
@@ -95,7 +100,7 @@
         select:focus, input:focus { border-color: #1e3c72; background: #fff; }
         textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #e67e22; background: #fffcf5; }
 
-        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; }
+        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
         .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); }
@@ -104,17 +109,17 @@
         
         /* Panel Dashboard */
         #dashboardPanel { display: none; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: block;}
+        .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px;}
         .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
         .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; }
-        .cam-icon { font-size: 24px; margin-bottom: 5px; }
+        .cam-icon { width: 32px; height: 32px; margin-bottom: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
-        .list-header span { font-weight: 700; color: #1e3c72; font-size: 14px; }
+        .list-header span { font-weight: 700; color: #1e3c72; font-size: 14px; display: flex; align-items: center; gap: 5px; }
         .list-container { text-align: left; margin-top: 5px; max-height: 300px; overflow-y: auto; }
         
         /* --- CSS LIST --- */
@@ -167,7 +172,11 @@
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); }
         
         #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
-        #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; }
+        #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* CIKGU NAIM ADD: Class untuk Ikon 3D */
+        .icon-3d { width: 20px; height: 20px; vertical-align: middle; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
+        .icon-3d-lg { width: 28px; height: 28px; vertical-align: middle; }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
@@ -183,27 +192,31 @@
         
         <div class="header-bg">
             <div class="top-bar-row">
-                <span id="dateDisplay">--/--/--</span> 
+                <span><i class="far fa-calendar-alt"></i> <span id="dateDisplay">--/--/--</span></span> 
                 <span>|</span> 
-                <span id="clockDisplay">--:--</span> 
+                <span><i class="far fa-clock"></i> <span id="clockDisplay">--:--</span></span> 
                 <span>|</span> 
-                <span id="hijriDisplay">?? ...</span>
+                <span><i class="fas fa-moon"></i> <span id="hijriDisplay">...</span></span>
             </div>
 
             <div class="main-title-block">
                 <div class="title-small">SISTEM PENGURUSAN</div>
-                <!-- UBAH SUAI DI SINI: Dua baris berasingan, saiz sama -->
                 <div class="title-big">E-HADIR</div>
                 <div class="title-big">SK SELAMA (K)</div>
             </div>
         </div>
 
         <div class="content-padding">
-            <div id="statusText">?? Mencari GPS...</div>
+            <!-- Guna FontAwesome untuk GPS -->
+            <div id="statusText"><i class="fas fa-satellite-dish fa-spin"></i> Mencari GPS...</div>
 
             <!-- PANEL DASHBOARD (LOCKED NAME) -->
             <div id="dashboardPanel">
-                <span class="user-welcome">?? Hai, <span id="sessionName">--</span></span>
+                <!-- Guna Ikon 3D Tangan Melambai -->
+                <span class="user-welcome">
+                    <img src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
+                    Hai, <span id="sessionName">--</span>
+                </span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
                 
                 <div id="dashboardSchedule" style="font-size:12px; color:#2c3e50; background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:15px; display:none; border: 1px solid #ffeeba;">
@@ -214,17 +227,21 @@
                 
                 <textarea id="alasanKeluar" style="display:none;" placeholder="?? ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
                 
-                <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">DAFTAR KELUAR</button>
+                <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
+                    <i class="fas fa-sign-out-alt"></i> DAFTAR KELUAR
+                </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">? BANTU DAFTAR PELAWAT</button>
+                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">
+                        <i class="fas fa-user-plus"></i> BANTU DAFTAR PELAWAT
+                    </button>
                 </div>
             </div>
 
             <!-- BORANG DAFTAR MASUK -->
             <div id="defaultForm">
                 
-                <div id="loadingConfig">? Sedang menyemak jadual terkini...</div>
+                <div id="loadingConfig"><i class="fas fa-spinner fa-spin"></i> Sedang menyemak jadual terkini...</div>
 
                 <div id="scheduleInfo"></div>
 
@@ -240,35 +257,47 @@
                 
                 <textarea id="alasanMasuk" placeholder="?? ANDA LEWAT. SILA NYATAKAN SEBAB:"></textarea>
 
-                <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
+                <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">
+                    <i class="fas fa-sign-in-alt"></i> DAFTAR MASUK
+                </button>
             </div>
 
             <!-- PANEL PELAWAT -->
             <div id="pelawatPanel">
-                <h3 style="color:#27ae60; margin:0 0 5px 0;">?? MOD PELAWAT</h3>
+                <h3 style="color:#27ae60; margin:0 0 5px 0; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="icon-3d"> MOD PELAWAT
+                </h3>
                 <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
                 
                 <div class="cam-grid">
                     <label class="cam-btn">
-                        <span class="cam-icon">??</span>BELAKANG
+                        <!-- Ikon Kamera 3D -->
+                        <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="cam-icon">
+                        BELAKANG
                         <input type="file" accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
                     </label>
                     <label class="cam-btn" style="background:#e67e22;">
-                        <span class="cam-icon">??</span>DEPAN
+                        <!-- Ikon Selfie 3D -->
+                        <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="cam-icon">
+                        DEPAN
                         <input type="file" accept="image/*" capture="user" style="display:none" onchange="processImage(this)">
                     </label>
                 </div>
                 <img id="previewImg">
                 <input type="hidden" id="base64Foto">
-                <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">HANTAR DATA</button>
+                <button id="btnPelawatSubmit" class="btn btn-pelawat" onclick="hantarPelawat()">
+                    <i class="fas fa-paper-plane"></i> HANTAR DATA
+                </button>
                 <button class="btn btn-cancel" onclick="cancelPelawat()">BATAL</button>
             </div>
 
             <div class="list-header">
-                <span>?? Rekod Hari Ini (<span id="count">0</span>)</span>
-                <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer; color:#1e3c72;">??</button>
+                <span><i class="fas fa-clipboard-list" style="color:#1e3c72;"></i> Rekod Hari Ini (<span id="count">0</span>)</span>
+                <button onclick="loadList()" style="border:none; background:none; font-size:18px; cursor:pointer; color:#1e3c72;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
             <div id="listContainer" class="list-container">
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
@@ -314,18 +343,17 @@
                 updateScheduleInfo();
                 triggerAlasanMasuk();
             } else {
-                document.getElementById('loadingConfig').innerText = "?? Format jadual salah.";
+                document.getElementById('loadingConfig').innerHTML = "<i class='fas fa-exclamation-triangle'></i> Format jadual salah.";
             }
         })
         .catch(err => {
             console.error("Ralat sambungan:", err);
-            document.getElementById('loadingConfig').innerText = "?? Ralat sambungan jadual.";
+            document.getElementById('loadingConfig').innerHTML = "<i class='fas fa-wifi'></i> Ralat sambungan jadual.";
         });
     }
 
     function cleanTimeDisplay(val) {
         if (!val) return "--:--";
-        // Cuba parse guna Date object dulu
         let d = parseTime(val, new Date());
         if (d) {
             return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
@@ -340,7 +368,7 @@
         if (!jamConfig) {
             if(kat && kat !== "PELAWAT") {
                 infoBox.style.display = "block";
-                infoBox.innerHTML = "<span style='font-size:11px; color:#666;'>? Memuatkan jadual...</span>";
+                infoBox.innerHTML = "<span style='font-size:11px; color:#666;'><i class='fas fa-spinner fa-spin'></i> Memuatkan jadual...</span>";
             } else {
                 infoBox.style.display = "none";
             }
@@ -354,10 +382,10 @@
             infoBox.innerHTML = `
                 <div class="schedule-minimal">
                     <div class="time-pill" style="color:#27ae60; border-color:#d4edda; background:#f0fdf4;">
-                        <span>?? ${masuk}</span>
+                        <span><i class="fas fa-check-circle"></i> ${masuk}</span>
                     </div>
                     <div class="time-pill" style="color:#c0392b; border-color:#fadbd8; background:#fef2f2;">
-                        <span>?? ${keluar}</span>
+                        <span><i class="fas fa-times-circle"></i> ${keluar}</span>
                     </div>
                 </div>
             `;
@@ -474,9 +502,7 @@
                 return; 
             }
 
-            // --- LOGIK PENTING UNTUK KEBERSIHAN/AWAL BALIK ---
             if (!isAuto && limitKeluar) {
-                // Jika masa sekarang KURANG daripada masa keluar
                 if (now < limitKeluar) {
                     if (alasanValue === "") {
                         alasanInput.style.display = "block";
@@ -556,23 +582,19 @@
         }); 
     }
 
-    // --- FUNGSI PARSE TIME YANG DIBAIKI (FIX UNTUK KEBERSIHAN/GOOGLE SHEET) ---
     function parseTime(t, r) {
         if (!t || t.toString().toUpperCase() === "BEBAS") return null;
-        let d = new Date(r); // Ambil tarikh hari ini
+        let d = new Date(r); 
         let tStr = t.toString().trim();
 
-        // 1. Jika format ISO dari Google Sheet (cth: 1899-12-30T17:00:00.000Z)
         if (tStr.includes("T") || tStr.includes("1899")) {
              let tempD = new Date(tStr);
              if(!isNaN(tempD.getTime())) {
-                 // Guna getHours tempatan, bukan UTC, untuk elak salah zon masa
                  d.setHours(tempD.getHours(), tempD.getMinutes(), 0, 0);
                  return d;
              }
         }
 
-        // 2. Jika format manual "5.00 PM" atau "5:00 PM"
         let p = tStr.match(/(\d+)[:.](\d+)(?:[:.](\d+))?\s*(AM|PM)/i);
         if(p) {
             let h = parseInt(p[1]);
@@ -584,7 +606,6 @@
             return d;
         } 
         
-        // 3. Jika format 24 jam "17:00"
         let p2 = tStr.match(/(\d+)[:.](\d+)/);
         if(p2) {
             let h = parseInt(p2[1]);
@@ -653,7 +674,9 @@
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
                 
-                document.getElementById('statusText').innerText = isInZone ? "? DALAM KAWASAN" : "?? LUAR KAWASAN (" + Math.round(currentDist) + "m)";
+                // Update Status Text dengan FontAwesome
+                let icon = isInZone ? "<i class='fas fa-check-circle'></i>" : "<i class='fas fa-exclamation-circle'></i>";
+                document.getElementById('statusText').innerHTML = icon + (isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN (" + Math.round(currentDist) + "m)");
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
                 document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
                 
@@ -698,10 +721,10 @@
             let hYear = parts.find(p => p.type === 'year').value;
             let hYearEra = hYear.split(" ")[0]; 
             let hMonthName = monthNames[hMonthIndex] || "Bulan Islam";
-            document.getElementById('hijriDisplay').innerText = `?? ${hDay} ${hMonthName} ${hYearEra}`;
+            document.getElementById('hijriDisplay').innerText = `${hDay} ${hMonthName} ${hYearEra}`;
         } catch(e) {
             console.error("Hijri Error:", e);
-            document.getElementById('hijriDisplay').innerText = "?? Kalendar Islam";
+            document.getElementById('hijriDisplay').innerText = "Kalendar Islam";
         }
     }
 
@@ -730,9 +753,11 @@
             currentList.forEach((i, idx) => { 
                 let imgBtn = "";
                 if (i.kategori === "PELAWAT" && i.foto) {
-                    imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">???</span>`;
+                    // Guna FontAwesome untuk butang gambar
+                    imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar"><i class="fas fa-image" style="color:#2980b9;"></i></span>`;
                 }
-                let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">?</span>`;
+                // Guna FontAwesome untuk butang padam
+                let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar"><i class="fas fa-times"></i></span>`;
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
                 let masaMasuk = i.jam || ""; 
                 

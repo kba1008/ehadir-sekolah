@@ -1,98 +1,107 @@
-// sw.js - Sistem Kehadiran Offline (Data Locking)
-const CACHE_NAME = 'ehadir-cache-v37';
-const DB_NAME = 'OfflineAttendanceDB';
-const STORE_NAME = 'pending_submissions';
+// sw.js - Sistem E-HADIR Professional (Android & iOS Support)
+const CACHE_NAME = 'ehadir-v38';
+const OFFLINE_DB = 'E-Hadir-DB';
+const STORE_NAME = 'kehadiran_queue';
 
-const urlsToCache = [
+const assetsToCache = [
   './',
   './index.html',
   './manifest.json',
-  'https://cdn-icons-png.flaticon.com/512/2910/2910756.png'
+  'https://cdn-icons-png.flaticon.com/512/9334/9334537.png'
 ];
 
-self.addEventListener('install', event => {
+// 1. Install & Simpan Paparan Asal (Offline Ready)
+self.addEventListener('install', (e) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(assetsToCache))
   );
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+// 2. Aktifkan & Bersihkan Cache Lama
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => Promise.all(
+      keys.map((k) => k !== CACHE_NAME && caches.delete(k))
     ))
   );
 });
 
-self.addEventListener('fetch', event => {
-  const { request } = event;
-
-  if (request.method === 'POST' && request.url.includes('script.google.com')) {
+// 3. Logik Pintar: Offline Paparan & Offline Data Locking
+self.addEventListener('fetch', (event) => {
+  if (event.request.method === 'POST') {
+    // TANGKAP DATA PENGHANTARAN (Offline Mode)
     event.respondWith(
-      fetch(request.clone()).catch(async () => {
-        // LOCK DATA: Simpan data asal (timestamp asal) ke IndexedDB
-        await saveToIndexedDB(request.clone());
-        return new Response(JSON.stringify({ result: 'success', offline: true }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
+      fetch(event.request.clone()).catch(async () => {
+        await saveAttendanceOffline(event.request.clone());
+        return new Response(JSON.stringify({ 
+          result: 'success', 
+          message: 'Data dikunci (Offline Mode)' 
+        }), { headers: { 'Content-Type': 'application/json' } });
       })
     );
   } else {
+    // PAPARAN MUKA HADAPAN (Sentiasa ambil dari cache jika offline)
     event.respondWith(
-      fetch(request).catch(() => caches.match(request))
+      caches.match(event.request).then((res) => res || fetch(event.request))
     );
   }
 });
 
-async function saveToIndexedDB(request) {
+// FUNGSI KUNCI DATA DALAM INDEXEDDB
+async function saveAttendanceOffline(request) {
   const body = await request.text();
-  const db = await openDB();
+  const db = await openDatabase();
   const tx = db.transaction(STORE_NAME, 'readwrite');
   const store = tx.objectStore(STORE_NAME);
+  
+  // Data disimpan bulat-bulat (Masa dari HTML tidak akan berubah)
   await store.add({
     url: request.url,
-    body: body,
-    timestamp: new Date().getTime()
+    payload: body,
+    timeCaptured: new Date().toISOString()
   });
 }
 
-function openDB() {
+function openDatabase() {
   return new Promise((resolve) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = () => {
-      request.result.createObjectStore(STORE_NAME, { autoIncrement: true });
-    };
-    request.onsuccess = () => resolve(request.result);
+    const req = indexedDB.open(OFFLINE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME, { autoIncrement: true });
+    req.onsuccess = () => resolve(req.result);
   });
 }
 
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-attendance') {
-    event.waitUntil(processQueue());
-  }
+// AUTO-SYNC: Hantar data bila internet kembali
+self.addEventListener('sync', (e) => {
+  if (e.tag === 'sync-attendance') e.waitUntil(sendOfflineData());
 });
 
-async function processQueue() {
-  const db = await openDB();
+// Semakan berkala untuk sokongan iPhone (iOS tidak sokong 'sync' event dengan baik)
+setInterval(() => {
+  if (navigator.onLine) sendOfflineData();
+}, 10000);
+
+async function sendOfflineData() {
+  const db = await openDatabase();
   const tx = db.transaction(STORE_NAME, 'readwrite');
   const store = tx.objectStore(STORE_NAME);
-  const allEntries = await new Promise(r => {
+  const data = await new Promise((r) => {
     const req = store.getAll();
     req.onsuccess = () => r(req.result);
   });
 
-  for (const entry of allEntries) {
+  for (const item of data) {
     try {
-      await fetch(entry.url, {
+      await fetch(item.url, {
         method: 'POST',
-        body: entry.body,
+        body: item.payload,
         mode: 'no-cors'
       });
-      const deleteTx = db.transaction(STORE_NAME, 'readwrite');
-      deleteTx.objectStore(STORE_NAME).delete(entry.id);
-    } catch (e) {
-      console.log("Masih offline...");
+      // Padam dari queue jika berjaya
+      const delTx = db.transaction(STORE_NAME, 'readwrite');
+      delTx.objectStore(STORE_NAME).delete(item.id);
+    } catch (err) {
+      console.log("Menunggu internet...");
     }
   }
 }
