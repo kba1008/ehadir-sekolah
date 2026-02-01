@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.0 (Sopan & Canggih)</title>
+    <title>Sistem Pelawat & Kehadiran v22.1 (Anti-Spam Edition)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxstDQA-y6T1lMDWj4ylleCv3ywU-sE17d7K0ZPHTbObiCcfr-b6ZJnXG4PJIsKY4b2/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxgNPs3NEbLEFaUWtM2X1euWirb_xlLW0esDyRsqnYINxmzFajZDvx4kIrp9K0LYqTm/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -362,6 +362,7 @@
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let timerInterval = null;
+    let isSubmitting = false; // CIKGU NAIM: Flag untuk elak double click
 
     // --- CIKGU NAIM: FUNGSI MODAL CANGGIH ---
     function showModernAlert(title, msg, type, callback) {
@@ -372,7 +373,7 @@
         let mBtns = document.getElementById('modalBtnRow');
 
         mTitle.innerText = title;
-        mMsg.innerHTML = msg; // Boleh guna HTML dalam msg
+        mMsg.innerHTML = msg; 
         
         if(type === 'error') {
             mIcon.innerText = "??";
@@ -385,7 +386,6 @@
         } else if(type === 'confirm') {
             mIcon.innerText = "??";
             mTitle.style.color = "#1e3c72";
-            // Kita simpan callback dalam window supaya boleh dipanggil
             window.tempCallback = callback;
             mBtns.innerHTML = `
                 <button class="modal-btn btn-cancel-modal" onclick="closeCustomModal()">Batal</button>
@@ -502,7 +502,6 @@
             if (limitMasuk) {
                 if (now > limitMasuk) {
                     area.style.display = "block";
-                    // CIKGU NAIM: Ayat sopan
                     area.placeholder = `Lewat hadir (Sepatutnya ${displayMasuk}). Mohon nyatakan sebab di sini...`;
                     return;
                 }
@@ -533,6 +532,9 @@
     }
 
     function hantarMasuk() {
+        // CIKGU NAIM: Anti-Spam Check 1 - Flag
+        if(isSubmitting) return; 
+
         if(!isInZone) { showModernAlert("Luar Kawasan", "Maaf, anda berada di luar kawasan sekolah. Sila masuk ke kawasan sekolah untuk mendaftar.", "error"); return; }
         if(!jamConfig) { showModernAlert("Sabar Sekejap", "Sedang memuatkan jadual waktu... Sila cuba sebentar lagi.", "info"); return; }
 
@@ -543,13 +545,18 @@
 
         if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Sila pastikan Nama dan Kategori telah dipilih.", "error"); return; }
         
+        // CIKGU NAIM: Anti-Spam Check 2 - Semak Duplicate dalam List
+        let isDuplicate = currentList.some(item => item.nama === nama);
+        if(isDuplicate) {
+            showModernAlert("Rekod Bertindih", "Nama <b>" + nama + "</b> sudah didaftarkan hari ini.<br>Elakkan menekan butang berkali-kali (Spam).", "error");
+            return;
+        }
+
         if (jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            
             if (limitMasuk && now > limitMasuk) {
                 if (alasan.trim() === "") {
                     document.getElementById('alasanMasuk').style.display = "block";
-                    // CIKGU NAIM: Ayat sopan
                     showModernAlert("Makluman Kelewatan", "Salam sejahtera. Sistem mendapati anda mendaftar lewat sedikit daripada waktu yang ditetapkan.<br><br>Sila isi ruangan sebab untuk rekod pentadbiran.", "error");
                     return; 
                 }
@@ -565,7 +572,11 @@
             }
         }
 
+        // CIKGU NAIM: Kunci butang
+        isSubmitting = true;
         document.getElementById('btnMainSubmit').disabled = true;
+        document.getElementById('btnMainSubmit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> SEDANG HANTAR...';
+
         sendData({ action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() }, () => {
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
             location.reload();
@@ -573,6 +584,8 @@
     }
 
     function hantarKeluar(isAuto = false) {
+        if(isSubmitting) return;
+
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) {
             if(!isAuto) showModernAlert("Ralat Sesi", "Sila tekan 'Reset Sistem' di bahagian bawah.", "error");
@@ -601,7 +614,6 @@
                 if (now < limitKeluar) {
                     if (alasanValue === "") {
                         alasanInput.style.display = "block";
-                        // CIKGU NAIM: Ayat sopan
                         alasanInput.placeholder = `Pulang awal (Sepatutnya ${displayKeluar}). Mohon nyatakan sebab...`;
                         alasanInput.focus();
                         showModernAlert("Pengesahan Pulang Awal", "Salam sejahtera. Waktu persekolahan belum tamat.<br><br>Mohon nyatakan sebab pulang awal di ruangan yang disediakan.", "error");
@@ -619,7 +631,6 @@
         }
 
         if(!isAuto) {
-            // CIKGU NAIM: Guna Custom Confirm
             showModernAlert("Pengesahan", "Adakah anda pasti mahu mendaftar keluar sekarang?", "confirm", function() {
                 proceedKeluar(session, alasanValue, isAuto);
             });
@@ -629,6 +640,7 @@
     }
 
     function proceedKeluar(session, alasanValue, isAuto) {
+        isSubmitting = true;
         document.getElementById('btnKeluar').disabled = true;
         document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
 
@@ -641,7 +653,7 @@
             lng: lastLng,     
             clientTime: new Date().toISOString() 
         }, () => {
-            if(!isAuto) alert("? Terima kasih. Jumpa lagi!"); // Alert simple last sekali ok
+            if(!isAuto) alert("? Terima kasih. Jumpa lagi!"); 
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
@@ -666,12 +678,15 @@
     }
 
     function hantarPelawat() {
+        if(isSubmitting) return;
+
         let foto = document.getElementById('base64Foto').value;
         let namaPelawat = document.getElementById('namaPelawatInput').value.toUpperCase();
         
         if (!foto) { showModernAlert("Tiada Gambar", "Sila ambil gambar pelawat dahulu!", "error"); return; }
         if (!namaPelawat) { showModernAlert("Tiada Nama", "Sila isi Nama Pelawat!", "error"); return; }
 
+        isSubmitting = true;
         document.getElementById('btnPelawatSubmit').disabled = true;
         document.getElementById('btnPelawatSubmit').innerText = "SEDANG HANTAR...";
 
@@ -683,6 +698,9 @@
         .then(() => cb())
         .catch((e) => {
             console.error("Ralat Network:", e);
+            isSubmitting = false; // Buka balik jika ralat
+            document.getElementById('btnMainSubmit').disabled = false;
+            document.getElementById('btnMainSubmit').innerHTML = '<i class="fas fa-sign-in-alt"></i> DAFTAR MASUK';
             cb();
         }); 
     }
@@ -779,13 +797,10 @@
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
                 
-                // --- CIKGU NAIM EDIT: PAPARAN JARAK LIVE ---
                 let icon = isInZone ? "<i class='fas fa-check-circle'></i>" : "<i class='fas fa-exclamation-circle'></i>";
                 let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
                 
-                // Kita gabungkan Status + Jarak dalam kurungan
                 document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
-                
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
                 document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
                 
@@ -862,10 +877,8 @@
             currentList.forEach((i, idx) => { 
                 let imgBtn = "";
                 if (i.kategori === "PELAWAT" && i.foto) {
-                    // Guna FontAwesome untuk butang gambar
                     imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar"><i class="fas fa-image" style="color:#2980b9;"></i></span>`;
                 }
-                // Guna FontAwesome untuk butang padam
                 let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar"><i class="fas fa-times"></i></span>`;
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
                 let masaMasuk = i.jam || ""; 
