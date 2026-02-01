@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v20.6 (Smart Auto-Logic)</title>
+    <title>Sistem Pelawat & Kehadiran v20.7 (Fix Jadual Kebersihan)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -287,7 +287,7 @@
 <script>
     let jamConfig = null; 
     let isInZone = false; 
-    let currentDist = 0; // Pembolehubah baru untuk simpan jarak
+    let currentDist = 0; 
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let timerInterval = null;
@@ -300,7 +300,6 @@
         
         setTimeout(() => {
             checkSession();
-            // Interval ini semak info dashboard DAN logik auto-checkout
             setInterval(updateDashboardInfo, 5000); 
         }, 2000);
 
@@ -380,24 +379,31 @@
         let area = document.getElementById('alasanMasuk');
         let now = new Date();
         
+        // Safety check: Pastikan config wujud untuk kategori ini
         if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
 
             if (limitMasuk && limitKeluar) {
-                if (now > limitMasuk && now < limitKeluar) {
+                // Tambah BUFFER (Masa Bertenang) 5 minit supaya tak terlalu ketat
+                // Ini membantu jika jadual Kebersihan sedikit berbeza
+                let bufferMinit = 5 * 60 * 1000; 
+                let waktuLewat = new Date(limitMasuk.getTime() + bufferMinit);
+
+                // Logik: Jika sekarang LEBIH dari (Waktu Masuk + 5 minit) DAN KURANG dari Waktu Keluar
+                if (now > waktuLewat && now < limitKeluar) {
                     area.style.display = "block";
                     area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
                     return;
                 }
             }
         }
+        // Jika on-time atau data tak lengkap, sembunyikan kotak alasan
         area.style.display = "none";
         area.value = ""; 
     }
 
-    // --- FUNGSI KEMASKINI INFO DASHBOARD & AUTO CHECKOUT LOGIC ---
     function updateDashboardInfo() {
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let dashboardSchedule = document.getElementById('dashboardSchedule');
@@ -408,14 +414,12 @@
             dashboardSchedule.style.display = "block";
             userExitTime.innerText = displayKeluar;
 
-            // === LOGIK AUTO CHECKOUT JIKA LUPA & DAH SAMPAI RUMAH ===
             let now = new Date();
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
             
-            // Syarat: Jarak > 1KM, Masa > Waktu Keluar, Masih ada sesi
             if (currentDist > 1000 && limitKeluar && now > limitKeluar) {
                 console.log("Auto Checkout Triggered: Jauh & Lewat Waktu");
-                hantarKeluar(true); // TRUE bermaksud Auto Checkout
+                hantarKeluar(true); 
             }
         }
     }
@@ -435,10 +439,14 @@
             alert("⚠️ Anda lewat! Sila isi alasan kenapa daftar lewat."); return;
         }
 
+        // Logik Tambahan: Jika kotak alasan tak muncul, tapi sistem nak pastikan status
         if (document.getElementById('alasanMasuk').style.display === "none") {
-            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-            if (limitKeluar && now > limitKeluar) {
-                alasan = "KERJA LEBIH MASA / PROGRAM SEKOLAH";
+            // Pastikan config wujud sebelum akses .keluar
+            if (jamConfig[kat]) {
+                let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+                if (limitKeluar && now > limitKeluar) {
+                    alasan = "KERJA LEBIH MASA / PROGRAM SEKOLAH";
+                }
             }
         }
 
@@ -449,7 +457,6 @@
         });
     }
 
-    // --- FUNGSI KELUAR (MANUAL & AUTO) ---
     function hantarKeluar(isAuto = false) {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) {
@@ -470,13 +477,11 @@
             limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
             let displayKeluar = cleanTimeDisplay(jamConfig[session.kategori].keluar);
 
-            // LOGIK 1: JIKA MANUAL, AWAL, DAN JAUH DARI KAWASAN (>1KM)
             if (!isAuto && currentDist > 1000 && limitKeluar && now < limitKeluar) {
                 alert("Maaf ya, sistem mengesan awak berada jauh dari kawasan sekolah (lebih 1km). Sila kembali ke kawasan bertugas jika belum tamat waktu, atau tunggu sehingga waktu pulang.");
-                return; // Sekat keluar
+                return; 
             }
 
-            // LOGIK 2: JIKA MANUAL, AWAL, TAPI DALAM KAWASAN (Minta Alasan)
             if (!isAuto && limitKeluar && now < limitKeluar) {
                 if (alasanInput.style.display === "none") {
                     alasanInput.style.display = "block";
@@ -491,7 +496,6 @@
             }
         }
         
-        // Tetapan Alasan
         if (isAuto) {
             alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
             alert("⚠️ MAKLUMAN: Sistem mengesan anda sudah pulang (jauh dari sekolah) dan waktu kerja telah tamat. Sistem akan mendaftar keluar anda secara automatik sekarang.");
@@ -560,7 +564,9 @@
     }
 
     function parseTime(t, r) {
-        if (!t || t === "BEBAS") return null;
+        // Handle kes "BEBAS" atau kosong supaya tak error
+        if (!t || t.toString().toUpperCase() === "BEBAS") return null;
+        
         let d = new Date(r);
         let tStr = t.toString();
 
@@ -656,14 +662,12 @@
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(pos => {
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
-                currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); // Simpan jarak dalam variable global
+                currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
                 
                 document.getElementById('statusText').innerText = isInZone ? "✅ DALAM KAWASAN" : "🚫 LUAR KAWASAN (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "green" : "red";
                 
-                // Warning box hanya muncul jika di luar kawasan DAN belum login (borang default)
-                // Jika dah login, kita guna soft notification bila tekan butang
                 let session = JSON.parse(localStorage.getItem('ehadir_session'));
                 if(!session) {
                     document.getElementById('warningBox').style.display = isInZone ? "none" : "block";
