@@ -1,12 +1,12 @@
 {
-  "name": "E-HADIR",
+  "name": "E-HADIR TECH",
   "short_name": "E-HADIR",
   "id": "/ehadir-app/", 
   "description": "Sistem Kehadiran Digital SK Selama (K)",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1e3c72",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "orientation": "portrait",
   "icons": [
     {
