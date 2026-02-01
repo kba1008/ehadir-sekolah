@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.7 (Opera Fix)</title>
+    <title>Sistem Pelawat & Kehadiran v22.9 (Stopwatch Mode)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbw0F2fbQtWsy1kgLrdl-1S1Qi5S3F1wN677-fD7zht_jonG1ZhP4fvMGLxzWQA8X2TF/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxtLVhMtRtWdd3Lc_RpbAgOpOVufPpeC62Sbw2HVAcy9puR78LVJWit93nMPJ0xRER9/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -70,7 +70,24 @@
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
         .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
-        .live-timer { color: #e67e22; font-weight: 600; font-family: 'Courier New', Courier, monospace; background: #fffcf5; padding: 2px 6px; border-radius: 4px; border: 1px solid #fae5d3; min-width: 70px; text-align: center; display: inline-block; font-size: 11px; }
+        
+        /* STYLE JAM RANDIK */
+        .live-timer { 
+            color: #d35400; 
+            font-weight: 700; 
+            font-family: 'Courier New', Courier, monospace; 
+            background: #fff5e6; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            border: 1px solid #fae5d3; 
+            min-width: 70px; 
+            text-align: center; 
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px; 
+        }
+
         .list-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
         .icon-btn { cursor: pointer; font-size: 14px; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #eee; transition: background 0.2s; }
         .icon-btn:hover { background: #e2e6ea; }
@@ -327,7 +344,6 @@
         let itemToSync = offlineQueue[0];
 
         // FIX CHROME OFFLINE: Pastikan kategori wujud. Jika undefined, set ke PELAWAT.
-        // Ini mengelakkan Google Sheet mencipta sheet baru bernama "undefined" atau error.
         if (!itemToSync.kategori || itemToSync.kategori === "undefined" || itemToSync.kategori === null) {
             console.warn("Data kategori rosak dikesan, set default ke PELAWAT.");
             itemToSync.kategori = "PELAWAT";
@@ -405,6 +421,7 @@
         }, 2000);
 
         loadList();
+        // JAM RANDIK: Update setiap 1 saat (walaupun paparan minit, supaya responsif)
         setInterval(updateLiveTimers, 1000);
     };
 
@@ -701,31 +718,61 @@
         return null; 
     }
 
+    // FUNGSI BARU: Parse masa dari string (contoh: "8:00:00 AM") ke Date hari ini
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
+        
+        // Jika format ISO/Date string
         if (timeStr.toString().length > 15) {
              let tempD = new Date(timeStr);
-             if(!isNaN(tempD.getTime())) { let now = new Date(); now.setHours(tempD.getHours(), tempD.getMinutes(), tempD.getSeconds(), 0); return now; }
+             if(!isNaN(tempD.getTime())) { 
+                 let now = new Date(); 
+                 now.setHours(tempD.getHours(), tempD.getMinutes(), tempD.getSeconds(), 0); 
+                 return now; 
+             }
         }
+        
+        // Regex untuk format "HH:MM:SS AM/PM"
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
-        let h = parseInt(parts[1]), m = parseInt(parts[2]), s = parts[3] ? parseInt(parts[3]) : 0, ampm = parts[4] ? parts[4].toUpperCase() : null;
-        if (ampm === "PM" && h < 12) h += 12; if (ampm === "AM" && h === 12) h = 0;
-        let d = new Date(); d.setHours(h, m, s, 0); return d;
+        
+        let h = parseInt(parts[1]);
+        let m = parseInt(parts[2]);
+        let s = parts[3] ? parseInt(parts[3]) : 0;
+        let ampm = parts[4] ? parts[4].toUpperCase() : null;
+        
+        if (ampm === "PM" && h < 12) h += 12; 
+        if (ampm === "AM" && h === 12) h = 0;
+        
+        let d = new Date(); 
+        d.setHours(h, m, s, 0); 
+        return d;
     }
 
+    // FUNGSI BARU: JAM RANDIK (Jam & Minit Sahaja)
     function updateLiveTimers() {
         let now = new Date();
         document.querySelectorAll('.live-timer').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
-            if (!masukStr || masukStr === "undefined") { el.innerText = "--:--:--"; return; }
+            if (!masukStr || masukStr === "undefined") { 
+                el.innerText = "--"; 
+                return; 
+            }
+            
             let masukDate = parseTimeLocal(masukStr);
+            
             if (masukDate) {
-                let diff = Math.floor((now - masukDate) / 1000);
+                let diff = Math.floor((now - masukDate) / 1000); // Beza dalam saat
                 if (diff < 0) diff = 0;
-                let h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-                el.innerText = `${h<10?"0"+h:h}:${m<10?"0"+m:m}:${s<10?"0"+s:s}`;
-            } else { el.innerText = "00:00:00"; }
+                
+                let h = Math.floor(diff / 3600);
+                let m = Math.floor((diff % 3600) / 60);
+                
+                // FORMAT: Jam dan Minit sahaja (contoh: ?? 1j 30m)
+                el.innerText = `?? ${h}j ${m}m`;
+            } else { 
+                el.innerText = "?? 0j 0m"; 
+            }
         });
     }
 
@@ -784,7 +831,7 @@
         let offlineItems = offlineQueue.filter(q => q.action === "MASUK").map(q => ({
             nama: q.nama,
             kategori: q.kategori,
-            jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit'}),
+            jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'}),
             isOffline: true
         }));
 
@@ -813,10 +860,20 @@
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
 
-            h += `<div class="user-card ${offlineClass}"><div class="user-info"><strong>${offlineIcon}${i.nama}</strong><div class="user-details"><span>${i.kategori}</span><span class="live-timer" data-masuk="${i.jam||""}">00:00:00</span></div></div><div class="list-actions">${imgBtn}${xBtn}</div></div>`; 
+            // JAM RANDIK: Ditambah ikon ?? dan data-masuk
+            h += `<div class="user-card ${offlineClass}">
+                    <div class="user-info">
+                        <strong>${offlineIcon}${i.nama}</strong>
+                        <div class="user-details">
+                            <span>${i.kategori}</span>
+                            <span class="live-timer" data-masuk="${i.jam||""}">?? 0j 0m</span>
+                        </div>
+                    </div>
+                    <div class="list-actions">${imgBtn}${xBtn}</div>
+                  </div>`; 
         }); 
         document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
-        updateLiveTimers();
+        updateLiveTimers(); // Jalankan sekali selepas render
     }
 
     function viewImage(index) {
