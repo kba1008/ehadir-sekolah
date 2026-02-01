@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyl8K_Q8LZvu_YL75mx4Qby9V3wrVmTpta64t3Bit3_MOdGHNqX3xwkvQmkUCDZNnq1/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxug9L4-I-cJtqwKLkZ_f7PBG67EQrVYLVSU88M4KholkQVY6EchuIQFpAcf1mq1dAo/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -318,12 +318,19 @@
 
         let itemToSync = offlineQueue[0];
 
-        // PEMBAIKAN UTAMA: Parse JSON response untuk pastikan server terima
+        // PEMBAIKAN UTAMA: Pastikan payload bersih dan kategori wujud
+        if (!itemToSync.kategori) {
+            console.error("Data rosak dikesan dalam queue, membuang...", itemToSync);
+            offlineQueue.shift();
+            localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
+            syncOfflineData();
+            return;
+        }
+
         fetch(API_URL, { method: "POST", body: JSON.stringify(itemToSync) })
         .then(response => response.json())
         .then(res => {
             if (res.result === "success") {
-                // HANYA PADAM JIKA SERVER KATA SUCCESS
                 offlineQueue.shift(); 
                 localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
                 
@@ -334,7 +341,6 @@
                     loadList(); 
                 }
             } else {
-                // JIKA SERVER REJECT, JANGAN PADAM & BERITAHU USER
                 console.error("Server Reject:", res.msg);
                 showSyncBar("Ralat Server: " + res.msg, "#c0392b");
             }
@@ -470,8 +476,6 @@
 
     function sendData(data) {
         return new Promise((resolve, reject) => {
-            // INTEGRITI DATA: Bekukan masa sekarang sebagai 'clientTime'
-            // Ini memastikan masa direkod adalah masa butang ditekan
             if (!data.clientTime) {
                 data.clientTime = new Date().toISOString();
             }
@@ -514,7 +518,6 @@
 
         if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); return; }
         
-        // Pastikan kategori bersih dari whitespace
         kat = kat.trim();
 
         let isDuplicate = currentList.some(item => item.nama === nama);
@@ -768,7 +771,6 @@
     }
     
     function loadList() { 
-        // 1. Ambil data offline queue (jika ada)
         let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         let offlineItems = offlineQueue.filter(q => q.action === "MASUK").map(q => ({
             nama: q.nama,
@@ -777,21 +779,17 @@
             isOffline: true
         }));
 
-        // 2. Jika offline, paparkan queue sahaja
         if(!navigator.onLine) {
             renderList(offlineItems);
             return;
         }
 
-        // 3. Jika online, fetch server dan gabungkan
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             let serverItems = res.data || res; 
-            // Gabungkan: Offline items di atas, Server items di bawah
             currentList = [...offlineItems, ...serverItems];
             renderList(currentList);
         }).catch(() => {
-            // Fallback jika fetch gagal
             renderList(offlineItems);
         });
     }
@@ -803,7 +801,6 @@
             let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
             let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
             
-            // Tanda visual untuk item offline
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
 
