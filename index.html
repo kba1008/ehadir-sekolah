@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v20.7 (Fix Jadual Kebersihan)</title>
+    <title>Sistem Pelawat & Kehadiran v20.8 (Fix Alasan Lewat)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -382,17 +382,13 @@
         // Safety check: Pastikan config wujud untuk kategori ini
         if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
             let displayMasuk = cleanTimeDisplay(jamConfig[kat].masuk);
 
-            if (limitMasuk && limitKeluar) {
-                // Tambah BUFFER (Masa Bertenang) 5 minit supaya tak terlalu ketat
-                // Ini membantu jika jadual Kebersihan sedikit berbeza
-                let bufferMinit = 5 * 60 * 1000; 
-                let waktuLewat = new Date(limitMasuk.getTime() + bufferMinit);
-
-                // Logik: Jika sekarang LEBIH dari (Waktu Masuk + 5 minit) DAN KURANG dari Waktu Keluar
-                if (now > waktuLewat && now < limitKeluar) {
+            if (limitMasuk) {
+                // MODIFIKASI: Buang buffer 5 minit & buang had limitKeluar.
+                // Jika masa sekarang (now) > waktu masuk (limitMasuk), terus minta alasan.
+                
+                if (now > limitMasuk) {
                     area.style.display = "block";
                     area.placeholder = `⚠️ ANDA LEWAT (SEPATUTNYA ${displayMasuk}). SILA NYATAKAN SEBAB:`;
                     return;
