@@ -16,11 +16,11 @@
         const PASSCODE = "101010";
         
         // 3. Koordinat Lokasi (Ambil dari Google Maps)
-        const SCHOOL_LAT = 5.235730449307917; //5.227871162196797; 
-        const SCHOOL_LNG = 100.6833940703414; //100.69909685394398;  
+        const SCHOOL_LAT = 5.227932478937475; 
+        const SCHOOL_LNG = 100.69901604319402; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 200; 
+        const RADIUS_METER = 1000; 
     </script>
     <!-- ====================================================================== -->
 
@@ -278,7 +278,6 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
-            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
         </div>
     </div>
 
@@ -907,7 +906,4 @@
     function resetSesi(){ if(confirm("Reset sesi?")){localStorage.removeItem('ehadir_session');location.reload();} }
 </script>
 </body>
-
 </html>
-
-
