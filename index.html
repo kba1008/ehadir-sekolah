@@ -20,7 +20,7 @@
         const SCHOOL_LNG = 100.6834597944874; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 1000; 
+        const RADIUS_METER = 10000; 
     </script>
     <!-- ====================================================================== -->
 
@@ -33,51 +33,68 @@
         .container { background: white; padding: 0; border-radius: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 30px; }
         
         .header-bg { background: linear-gradient(to right, #141e30, #243b55); padding: 15px 20px 30px 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 25px; position: relative; }
-        .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 11px; color: #cfd8dc; font-weight: 400; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; white-space: nowrap; }
+        .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 13px; color: #cfd8dc; font-weight: 500; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; white-space: nowrap; }
         
         .main-title-block { display: flex; flex-direction: column; align-items: center; }
         .title-small { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #6dd5ed; margin-bottom: 5px; font-weight: 600; }
-        .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; background: -webkit-linear-gradient(#fff, #a8c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin: 2px 0; }
+        .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; background: -webkit-linear-gradient(#fff, #a8c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px rgba(109, 213, 237, 0.5); margin: 2px 0; }
 
         .content-padding { padding: 0 20px; }
-        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
-        select:focus, input:focus { border-color: #1e3c72; background: #fff; }
-        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
+        /* BIGGER INPUTS */
+        select, input, textarea { width: 100%; padding: 18px; margin-bottom: 15px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 16px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
+        select:focus, input:focus { border-color: #1e3c72; background: #fff; box-shadow: 0 0 10px rgba(30, 60, 114, 0.2); }
+        textarea { resize: vertical; min-height: 100px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
 
-        /* === NEW CSS FOR NAME LOCK === */
-        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 12px; }
-        .input-group input { margin-bottom: 0; padding-right: 50px; }
-        .lock-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 5px; border-radius: 50%; transition: 0.2s; }
+        /* === NEW CSS FOR NAME LOCK & AVATAR === */
+        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 15px; }
+        /* Ruang padding lebih besar untuk muat 2 butang */
+        .input-group input { margin-bottom: 0; padding-right: 105px; }
+        
+        .lock-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 8px; border-radius: 50%; transition: 0.2s; }
         .lock-btn:hover { background: rgba(0,0,0,0.05); }
         .lock-btn:active { transform: translateY(-50%) scale(0.9); }
+
+        /* Style Butang Avatar */
+        .avatar-btn { position: absolute; right: 55px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 5px; border-radius: 50%; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .avatar-btn:hover { transform: translateY(-50%) scale(1.1); }
+        .avatar-btn img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e1e4e8; background: #fff; }
+
+        /* Modal Avatar Grid */
+        #avatarModal { display: none; position: fixed; z-index: 10002; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); align-items: center; justify-content: center; animation: fadeIn 0.3s; }
+        .avatar-modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #fff; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; justify-items: center; }
+        .avatar-option { width: 50px; height: 50px; cursor: pointer; transition: transform 0.2s; border-radius: 50%; border: 3px solid transparent; background: #f8f9fa; padding: 2px; }
+        .avatar-option:hover { transform: scale(1.15); border-color: #27ae60; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); background: #fff; }
         /* ============================== */
 
-        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
-        .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); }
-        .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 15px; } 
-        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
+        /* === LED BUTTONS STYLE (BIG & GLOWING) === */
+        .btn { width: 100%; padding: 22px; background: #1e3c72; color: white; border: 2px solid rgba(255,255,255,0.2); border-radius: 15px; font-size: 18px; font-weight: 800; cursor: pointer; margin-top: 10px; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); transition: 0.2s; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; text-transform: uppercase; }
+        .btn:active { transform: scale(0.96); box-shadow: 0 0 5px rgba(0, 210, 255, 0.8); }
+        .btn:disabled { background: #555; cursor: not-allowed; box-shadow: none; opacity: 0.6; border: none; }
+        
+        .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); border-color: #ff8b8b; box-shadow: 0 0 25px rgba(239, 71, 58, 0.5); }
+        .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 20px; border-color: #a2fec0; box-shadow: 0 0 25px rgba(56, 239, 125, 0.5); } 
+        .btn-cancel { background: #555; border-color: #999; box-shadow: 0 0 10px rgba(255,255,255,0.2); margin-top: 15px; }
         
         #dashboardPanel { display: none; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px;}
-        .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
+        .user-welcome { font-size: 20px; font-weight: 700; color: #1e3c72; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 10px;}
+        .locked-msg { font-size: 12px; color: #95a5a6; margin-bottom: 15px; }
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; min-height: 70px; }
-        .cam-icon { width: 28px; height: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; min-height: 80px; }
+        .cam-icon { width: 32px; height: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
-        .list-header span { font-weight: 700; color: #1e3c72; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .list-header span { font-weight: 700; color: #1e3c72; font-size: 15px; display: flex; align-items: center; gap: 8px; }
         .list-container { text-align: left; margin-top: 5px; max-height: 300px; overflow-y: auto; }
         
-        .user-card { background: #fff; padding: 12px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1e3c72; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .user-card.offline-item { border-left: 4px solid #e67e22; background: #fffcf5; }
+        .user-card { background: #fff; padding: 15px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #1e3c72; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .user-card.offline-item { border-left: 5px solid #e67e22; background: #fffcf5; }
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
-        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+        .user-info strong { font-size: 15px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-details { font-size: 12px; color: #7f8c8d; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
         
         /* STYLE JAM RANDIK */
         .live-timer { 
@@ -85,24 +102,24 @@
             font-weight: 700; 
             font-family: 'Courier New', Courier, monospace; 
             background: #fff5e6; 
-            padding: 2px 8px; 
+            padding: 4px 10px; 
             border-radius: 4px; 
             border: 1px solid #fae5d3; 
-            min-width: 70px; 
+            min-width: 80px; 
             text-align: center; 
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            font-size: 11px; 
+            gap: 5px;
+            font-size: 12px; 
         }
 
-        .list-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
-        .icon-btn { cursor: pointer; font-size: 14px; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #eee; transition: background 0.2s; }
+        .list-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .icon-btn { cursor: pointer; font-size: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #eee; transition: background 0.2s; }
         .icon-btn:hover { background: #e2e6ea; }
 
         #scheduleInfo { display: none; background: transparent; padding: 0; margin-bottom: 15px; text-align: center; animation: fadeIn 0.5s; }
         .schedule-minimal { display: flex; justify-content: center; gap: 10px; align-items: center; }
-        .time-pill { background: #f1f3f5; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px; border: 1px solid #e9ecef; }
+        .time-pill { background: #f1f3f5; padding: 8px 16px; border-radius: 25px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; border: 1px solid #e9ecef; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -112,27 +129,27 @@
 
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); }
         
-        #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
-        #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 5px; }
+        #loadingConfig { font-size: 12px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
+        #statusText { font-size: 12px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 6px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; }
 
-        /* --- 3D ICONS STYLES --- */
-        .icon-3d-mini { width: 16px; height: 16px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
-        .icon-3d-std { width: 22px; height: 22px; vertical-align: middle; margin-right: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
-        .icon-3d-lg { width: 32px; height: 32px; vertical-align: middle; }
-        .icon-3d-xl { width: 64px; height: 64px; margin-bottom: 10px; }
+        /* --- 3D ICONS STYLES (LED & BIGGER) --- */
+        .icon-3d-mini { width: 28px; height: 28px; vertical-align: middle; margin-right: 4px; filter: drop-shadow(0 0 4px #00ffff); }
+        .icon-3d-std { width: 40px; height: 40px; vertical-align: middle; margin-right: 6px; filter: drop-shadow(0 0 6px #00ffff); }
+        .icon-3d-lg { width: 60px; height: 60px; vertical-align: middle; filter: drop-shadow(0 0 10px #00ffff); }
+        .icon-3d-xl { width: 80px; height: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 15px #00ffff); }
         
         @keyframes spin3d { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spin-3d { animation: spin3d 2s linear infinite; }
 
         #customModal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; animation: fadeIn 0.3s; }
-        .custom-modal-content { background: white; padding: 30px 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
+        .custom-modal-content { background: white; padding: 35px 30px; border-radius: 25px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; border: 2px solid #e1e4e8; }
         @keyframes popUp { to { transform: scale(1); } }
-        .modal-icon-top { font-size: 50px; margin-bottom: 15px; display: block; }
-        .modal-title { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 10px; }
-        .modal-msg { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5; }
-        .modal-btn-row { display: flex; gap: 10px; justify-content: center; }
-        .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
-        .btn-ok { background: #1e3c72; color: white; }
+        .modal-icon-top { font-size: 80px; margin-bottom: 20px; display: block; text-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+        .modal-title { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; }
+        .modal-msg { font-size: 15px; color: #555; margin-bottom: 25px; line-height: 1.5; }
+        .modal-btn-row { display: flex; gap: 15px; justify-content: center; }
+        .modal-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: 700; cursor: pointer; font-size: 16px; }
+        .btn-ok { background: #1e3c72; color: white; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3); }
         .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
 
         /* Status Bar untuk Offline/Sync */
@@ -145,6 +162,7 @@
     <div id="syncStatusBar"></div>
     <div id="warningBox">?? SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
+    <!-- MODAL CUSTOM ALERT (MODIFIED ICON ??) -->
     <div id="customModal">
         <div class="custom-modal-content">
             <span id="modalIcon" class="modal-icon-top">??</span>
@@ -153,6 +171,18 @@
             <div class="modal-btn-row" id="modalBtnRow">
                 <button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL PILIH AVATAR (NEW) -->
+    <div id="avatarModal">
+        <div class="avatar-modal-content">
+            <h3 style="color:#1e3c72; margin-top:0;">PILIH AVATAR ANDA</h3>
+            <p style="font-size:12px; color:#777;">Klik untuk memilih penampilan.</p>
+            <div class="avatar-grid" id="avatarGrid">
+                <!-- Avatar items will be injected here -->
+            </div>
+            <button class="btn btn-cancel" onclick="closeAvatarModal()" style="padding:10px;">TUTUP</button>
         </div>
     </div>
 
@@ -196,7 +226,7 @@
 
             <div id="dashboardPanel">
                 <span class="user-welcome">
-                    <img src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
+                    <img id="dashAvatar" src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
                     Hai, <span id="sessionName">--</span>
                 </span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
@@ -214,7 +244,7 @@
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">
+                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:16px; padding: 18px;">
                         <img src="https://cdn-icons-png.flaticon.com/128/3135/3135768.png" class="icon-3d-std"> BANTU DAFTAR PELAWAT
                     </button>
                 </div>
@@ -233,9 +263,15 @@
                     <option value="PELAWAT">?? PELAWAT (AWAM)</option>
                 </select>
                 
-                <!-- INPUT NAMA WITH LOCK BUTTON -->
+                <!-- INPUT NAMA WITH LOCK BUTTON & AVATAR BUTTON -->
                 <div class="input-group">
-                    <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
+                    <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase; padding-right: 105px;">
+                    
+                    <!-- Butang Pilih Avatar -->
+                    <button class="avatar-btn" onclick="openAvatarModal()" title="Pilih Avatar">
+                         <img src="https://cdn-icons-png.flaticon.com/128/3135/3135715.png" id="currentAvatarIcon">
+                    </button>
+
                     <button id="lockBtn" class="lock-btn" onclick="toggleLockName()" title="Kunci Nama">
                         <img src="https://cdn-icons-png.flaticon.com/128/149/149463.png" class="icon-3d-mini" id="lockIconImg" style="filter:opacity(0.4)">
                     </button>
@@ -251,7 +287,7 @@
                 <h3 style="color:#27ae60; margin:0 0 5px 0; display:flex; align-items:center; justify-content:center; gap:5px;">
                     <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="icon-3d-lg"> MOD PELAWAT
                 </h3>
-                <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
+                <p style="font-size:12px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
                 
                 <div class="cam-grid">
@@ -294,7 +330,7 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
-            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
+            <!-- BUTANG RESET DIBUANG SEPERTI DIMINTA -->
         </div>
     </div>
 
@@ -305,6 +341,18 @@
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let isSubmitting = false; 
+
+    // SENARAI AVATAR
+    const AVATARS = [
+        "https://cdn-icons-png.flaticon.com/128/3135/3135715.png",
+        "https://cdn-icons-png.flaticon.com/128/3135/3135768.png",
+        "https://cdn-icons-png.flaticon.com/128/236/236831.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140048.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140047.png",
+        "https://cdn-icons-png.flaticon.com/128/3048/3048122.png",
+        "https://cdn-icons-png.flaticon.com/128/4333/4333609.png",
+        "https://cdn-icons-png.flaticon.com/128/924/924915.png"
+    ];
 
     // ==========================================
     //       LOGIK MOD OFFLINE & SYNC PINTAR
@@ -399,21 +447,24 @@
         mTitle.innerText = title;
         mMsg.innerHTML = msg; 
         
+        // IKON DIUBAH KEPADA ?? SEPERTI DIMINTA
+        mIcon.innerText = "??";
+
         if(type === 'error') {
-            mIcon.innerText = "??"; mTitle.style.color = "#c0392b";
+            mTitle.style.color = "#c0392b";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>`;
         } else if(type === 'success') {
-            mIcon.innerText = "?"; mTitle.style.color = "#27ae60";
+            mTitle.style.color = "#27ae60";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Terbaik</button>`;
         } else if(type === 'info') {
-            mIcon.innerText = "??"; mTitle.style.color = "#2980b9";
+            mTitle.style.color = "#2980b9";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">OK</button>`;
         } else if(type === 'confirm') {
-            mIcon.innerText = "??"; mTitle.style.color = "#1e3c72";
+            mTitle.style.color = "#1e3c72";
             window.tempCallback = callback;
             mBtns.innerHTML = `<button class="modal-btn btn-cancel-modal" onclick="closeCustomModal()">Batal</button><button class="modal-btn btn-ok" onclick="confirmAction()">Teruskan</button>`;
         } else {
-            mIcon.innerText = "??"; mTitle.style.color = "#2c3e50";
+            mTitle.style.color = "#2c3e50";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Tutup</button>`;
         }
         modal.style.display = "flex";
@@ -422,12 +473,39 @@
     function closeCustomModal() { document.getElementById('customModal').style.display = "none"; }
     function confirmAction() { closeCustomModal(); if(window.tempCallback) window.tempCallback(); }
 
+    // LOGIK AVATAR
+    function initAvatar() {
+        let saved = localStorage.getItem('ehadir_avatar');
+        if(saved) document.getElementById('currentAvatarIcon').src = saved;
+        
+        // Populate Grid
+        let grid = document.getElementById('avatarGrid');
+        grid.innerHTML = "";
+        AVATARS.forEach(url => {
+            let img = document.createElement('img');
+            img.src = url;
+            img.className = 'avatar-option';
+            img.onclick = function() { selectAvatar(url); };
+            grid.appendChild(img);
+        });
+    }
+
+    function openAvatarModal() { document.getElementById('avatarModal').style.display = "flex"; }
+    function closeAvatarModal() { document.getElementById('avatarModal').style.display = "none"; }
+    
+    function selectAvatar(url) {
+        localStorage.setItem('ehadir_avatar', url);
+        document.getElementById('currentAvatarIcon').src = url;
+        closeAvatarModal();
+    }
+
     window.onload = function() {
         startClock();
         startRadar();
         fetchConfig(); 
         getHijriDate();
-        initLockName(); // Initialize Name Lock Logic
+        initLockName(); 
+        initAvatar(); // Init avatar
         
         if(!navigator.onLine) showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
         else syncOfflineData(); 
@@ -438,7 +516,7 @@
         }, 2000);
 
         loadList();
-        // JAM RANDIK: Update setiap 1 saat (walaupun paparan minit, supaya responsif)
+        // JAM RANDIK: Update setiap 1 saat
         setInterval(updateLiveTimers, 1000);
     };
 
@@ -931,6 +1009,9 @@
             document.getElementById('dashboardPanel').style.display = 'block'; 
             document.getElementById('sessionName').innerText = s.nama; 
             document.getElementById('dynamicStatus').innerText = "STATUS: " + s.kategori + " (SEDANG BERTUGAS)";
+            // PAPARKAN AVATAR PADA DASHBOARD JIKA ADA
+            let savedAvatar = localStorage.getItem('ehadir_avatar');
+            if(savedAvatar) document.getElementById('dashAvatar').src = savedAvatar;
             updateDashboardInfo(); 
         }
     }
@@ -998,7 +1079,6 @@
     function checkKategori(){ if(document.getElementById('kategori').value==='PELAWAT') showPelawatForm(); }
     function showPelawatForm(){ document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
     function cancelPelawat(){ document.getElementById('pelawatPanel').style.display='none'; checkSession(); location.reload(); }
-    function resetSesi(){ if(confirm("Reset sesi?")){localStorage.removeItem('ehadir_session');location.reload();} }
 </script>
 </body>
 </html>
