@@ -278,6 +278,7 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
+            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
         </div>
     </div>
 
@@ -495,10 +496,12 @@
             let now = new Date();
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
             
-            if (!isSubmitting && currentDist > 1000 && limitKeluar && now > limitKeluar) {
-                console.log("Auto Checkout Triggered");
-                hantarKeluar(true); 
-            }
+            // FIX: AUTO CHECKOUT DISABLED (USER REQUEST)
+            // Jangan auto-keluarkan pengguna supaya butang sentiasa ada
+            // if (!isSubmitting && currentDist > 1000 && limitKeluar && now > limitKeluar) {
+            //    console.log("Auto Checkout Triggered");
+            //    hantarKeluar(true); 
+            // }
         }
     }
 
@@ -551,9 +554,13 @@
         
         kat = kat.trim();
 
-        let isDuplicate = currentList.some(item => item.nama === nama);
-        if(isDuplicate) {
-            showModernAlert("Rekod Wujud", "Nama <b>" + nama + "</b> sudah ada dalam senarai hari ini.", "error");
+        // CHECK RESTORE SESSION: Jika nama wujud, offer untuk sambung sesi
+        let existingRec = currentList.find(item => item.nama === nama);
+        if(existingRec) {
+            showModernAlert("Sambung Sesi?", "Nama <b>" + nama + "</b> dikesan aktif. Ingin sambung sesi untuk Daftar Keluar?", "confirm", () => {
+                localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: existingRec.kategori, date: new Date().toISOString().slice(0,10)}));
+                location.reload();
+            });
             return;
         }
 
@@ -617,9 +624,9 @@
         
         if (jamConfig && jamConfig[session.kategori]) {
             limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
-            if (!isAuto && currentDist > 1000 && limitKeluar && now < limitKeluar) {
-                showModernAlert("Jauh", "Anda jauh dari sekolah.", "error"); return; 
-            }
+            
+            // FIX: BENARKAN CHECKOUT LUAR KAWASAN (User Request)
+            // Kita tidak lagi menyekat jika jauh, cuma pastikan alasan jika awal
             if (!isAuto && limitKeluar && now < limitKeluar && alasanValue === "") {
                 alasanInput.style.display = "block";
                 showModernAlert("Pulang Awal", "Sila nyatakan sebab pulang awal.", "error");
@@ -666,7 +673,8 @@
         };
 
         if(!isAuto) {
-            showModernAlert("Pengesahan", "Daftar keluar sekarang?", "confirm", proceed);
+            let extraMsg = (currentDist > 1000) ? "<br><small>(Info: Anda berada di luar kawasan. Lokasi direkod.)</small>" : "";
+            showModernAlert("Pengesahan", "Daftar keluar sekarang?" + extraMsg, "confirm", proceed);
         } else {
             proceed();
         }
