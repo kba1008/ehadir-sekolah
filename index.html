@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v23.0 (Auto Geofence)</title>
+    <title>Sistem Pelawat & Kehadiran v22.9 (Stopwatch Mode)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -44,23 +44,12 @@
         select:focus, input:focus { border-color: #1e3c72; background: #fff; }
         textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
 
-        /* === NEW CSS FOR AVATAR & AUTO MODE === */
-        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 12px; gap: 8px; }
-        .avatar-selector { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #1e3c72; cursor: pointer; background: #fff; flex-shrink: 0; padding: 2px; transition: transform 0.2s; }
-        .avatar-selector:hover { transform: scale(1.1); }
-        
-        .input-group input { margin-bottom: 0; padding-right: 50px; flex-grow: 1; }
+        /* === NEW CSS FOR NAME LOCK === */
+        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 12px; }
+        .input-group input { margin-bottom: 0; padding-right: 50px; }
         .lock-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 5px; border-radius: 50%; transition: 0.2s; }
         .lock-btn:hover { background: rgba(0,0,0,0.05); }
         .lock-btn:active { transform: translateY(-50%) scale(0.9); }
-
-        .auto-mode-card { background: #e8f6f3; border: 1px solid #d1f2eb; padding: 15px; border-radius: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .switch { position: relative; display: inline-block; width: 40px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #27ae60; }
-        input:checked + .slider:before { transform: translateX(16px); }
         /* ============================== */
 
         .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -87,7 +76,7 @@
         .user-card { background: #fff; padding: 12px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1e3c72; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
         .user-card.offline-item { border-left: 4px solid #e67e22; background: #fffcf5; }
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
-        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap:5px; }
+        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
         
         /* STYLE JAM RANDIK */
@@ -149,11 +138,6 @@
         /* Status Bar untuk Offline/Sync */
         #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-        /* AVATAR GRID MODAL */
-        #avatarModal { display: none; position: fixed; z-index: 10002; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; max-height: 400px; overflow-y: auto; }
-        .avatar-option { width: 45px; height: 45px; cursor: pointer; border-radius: 50%; border: 2px solid transparent; transition: 0.2s; background:#fff; }
-        .avatar-option:hover { transform: scale(1.1); border-color: #2ecc71; }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
@@ -175,15 +159,6 @@
     <div id="imageModal">
         <span class="close-modal" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="imgFull">
-    </div>
-
-    <!-- AVATAR SELECTION MODAL -->
-    <div id="avatarModal">
-        <div class="custom-modal-content" style="max-width:320px;">
-            <h3 style="margin-top:0; color:#1e3c72">Pilih Avatar Anda</h3>
-            <div class="avatar-grid" id="avatarGridContainer"></div>
-            <button class="btn btn-cancel" onclick="document.getElementById('avatarModal').style.display='none'">Tutup</button>
-        </div>
     </div>
 
     <div class="container">
@@ -221,7 +196,7 @@
 
             <div id="dashboardPanel">
                 <span class="user-welcome">
-                    <img id="dashAvatar" src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg" style="border-radius:50%; border:2px solid #1e3c72"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
                     Hai, <span id="sessionName">--</span>
                 </span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
@@ -250,30 +225,16 @@
                     <img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> Sedang menyemak jadual terkini...
                 </div>
                 <div id="scheduleInfo"></div>
-                
                 <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
-                    <option value="" disabled selected>-- PILIH PEKERJAAN --</option>
+                    <option value="" disabled selected>-- PILIH KATEGORI --</option>
                     <option value="GURU">GURU</option>
                     <option value="AKP">AKP</option>
                     <option value="KEBERSIHAN">KEBERSIHAN</option>
                     <option value="PELAWAT">?? PELAWAT (AWAM)</option>
                 </select>
-
-                <!-- AUTO MODE TOGGLE -->
-                <div class="auto-mode-card">
-                    <div style="text-align:left;">
-                        <span style="font-size:12px; font-weight:700; color:#2c3e50; display:block">MOD AUTO PUNCH</span>
-                        <span style="font-size:10px; color:#7f8c8d;">Masuk/Keluar Automatik (Geofencing)</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="autoModeCheck" onchange="toggleAutoLogic()">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
                 
-                <!-- INPUT NAMA WITH LOCK BUTTON & AVATAR -->
+                <!-- INPUT NAMA WITH LOCK BUTTON -->
                 <div class="input-group">
-                    <img id="myAvatar" src="https://cdn-icons-png.flaticon.com/128/847/847969.png" class="avatar-selector" onclick="openAvatarModal()" title="Pilih Avatar">
                     <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
                     <button id="lockBtn" class="lock-btn" onclick="toggleLockName()" title="Kunci Nama">
                         <img src="https://cdn-icons-png.flaticon.com/128/149/149463.png" class="icon-3d-mini" id="lockIconImg" style="filter:opacity(0.4)">
@@ -333,6 +294,7 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
+            <p style="font-size:10px; color:#bdc3c7; margin-top:30px; cursor:pointer;" onclick="resetSesi()">?? Reset Sistem (Admin)</p>
         </div>
     </div>
 
@@ -343,9 +305,6 @@
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let isSubmitting = false; 
-    let currentAvatar = "https://cdn-icons-png.flaticon.com/128/847/847969.png";
-    let isAutoMode = false;
-    let autoExitTimer = null;
 
     // ==========================================
     //       LOGIK MOD OFFLINE & SYNC PINTAR
@@ -400,6 +359,7 @@
 
         let itemToSync = offlineQueue[0];
 
+        // FIX CHROME OFFLINE: Pastikan kategori wujud. Jika undefined, set ke PELAWAT.
         if (!itemToSync.kategori || itemToSync.kategori === "undefined" || itemToSync.kategori === null) {
             console.warn("Data kategori rosak dikesan, set default ke PELAWAT.");
             itemToSync.kategori = "PELAWAT";
@@ -464,18 +424,10 @@
 
     window.onload = function() {
         startClock();
-        // Initialize Avatar Seeds
-        let seeds = ["Felix", "Aneka", "Bandit", "Bubba", "Callie", "Casper", "Coco", "Cuddles", "Dolly", "Garfield", "Gizmo", "Jasper", "Kitty", "Leo", "Loki", "Luna", "Max", "Milo", "Missy", "Misty", "Mittens", "Muffin", "Nala", "Oreo", "Patch", "Peanut", "Pepper", "Precious", "Princess", "Pumpkin"];
-        let grid = document.getElementById('avatarGridContainer');
-        seeds.forEach(s => {
-            let url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${s}`;
-            grid.innerHTML += `<img src="${url}" class="avatar-option" onclick="selectAvatar('${url}')">`;
-        });
-
         startRadar();
         fetchConfig(); 
         getHijriDate();
-        initLockName(); 
+        initLockName(); // Initialize Name Lock Logic
         
         if(!navigator.onLine) showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
         else syncOfflineData(); 
@@ -486,65 +438,20 @@
         }, 2000);
 
         loadList();
+        // JAM RANDIK: Update setiap 1 saat (walaupun paparan minit, supaya responsif)
         setInterval(updateLiveTimers, 1000);
     };
 
-    // --- AVATAR & AUTO MODE LOGIC ---
-    function openAvatarModal() { document.getElementById('avatarModal').style.display = 'flex'; }
-    function selectAvatar(url) {
-        currentAvatar = url;
-        document.getElementById('myAvatar').src = url;
-        document.getElementById('avatarModal').style.display = 'none';
-    }
-
-    function toggleAutoLogic() {
-        isAutoMode = document.getElementById('autoModeCheck').checked;
-        if(isAutoMode) {
-            // Minta Izin Notification
-            if ("Notification" in window && Notification.permission !== "granted") {
-                Notification.requestPermission();
-            }
-            document.getElementById('alasanMasuk').style.display = 'none';
-            document.getElementById('alasanKeluar').style.display = 'none';
-            showModernAlert("Mod Auto Aktif", "Sistem akan berjalan di latar belakang 24 jam. Daftar masuk/keluar adalah automatik mengikut lokasi.", "success");
-        } else {
-            triggerAlasanMasuk(); // Restore
-        }
-    }
-
+    // --- LOGIK LOCK NAMA & AUTO SYNC ---
     function initLockName() {
         let locked = localStorage.getItem('ehadir_locked_name');
-        let lockedAvatar = localStorage.getItem('ehadir_locked_avatar');
-        let lockedMode = localStorage.getItem('ehadir_locked_mode');
-        let lockedKat = localStorage.getItem('ehadir_locked_kat');
-        
         let input = document.getElementById('nama');
         let btnImg = document.getElementById('lockIconImg');
-        let katSelect = document.getElementById('kategori');
-        let autoCheck = document.getElementById('autoModeCheck');
         
         if (locked) {
             input.value = locked;
             input.readOnly = true;
             input.style.background = "#fff8e1"; 
-            
-            if(lockedAvatar) {
-                currentAvatar = lockedAvatar;
-                document.getElementById('myAvatar').src = lockedAvatar;
-                document.getElementById('dashAvatar').src = lockedAvatar;
-            }
-            if(lockedKat) katSelect.value = lockedKat;
-            katSelect.disabled = true;
-
-            if(lockedMode === 'true') {
-                autoCheck.checked = true;
-                isAutoMode = true;
-                document.getElementById('alasanMasuk').style.display = 'none';
-            } else {
-                autoCheck.checked = false;
-            }
-            autoCheck.disabled = true;
-
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/2889/2889676.png"; 
             btnImg.style.filter = "opacity(1)";
         } else {
@@ -555,38 +462,23 @@
 
     function toggleLockName() {
         let input = document.getElementById('nama');
-        let kat = document.getElementById('kategori');
-        let autoCheck = document.getElementById('autoModeCheck');
-        
         let current = input.value.trim().toUpperCase();
         
-        if(!current || !kat.value) { showModernAlert("Kosong", "Sila isi Nama dan Pekerjaan dahulu.", "error"); return; }
+        if(!current) { showModernAlert("Kosong", "Sila taip nama dahulu sebelum kunci.", "error"); return; }
         
         if (input.readOnly) {
             // UNLOCK
             input.readOnly = false;
             input.style.background = "#f8f9fa";
-            kat.disabled = false;
-            autoCheck.disabled = false;
             localStorage.removeItem('ehadir_locked_name');
-            localStorage.removeItem('ehadir_locked_avatar');
-            localStorage.removeItem('ehadir_locked_mode');
-            localStorage.removeItem('ehadir_locked_kat');
-            showModernAlert("Nyah-Kunci", "Semua tetapan telah reset.", "info");
+            showModernAlert("Nyah-Kunci", "Nama tidak lagi disimpan.", "info");
             initLockName();
         } else {
             // LOCK
             input.readOnly = true;
-            kat.disabled = true;
-            autoCheck.disabled = true;
             input.style.background = "#fff8e1";
-            
             localStorage.setItem('ehadir_locked_name', current);
-            localStorage.setItem('ehadir_locked_avatar', currentAvatar);
-            localStorage.setItem('ehadir_locked_mode', autoCheck.checked);
-            localStorage.setItem('ehadir_locked_kat', kat.value);
-            
-            showModernAlert("Disimpan", "Nama, Jawatan, Avatar & Mod Auto telah dikunci.", "success");
+            showModernAlert("Disimpan", "Nama anda telah dikunci. Ia akan automatik diisi setiap hari.", "success");
             initLockName();
         }
     }
@@ -594,8 +486,13 @@
     function checkAutoStatus(list) {
         let locked = localStorage.getItem('ehadir_locked_name');
         if(!locked) return;
+        
+        // Cari rekod hari ini yang sepadan dengan nama yang dikunci
         let userRecord = list.find(item => item.nama === locked);
+        
         if (userRecord) {
+            // Jika jumpa, semak COLUMN F (Waktu Keluar)
+            // Jika 'keluar' masih kosong/null -> Force Masuk Sesi (Dashboard)
             if (!userRecord.keluar || userRecord.keluar === "") {
                  let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
                  if (!currentSess) {
@@ -608,6 +505,7 @@
                      location.reload(); 
                  }
             } else {
+                // Jika 'keluar' dah ada isi -> Clear Session (User dah balik)
                 let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
                 if (currentSess && currentSess.nama === locked) {
                     console.log("Auto-Sync: User sudah keluar. Clear session.");
@@ -617,6 +515,7 @@
             }
         }
     }
+    // -----------------------------------
 
     function fetchConfig() {
         if(!navigator.onLine) {
@@ -656,14 +555,17 @@
     }
 
     function triggerAlasanMasuk() {
-        if(isAutoMode) { document.getElementById('alasanMasuk').style.display = "none"; return; }
         let kat = document.getElementById('kategori').value;
         let area = document.getElementById('alasanMasuk');
         let now = new Date();
         if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+            
+            // LOGIK BARU: Jika masuk SELEPAS waktu keluar (kerja lebih masa/datang semula), 
+            // JANGAN minta alasan.
             let isAfterHours = (limitKeluar && now > limitKeluar);
+
             if (limitMasuk && now > limitMasuk && !isAfterHours) {
                 area.style.display = "block";
                 area.placeholder = `Lewat hadir. Mohon nyatakan sebab...`;
@@ -682,12 +584,18 @@
             let displayKeluar = cleanTimeDisplay(jamConfig[s.kategori].keluar);
             dashboardSchedule.style.display = "block";
             userExitTime.innerText = displayKeluar;
+
+            let now = new Date();
+            let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
         }
     }
 
     function sendData(data) {
         return new Promise((resolve, reject) => {
-            if (!data.clientTime) data.clientTime = new Date().toISOString();
+            if (!data.clientTime) {
+                data.clientTime = new Date().toISOString();
+            }
+
             if (!navigator.onLine) {
                 saveToQueue(data);
                 resolve({ offline: true });
@@ -695,7 +603,9 @@
             }
             fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
             .then(response => response.json())
-            .then(result => resolve({ offline: false, data: result }))
+            .then(result => {
+                resolve({ offline: false, data: result });
+            })
             .catch(error => {
                 console.error("Ralat Network:", error);
                 saveToQueue(data);
@@ -705,54 +615,59 @@
     }
 
     function saveToQueue(data) {
+        // FIX: Pastikan kategori wujud sebelum simpan ke queue
         if (!data.kategori) data.kategori = "PELAWAT";
+        
         let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         queue.push(data);
         localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
     }
 
-    async function hantarMasuk(isAuto = false) {
+    async function hantarMasuk() {
         if(isSubmitting) return; 
 
-        if(!isInZone) { if(!isAuto) showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); return; }
+        if(!isInZone) { showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); return; }
         
+        if(!jamConfig && navigator.onLine) { showModernAlert("Sabar", "Sedang memuatkan jadual...", "info"); return; }
+
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
         let alasan = document.getElementById('alasanMasuk').value;
         let now = new Date();
 
-        if (!nama || !kat) { if(!isAuto) showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); return; }
+        if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); return; }
         
         kat = kat.trim();
+
+        // CHECK RESTORE SESSION: Jika nama wujud, offer untuk sambung sesi
         let existingRec = currentList.find(item => item.nama === nama);
         if(existingRec) {
-            if(!isAuto) showModernAlert("Sambung Sesi?", "Nama <b>" + nama + "</b> dikesan aktif.", "confirm", () => {
+            showModernAlert("Sambung Sesi?", "Nama <b>" + nama + "</b> dikesan aktif. Ingin sambung sesi untuk Daftar Keluar?", "confirm", () => {
                 localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: existingRec.kategori, date: new Date().toISOString().slice(0,10)}));
                 location.reload();
             });
             return;
         }
 
-        if (!isAuto && jamConfig && jamConfig[kat]) {
+        if (jamConfig && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+            
+            // LOGIK BARU: Jika masuk SELEPAS waktu keluar, abaikan amaran lewat.
             let isAfterHours = (limitKeluar && now > limitKeluar);
+
             if (limitMasuk && now > limitMasuk && !isAfterHours && alasan.trim() === "") {
                 document.getElementById('alasanMasuk').style.display = "block";
                 showModernAlert("Lewat Hadir", "Sila isi sebab kelewatan.", "error");
                 return; 
             }
         }
-        
-        // AUTO MODE BYPASS ALASAN
-        if(isAuto) {
+
+        if (document.getElementById('alasanMasuk').style.display === "none") {
             if (jamConfig && jamConfig[kat]) {
-                 let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-                 if (limitMasuk && now > limitMasuk) {
-                     if ("Notification" in window && Notification.permission === "granted") new Notification("Info: Anda hadir lewat hari ini.");
-                 }
+                let limitKeluar = parseTime(jamConfig[kat].keluar, now);
+                if (limitKeluar && now > limitKeluar) alasan = "KERJA LEBIH MASA / PROGRAM";
             }
-            alasan = "AUTO PUNCH (GEOFENCE)";
         }
 
         isSubmitting = true;
@@ -761,15 +676,18 @@
 
         try {
             const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() };
+            
             const result = await sendData(payload);
-            if(!isAuto) {
-                if (result.offline) alert("?? Mod Offline: Disimpan.");
-                else alert("? Data berjaya dihantar!");
+
+            if (result.offline) {
+                alert("?? Mod Offline: Data telah disimpan dalam telefon. Ia akan dihantar automatik bila ada internet.");
             } else {
-                if ("Notification" in window && Notification.permission === "granted") new Notification("Berjaya Daftar Masuk: " + nama);
+                alert("? Data berjaya dihantar ke server!");
             }
+
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
             location.reload();
+
         } catch (error) {
             console.error("Ralat:", error);
             isSubmitting = false;
@@ -782,12 +700,27 @@
 
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) { if(!isAuto) showModernAlert("Ralat", "Sila reset sistem.", "error"); return; }
-        
+        if (lastLat === 0 || lastLng === 0) { if(!isAuto) showModernAlert("GPS", "Sedang cari lokasi...", "info"); return; }
+
         let alasanInput = document.getElementById('alasanKeluar');
         let alasanValue = alasanInput.value.trim();
+        let now = new Date();
+        let limitKeluar = null;
+        
+        if (jamConfig && jamConfig[session.kategori]) {
+            limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
+            
+            // FIX: BENARKAN CHECKOUT LUAR KAWASAN (User Request)
+            // Kita tidak lagi menyekat jika jauh, cuma pastikan alasan jika awal
+            if (!isAuto && limitKeluar && now < limitKeluar && alasanValue === "") {
+                alasanInput.style.display = "block";
+                showModernAlert("Pulang Awal", "Sila nyatakan sebab pulang awal.", "error");
+                return; 
+            }
+        }
         
         if (isAuto) {
-            alasanValue = "AUTO CHECKOUT (GEOFENCE EXIT > 10S)";
+            alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
         } else if (alasanValue === "") {
             alasanValue = "PULANG MENGIKUT WAKTU";
         }
@@ -796,18 +729,28 @@
             isSubmitting = true; 
             document.getElementById('btnKeluar').disabled = true;
             document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
+
             try {
                 const payload = { action: "KELUAR", passcode: PASSCODE, nama: session.nama.toUpperCase(), alasan: alasanValue, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() };
+                
                 const result = await sendData(payload);
+
                 if(!isAuto) {
-                    if (result.offline) alert("?? Disimpan offline.");
-                    else if(result.data && result.data.msg) alert("? " + result.data.msg);
-                    else alert("? Berjaya daftar keluar!");
-                } else {
-                     if ("Notification" in window && Notification.permission === "granted") new Notification("Auto Checkout Berjaya: " + session.nama);
+                    if (result.offline) {
+                        alert("?? Mod Offline: Data keluar disimpan. Akan dihantar bila ada internet.");
+                    } else {
+                        // Jika ada mesej khas dari server (cth: kata semangat), paparkan
+                        if(result.data && result.data.msg) {
+                            alert("? " + result.data.msg);
+                        } else {
+                            alert("? Berjaya daftar keluar!");
+                        }
+                    }
                 }
+                
                 localStorage.removeItem('ehadir_session');
                 location.reload();
+
             } catch (error) {
                 console.error(error);
                 isSubmitting = false;
@@ -825,26 +768,42 @@
     function keluarManual(namaUser) {
         let pass = prompt("ADMIN: Passcode untuk keluarkan " + namaUser + ":");
         if (pass !== PASSCODE) { showModernAlert("Gagal", "Passcode salah.", "error"); return; }
+        
         sendData({ action: "KELUAR", passcode: PASSCODE, nama: namaUser, alasan: "Manual Admin", lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() })
-        .then(res => { loadList(); });
+        .then(res => {
+             if(res.offline) alert("?? Disimpan offline.");
+             else showModernAlert("Berjaya", namaUser + " dikeluarkan.", "success"); 
+             loadList(); 
+        });
     }
 
     async function hantarPelawat() {
         if(isSubmitting) return;
+
         let foto = document.getElementById('base64Foto').value;
         let namaPelawat = document.getElementById('namaPelawatInput').value.toUpperCase();
+        
         if (!foto) { showModernAlert("Tiada Gambar", "Ambil gambar dahulu.", "error"); return; }
         if (!namaPelawat) { showModernAlert("Tiada Nama", "Isi nama pelawat.", "error"); return; }
+
         isSubmitting = true;
         document.getElementById('btnPelawatSubmit').disabled = true;
         document.getElementById('btnPelawatSubmit').innerText = "SEDANG HANTAR...";
+
         try {
             const payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() };
+            
             const result = await sendData(payload);
-            if (result.offline) alert("?? Mod Offline: Data pelawat disimpan.");
-            else alert("? Data pelawat berjaya dihantar!");
+
+            if (result.offline) {
+                alert("?? Mod Offline: Data pelawat disimpan. Akan dihantar bila ada internet.");
+            } else {
+                alert("? Data pelawat berjaya dihantar!");
+            }
             location.reload();
+
         } catch (error) {
+            console.error(error);
             isSubmitting = false;
         }
     }
@@ -867,28 +826,58 @@
         return null; 
     }
 
+    // FUNGSI BARU: Parse masa dari string (contoh: "8:00:00 AM") ke Date hari ini
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
+        
+        // Jika format ISO/Date string
         if (timeStr.toString().length > 15) {
              let tempD = new Date(timeStr);
-             if(!isNaN(tempD.getTime())) { let now = new Date(); now.setHours(tempD.getHours(), tempD.getMinutes(), tempD.getSeconds(), 0); return now; }
+             if(!isNaN(tempD.getTime())) { 
+                 let now = new Date(); 
+                 now.setHours(tempD.getHours(), tempD.getMinutes(), tempD.getSeconds(), 0); 
+                 return now; 
+             }
         }
+        
+        // Regex untuk format "HH:MM:SS AM/PM"
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
-        let h = parseInt(parts[1]), m = parseInt(parts[2]), s = parts[3] ? parseInt(parts[3]) : 0, ampm = parts[4] ? parts[4].toUpperCase() : null;
-        if (ampm === "PM" && h < 12) h += 12; if (ampm === "AM" && h === 12) h = 0;
-        let d = new Date(); d.setHours(h, m, s, 0); return d;
+        
+        let h = parseInt(parts[1]);
+        let m = parseInt(parts[2]);
+        let s = parts[3] ? parseInt(parts[3]) : 0;
+        let ampm = parts[4] ? parts[4].toUpperCase() : null;
+        
+        if (ampm === "PM" && h < 12) h += 12; 
+        if (ampm === "AM" && h === 12) h = 0;
+        
+        let d = new Date(); 
+        d.setHours(h, m, s, 0); 
+        return d;
     }
 
+    // FUNGSI BARU: JAM RANDIK (Jam & Minit Sahaja)
     function updateLiveTimers() {
         let now = new Date();
         document.querySelectorAll('.live-timer').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
-            if (!masukStr || masukStr === "undefined") { el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; return; }
+            if (!masukStr || masukStr === "undefined") { 
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; 
+                return; 
+            }
+            
             let masukDate = parseTimeLocal(masukStr);
+            
             if (masukDate) {
-                let diff = Math.floor((now - masukDate) / 1000); if (diff < 0) diff = 0;
-                let h = Math.floor(diff / 3600); let m = Math.floor((diff % 3600) / 60);
+                let diff = Math.floor((now - masukDate) / 1000); // Beza dalam saat
+                if (diff < 0) diff = 0;
+                
+                let h = Math.floor(diff / 3600);
+                let m = Math.floor((diff % 3600) / 60);
+                
+                // FORMAT: Jam dan Minit sahaja (HURUF BESAR H & M) + ICON GAMBAR
+                // Guna innerHTML sebab nak masukkan image
                 el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> ${h}H ${m}M`;
             } else { 
                 el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M`; 
@@ -902,39 +891,13 @@
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
                 isInZone = (currentDist <= RADIUS_METER);
-                
                 let icon = isInZone ? "<img src='https://cdn-icons-png.flaticon.com/128/190/190411.png' class='icon-3d-mini'>" : "<img src='https://cdn-icons-png.flaticon.com/128/190/190406.png' class='icon-3d-mini'>";
                 let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
                 document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
                 document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
-                
                 let session = JSON.parse(localStorage.getItem('ehadir_session'));
                 document.getElementById('warningBox').style.display = (!session && !isInZone) ? "block" : "none";
-
-                // --- LOGIK AUTO PUNCH (GEOFENCING 24H) ---
-                if (isAutoMode) {
-                    if (isInZone) {
-                        if (autoExitTimer) { clearTimeout(autoExitTimer); autoExitTimer = null; }
-                        if (!session && !isSubmitting) {
-                            // Auto Masuk
-                            hantarMasuk(true);
-                        }
-                    } else {
-                        // Luar Kawasan (> Radius)
-                        if (session && !isSubmitting) {
-                             if (!autoExitTimer) {
-                                 if ("Notification" in window && Notification.permission === "granted") new Notification("Amaran: Anda di luar kawasan! Kembali dalam 10s.");
-                                 // 10 Saat Timer
-                                 autoExitTimer = setTimeout(() => {
-                                     hantarKeluar(true);
-                                     autoExitTimer = null;
-                                 }, 10000);
-                             }
-                        }
-                    }
-                }
-
             }, null, {enableHighAccuracy: true});
         }
     }
@@ -942,7 +905,8 @@
     function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
     
     function startClock(){
-        setInterval(()=>{ let n = new Date();
+        setInterval(()=>{
+            let n = new Date();
             document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit", timeZone: 'Asia/Kuala_Lumpur' });
             document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur' });
         }, 1000);
@@ -967,11 +931,6 @@
             document.getElementById('dashboardPanel').style.display = 'block'; 
             document.getElementById('sessionName').innerText = s.nama; 
             document.getElementById('dynamicStatus').innerText = "STATUS: " + s.kategori + " (SEDANG BERTUGAS)";
-            
-            // Restore Avatar di Dashboard
-            let lockedAvatar = localStorage.getItem('ehadir_locked_avatar');
-            if(lockedAvatar) document.getElementById('dashAvatar').src = lockedAvatar;
-            
             updateDashboardInfo(); 
         }
     }
@@ -979,16 +938,27 @@
     function loadList() { 
         let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         let offlineItems = offlineQueue.filter(q => q.action === "MASUK").map(q => ({
-            nama: q.nama, kategori: q.kategori, jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'}), isOffline: true
+            nama: q.nama,
+            kategori: q.kategori,
+            jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'}),
+            isOffline: true
         }));
-        if(!navigator.onLine) { renderList(offlineItems); return; }
+
+        if(!navigator.onLine) {
+            renderList(offlineItems);
+            return;
+        }
+
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             let serverItems = res.data || res; 
             currentList = [...offlineItems, ...serverItems];
             renderList(currentList);
+            // --- SINKRONISASI STATUS (NAMA LOCK & COLUMN F) ---
             checkAutoStatus(currentList);
-        }).catch(() => { renderList(offlineItems); });
+        }).catch(() => {
+            renderList(offlineItems);
+        });
     }
 
     function renderList(items) {
@@ -997,8 +967,11 @@
         items.forEach((i, idx) => { 
             let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
             let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
+            
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
+
+            // JAM RANDIK: Ditambah ikon IMAGE (bukan emoji) dan format H M
             h += `<div class="user-card ${offlineClass}">
                     <div class="user-info">
                         <strong>${offlineIcon}${i.nama}</strong>
@@ -1012,10 +985,20 @@
                     <div class="list-actions">${imgBtn}${xBtn}</div>
                   </div>`; 
         }); 
-        document.getElementById('listContainer').innerHTML = h || `<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>`; 
-        updateLiveTimers(); 
+        document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
+        updateLiveTimers(); // Jalankan sekali selepas render
     }
 
-    function viewImage(index) { let data = currentList[index]; if(data && data.foto) { document.getElementById('imgFull').src = data.foto; document.getElementById('imageModal').style.display = "flex"; } }
+    function viewImage(index) {
+        let data = currentList[index];
+        if(data && data.foto) { document.getElementById('imgFull').src = data.foto; document.getElementById('imageModal').style.display = "flex"; }
+    }
     function closeModal() { document.getElementById('imageModal').style.display = "none"; }
-    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let im=new Image();im.src=e.target.result;im.onload=function(){let cv=document.createElement(
+    function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let im=new Image();im.src=e.target.result;im.onload=function(){let cv=document.createElement("canvas");let ctx=cv.getContext("2d");cv.width=400;cv.height=400*(im.height/im.width);ctx.drawImage(im,0,0,cv.width,cv.height);let d=cv.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=d;};};r.readAsDataURL(i.files[0]);}}
+    function checkKategori(){ if(document.getElementById('kategori').value==='PELAWAT') showPelawatForm(); }
+    function showPelawatForm(){ document.getElementById('defaultForm').style.display='none'; document.getElementById('pelawatPanel').style.display='block'; }
+    function cancelPelawat(){ document.getElementById('pelawatPanel').style.display='none'; checkSession(); location.reload(); }
+    function resetSesi(){ if(confirm("Reset sesi?")){localStorage.removeItem('ehadir_session');location.reload();} }
+</script>
+</body>
+</html>
