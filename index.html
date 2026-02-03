@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v22.9 (Stopwatch Mode)</title>
+    <title>Sistem Pelawat & Kehadiran v22.9 (Geofence Mode)</title>
     
     <!-- ====================================================================== -->
     <!--                 RUANGAN EDIT PENGGUNA (SETTING DI SINI)                -->
@@ -14,13 +14,13 @@
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
-        
+         
         // 3. Koordinat Lokasi (Ambil dari Google Maps)
-        const SCHOOL_LAT = 5.227932478937475; 
-        const SCHOOL_LNG = 100.6834597944874; 
+        const SCHOOL_LAT = 5.22790641489731; 
+        const SCHOOL_LNG = 100.69910707804746; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 10000; 
+        const RADIUS_METER = 10; 
     </script>
     <!-- ====================================================================== -->
 
@@ -33,68 +33,52 @@
         .container { background: white; padding: 0; border-radius: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 30px; }
         
         .header-bg { background: linear-gradient(to right, #141e30, #243b55); padding: 15px 20px 30px 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 25px; position: relative; }
-        .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 13px; color: #cfd8dc; font-weight: 500; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; white-space: nowrap; }
+        .top-bar-row { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 11px; color: #cfd8dc; font-weight: 400; letter-spacing: 0.5px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; white-space: nowrap; }
         
         .main-title-block { display: flex; flex-direction: column; align-items: center; }
         .title-small { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #6dd5ed; margin-bottom: 5px; font-weight: 600; }
-        .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; background: -webkit-linear-gradient(#fff, #a8c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px rgba(109, 213, 237, 0.5); margin: 2px 0; }
+        .title-big { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; background: -webkit-linear-gradient(#fff, #a8c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin: 2px 0; }
 
         .content-padding { padding: 0 20px; }
-        /* BIGGER INPUTS */
-        select, input, textarea { width: 100%; padding: 18px; margin-bottom: 15px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 16px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
-        select:focus, input:focus { border-color: #1e3c72; background: #fff; box-shadow: 0 0 10px rgba(30, 60, 114, 0.2); }
-        textarea { resize: vertical; min-height: 100px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
+        select:focus, input:focus { border-color: #1e3c72; background: #fff; }
+        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
 
         /* === NEW CSS FOR NAME LOCK & AVATAR === */
-        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 15px; }
-        /* Ruang padding lebih besar untuk muat 2 butang */
-        .input-group input { margin-bottom: 0; padding-right: 105px; }
-        
-        .lock-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 8px; border-radius: 50%; transition: 0.2s; }
+        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 12px; gap: 8px; }
+        .input-group input { margin-bottom: 0; padding-right: 40px; flex-grow: 1; }
+        .lock-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 5px; border-radius: 50%; transition: 0.2s; }
         .lock-btn:hover { background: rgba(0,0,0,0.05); }
-        .lock-btn:active { transform: translateY(-50%) scale(0.9); }
-
-        /* Style Butang Avatar */
-        .avatar-btn { position: absolute; right: 55px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 5px; border-radius: 50%; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .avatar-btn:hover { transform: translateY(-50%) scale(1.1); }
-        .avatar-btn img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e1e4e8; background: #fff; }
-
-        /* Modal Avatar Grid */
-        #avatarModal { display: none; position: fixed; z-index: 10002; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); align-items: center; justify-content: center; animation: fadeIn 0.3s; }
-        .avatar-modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #fff; }
-        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; justify-items: center; }
-        .avatar-option { width: 50px; height: 50px; cursor: pointer; transition: transform 0.2s; border-radius: 50%; border: 3px solid transparent; background: #f8f9fa; padding: 2px; }
-        .avatar-option:hover { transform: scale(1.15); border-color: #27ae60; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); background: #fff; }
+        .avatar-btn { width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; background: #f1f3f5; border: 2px solid #e1e4e8; border-radius: 12px; cursor: pointer; flex-shrink: 0; }
+        .avatar-btn img { width: 32px; height: 32px; }
         /* ============================== */
 
-        /* === LED BUTTONS STYLE (BIG & GLOWING) === */
-        .btn { width: 100%; padding: 22px; background: #1e3c72; color: white; border: 2px solid rgba(255,255,255,0.2); border-radius: 15px; font-size: 18px; font-weight: 800; cursor: pointer; margin-top: 10px; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); transition: 0.2s; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; text-transform: uppercase; }
-        .btn:active { transform: scale(0.96); box-shadow: 0 0 5px rgba(0, 210, 255, 0.8); }
-        .btn:disabled { background: #555; cursor: not-allowed; box-shadow: none; opacity: 0.6; border: none; }
-        
-        .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); border-color: #ff8b8b; box-shadow: 0 0 25px rgba(239, 71, 58, 0.5); }
-        .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 20px; border-color: #a2fec0; box-shadow: 0 0 25px rgba(56, 239, 125, 0.5); } 
-        .btn-cancel { background: #555; border-color: #999; box-shadow: 0 0 10px rgba(255,255,255,0.2); margin-top: 15px; }
+        .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+        .btn-keluar { background: linear-gradient(to right, #cb2d3e, #ef473a); }
+        .btn-pelawat { background: linear-gradient(to right, #11998e, #38ef7d); margin-top: 15px; } 
+        .btn-cancel { background: #7f8c8d; margin-top: 10px; }
         
         #dashboardPanel { display: none; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .user-welcome { font-size: 20px; font-weight: 700; color: #1e3c72; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 10px;}
-        .locked-msg { font-size: 12px; color: #95a5a6; margin-bottom: 15px; }
+        .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; min-height: 80px; }
-        .cam-icon { width: 32px; height: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .cam-btn { background: #34495e; color: white; padding: 15px 5px; border-radius: 10px; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #ccc; min-height: 70px; }
+        .cam-icon { width: 28px; height: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         #previewImg { width: 100%; margin-top: 10px; border-radius: 10px; display: none; border: 2px solid #333; max-height: 250px; object-fit: cover; }
         
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
-        .list-header span { font-weight: 700; color: #1e3c72; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .list-header span { font-weight: 700; color: #1e3c72; font-size: 14px; display: flex; align-items: center; gap: 5px; }
         .list-container { text-align: left; margin-top: 5px; max-height: 300px; overflow-y: auto; }
         
-        .user-card { background: #fff; padding: 15px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #1e3c72; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .user-card.offline-item { border-left: 5px solid #e67e22; background: #fffcf5; }
+        .user-card { background: #fff; padding: 12px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1e3c72; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .user-card.offline-item { border-left: 4px solid #e67e22; background: #fffcf5; }
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
-        .user-info strong { font-size: 15px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-details { font-size: 12px; color: #7f8c8d; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+        .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+        .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
         
         /* STYLE JAM RANDIK */
         .live-timer { 
@@ -102,24 +86,24 @@
             font-weight: 700; 
             font-family: 'Courier New', Courier, monospace; 
             background: #fff5e6; 
-            padding: 4px 10px; 
+            padding: 2px 8px; 
             border-radius: 4px; 
             border: 1px solid #fae5d3; 
-            min-width: 80px; 
+            min-width: 70px; 
             text-align: center; 
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 12px; 
+            gap: 4px;
+            font-size: 11px; 
         }
 
-        .list-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-        .icon-btn { cursor: pointer; font-size: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #eee; transition: background 0.2s; }
+        .list-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+        .icon-btn { cursor: pointer; font-size: 14px; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #eee; transition: background 0.2s; }
         .icon-btn:hover { background: #e2e6ea; }
 
         #scheduleInfo { display: none; background: transparent; padding: 0; margin-bottom: 15px; text-align: center; animation: fadeIn 0.5s; }
         .schedule-minimal { display: flex; justify-content: center; gap: 10px; align-items: center; }
-        .time-pill { background: #f1f3f5; padding: 8px 16px; border-radius: 25px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; border: 1px solid #e9ecef; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .time-pill { background: #f1f3f5; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px; border: 1px solid #e9ecef; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -129,28 +113,37 @@
 
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); }
         
-        #loadingConfig { font-size: 12px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
-        #statusText { font-size: 12px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 6px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; }
+        #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
+        #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* --- 3D ICONS STYLES (LED & BIGGER) --- */
-        .icon-3d-mini { width: 28px; height: 28px; vertical-align: middle; margin-right: 4px; filter: drop-shadow(0 0 4px #00ffff); }
-        .icon-3d-std { width: 40px; height: 40px; vertical-align: middle; margin-right: 6px; filter: drop-shadow(0 0 6px #00ffff); }
-        .icon-3d-lg { width: 60px; height: 60px; vertical-align: middle; filter: drop-shadow(0 0 10px #00ffff); }
-        .icon-3d-xl { width: 80px; height: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 15px #00ffff); }
+        /* --- 3D ICONS STYLES --- */
+        .icon-3d-mini { width: 16px; height: 16px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+        .icon-3d-std { width: 22px; height: 22px; vertical-align: middle; margin-right: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
+        .icon-3d-lg { width: 32px; height: 32px; vertical-align: middle; }
+        .icon-3d-xl { width: 64px; height: 64px; margin-bottom: 10px; }
         
         @keyframes spin3d { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spin-3d { animation: spin3d 2s linear infinite; }
 
         #customModal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; animation: fadeIn 0.3s; }
-        .custom-modal-content { background: white; padding: 35px 30px; border-radius: 25px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; border: 2px solid #e1e4e8; }
+        .custom-modal-content { background: white; padding: 30px 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
         @keyframes popUp { to { transform: scale(1); } }
-        .modal-icon-top { font-size: 80px; margin-bottom: 20px; display: block; text-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
-        .modal-title { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; }
-        .modal-msg { font-size: 15px; color: #555; margin-bottom: 25px; line-height: 1.5; }
-        .modal-btn-row { display: flex; gap: 15px; justify-content: center; }
-        .modal-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: 700; cursor: pointer; font-size: 16px; }
-        .btn-ok { background: #1e3c72; color: white; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3); }
-        .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
+        .modal-icon-top { font-size: 50px; margin-bottom: 15px; display: block; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 10px; }
+        .modal-msg { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn-row { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .btn-ok { background: #1e3c72; color: white; }
+        .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }  
+
+        /* AVATAR MODAL STYLES */
+        #avatarPickerModal { display: none; position: fixed; z-index: 10002; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .avatar-grid-container { background: white; padding: 20px; border-radius: 20px; width: 90%; max-width: 350px; max-height: 80vh; overflow-y: auto; text-align: center; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
+        .avatar-option { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; padding: 2px; }
+        .avatar-option:hover { background: #e3f2fd; transform: scale(1.1); }
+        .avatar-option.selected { border-color: #1e3c72; background: #e3f2fd; }
+        .avatar-option img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
         /* Status Bar untuk Offline/Sync */
         #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
@@ -162,7 +155,16 @@
     <div id="syncStatusBar"></div>
     <div id="warningBox">?? SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
-    <!-- MODAL CUSTOM ALERT (MODIFIED ICON ??) -->
+    <!-- MODAL PILIH AVATAR -->
+    <div id="avatarPickerModal">
+        <div class="avatar-grid-container">
+            <div class="modal-title">Pilih Avatar Anda</div>
+            <div style="font-size:11px; color:#666;">Sila pilih satu ikon identiti.</div>
+            <div class="avatar-grid" id="avatarGrid"></div>
+            <button class="btn" onclick="closeAvatarModal()" style="margin-top:15px; padding:10px;">Tutup</button>
+        </div>
+    </div>
+
     <div id="customModal">
         <div class="custom-modal-content">
             <span id="modalIcon" class="modal-icon-top">??</span>
@@ -171,18 +173,6 @@
             <div class="modal-btn-row" id="modalBtnRow">
                 <button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>
             </div>
-        </div>
-    </div>
-
-    <!-- MODAL PILIH AVATAR (NEW) -->
-    <div id="avatarModal">
-        <div class="avatar-modal-content">
-            <h3 style="color:#1e3c72; margin-top:0;">PILIH AVATAR ANDA</h3>
-            <p style="font-size:12px; color:#777;">Klik untuk memilih penampilan.</p>
-            <div class="avatar-grid" id="avatarGrid">
-                <!-- Avatar items will be injected here -->
-            </div>
-            <button class="btn btn-cancel" onclick="closeAvatarModal()" style="padding:10px;">TUTUP</button>
         </div>
     </div>
 
@@ -226,7 +216,7 @@
 
             <div id="dashboardPanel">
                 <span class="user-welcome">
-                    <img id="dashAvatar" src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
+                    <img id="userAvatarDash" src="https://cdn-icons-png.flaticon.com/128/4140/4140047.png" class="icon-3d-lg"> 
                     Hai, <span id="sessionName">--</span>
                 </span>
                 <div class="locked-msg">Akaun anda aktif pada peranti ini.</div>
@@ -237,6 +227,7 @@
 
                 <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
                 
+                <!-- ALASAN KELUAR HIDDEN -->
                 <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab pulang awal untuk makluman pentadbir..."></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
@@ -244,7 +235,7 @@
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:16px; padding: 18px;">
+                    <button class="btn btn-pelawat" onclick="showPelawatForm()" style="font-size:13px; padding: 12px;">
                         <img src="https://cdn-icons-png.flaticon.com/128/3135/3135768.png" class="icon-3d-std"> BANTU DAFTAR PELAWAT
                     </button>
                 </div>
@@ -255,7 +246,8 @@
                     <img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> Sedang menyemak jadual terkini...
                 </div>
                 <div id="scheduleInfo"></div>
-                <select id="kategori" onchange="checkKategori(); updateScheduleInfo(); triggerAlasanMasuk();">
+                
+                <select id="kategori" onchange="checkKategori(); updateScheduleInfo();">
                     <option value="" disabled selected>-- PILIH KATEGORI --</option>
                     <option value="GURU">GURU</option>
                     <option value="AKP">AKP</option>
@@ -263,22 +255,21 @@
                     <option value="PELAWAT">?? PELAWAT (AWAM)</option>
                 </select>
                 
-                <!-- INPUT NAMA WITH LOCK BUTTON & AVATAR BUTTON -->
+                <!-- INPUT NAMA WITH AVATAR & LOCK BUTTON -->
                 <div class="input-group">
-                    <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase; padding-right: 105px;">
-                    
-                    <!-- Butang Pilih Avatar -->
                     <button class="avatar-btn" onclick="openAvatarModal()" title="Pilih Avatar">
-                         <img src="https://cdn-icons-png.flaticon.com/128/3135/3135715.png" id="currentAvatarIcon">
+                        <img id="selectedAvatarImg" src="https://cdn-icons-png.flaticon.com/128/149/149071.png">
                     </button>
-
-                    <button id="lockBtn" class="lock-btn" onclick="toggleLockName()" title="Kunci Nama">
+                    <input type="text" id="nama" placeholder="NAMA PENUH" style="text-transform:uppercase">
+                    <button id="lockBtn" class="lock-btn" onclick="toggleLockName()" title="Kunci Nama & Jawatan">
                         <img src="https://cdn-icons-png.flaticon.com/128/149/149463.png" class="icon-3d-mini" id="lockIconImg" style="filter:opacity(0.4)">
                     </button>
                 </div>
 
-                <textarea id="alasanMasuk" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
-                <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">
+                <!-- ALASAN MASUK REMOVED/HIDDEN -->
+                <textarea id="alasanMasuk" style="display:none" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
+                
+                <button id="btnMainSubmit" class="btn" onclick="hantarMasuk(false)">
                     <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> DAFTAR MASUK
                 </button>
             </div>
@@ -287,7 +278,7 @@
                 <h3 style="color:#27ae60; margin:0 0 5px 0; display:flex; align-items:center; justify-content:center; gap:5px;">
                     <img src="https://cdn-icons-png.flaticon.com/128/3687/3687416.png" class="icon-3d-lg"> MOD PELAWAT
                 </h3>
-                <p style="font-size:12px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
+                <p style="font-size:11px; color:#666; margin-bottom:15px;">Sila ambil gambar & isi nama pelawat.</p>
                 <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
                 
                 <div class="cam-grid">
@@ -330,7 +321,6 @@
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
             </div>
             
-            <!-- BUTANG RESET DIBUANG SEPERTI DIMINTA -->
         </div>
     </div>
 
@@ -341,18 +331,8 @@
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
     let isSubmitting = false; 
-
-    // SENARAI AVATAR
-    const AVATARS = [
-        "https://cdn-icons-png.flaticon.com/128/3135/3135715.png",
-        "https://cdn-icons-png.flaticon.com/128/3135/3135768.png",
-        "https://cdn-icons-png.flaticon.com/128/236/236831.png",
-        "https://cdn-icons-png.flaticon.com/128/4140/4140048.png",
-        "https://cdn-icons-png.flaticon.com/128/4140/4140047.png",
-        "https://cdn-icons-png.flaticon.com/128/3048/3048122.png",
-        "https://cdn-icons-png.flaticon.com/128/4333/4333609.png",
-        "https://cdn-icons-png.flaticon.com/128/924/924915.png"
-    ];
+    let currentAvatar = "https://cdn-icons-png.flaticon.com/128/149/149071.png";
+    let wasInZone = false; // Untuk track status keluar masuk
 
     // ==========================================
     //       LOGIK MOD OFFLINE & SYNC PINTAR
@@ -407,7 +387,6 @@
 
         let itemToSync = offlineQueue[0];
 
-        // FIX CHROME OFFLINE: Pastikan kategori wujud. Jika undefined, set ke PELAWAT.
         if (!itemToSync.kategori || itemToSync.kategori === "undefined" || itemToSync.kategori === null) {
             console.warn("Data kategori rosak dikesan, set default ke PELAWAT.");
             itemToSync.kategori = "PELAWAT";
@@ -447,24 +426,21 @@
         mTitle.innerText = title;
         mMsg.innerHTML = msg; 
         
-        // IKON DIUBAH KEPADA ?? SEPERTI DIMINTA
-        mIcon.innerText = "??";
-
         if(type === 'error') {
-            mTitle.style.color = "#c0392b";
+            mIcon.innerText = "??"; mTitle.style.color = "#c0392b";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Faham</button>`;
         } else if(type === 'success') {
-            mTitle.style.color = "#27ae60";
+            mIcon.innerText = "?"; mTitle.style.color = "#27ae60";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Terbaik</button>`;
         } else if(type === 'info') {
-            mTitle.style.color = "#2980b9";
+            mIcon.innerText = "??"; mTitle.style.color = "#2980b9";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">OK</button>`;
         } else if(type === 'confirm') {
-            mTitle.style.color = "#1e3c72";
+            mIcon.innerText = "??"; mTitle.style.color = "#1e3c72";
             window.tempCallback = callback;
             mBtns.innerHTML = `<button class="modal-btn btn-cancel-modal" onclick="closeCustomModal()">Batal</button><button class="modal-btn btn-ok" onclick="confirmAction()">Teruskan</button>`;
         } else {
-            mTitle.style.color = "#2c3e50";
+            mIcon.innerText = "??"; mTitle.style.color = "#2c3e50";
             mBtns.innerHTML = `<button class="modal-btn btn-ok" onclick="closeCustomModal()">Tutup</button>`;
         }
         modal.style.display = "flex";
@@ -473,39 +449,14 @@
     function closeCustomModal() { document.getElementById('customModal').style.display = "none"; }
     function confirmAction() { closeCustomModal(); if(window.tempCallback) window.tempCallback(); }
 
-    // LOGIK AVATAR
-    function initAvatar() {
-        let saved = localStorage.getItem('ehadir_avatar');
-        if(saved) document.getElementById('currentAvatarIcon').src = saved;
-        
-        // Populate Grid
-        let grid = document.getElementById('avatarGrid');
-        grid.innerHTML = "";
-        AVATARS.forEach(url => {
-            let img = document.createElement('img');
-            img.src = url;
-            img.className = 'avatar-option';
-            img.onclick = function() { selectAvatar(url); };
-            grid.appendChild(img);
-        });
-    }
-
-    function openAvatarModal() { document.getElementById('avatarModal').style.display = "flex"; }
-    function closeAvatarModal() { document.getElementById('avatarModal').style.display = "none"; }
-    
-    function selectAvatar(url) {
-        localStorage.setItem('ehadir_avatar', url);
-        document.getElementById('currentAvatarIcon').src = url;
-        closeAvatarModal();
-    }
-
     window.onload = function() {
         startClock();
         startRadar();
         fetchConfig(); 
         getHijriDate();
         initLockName(); 
-        initAvatar(); // Init avatar
+        generateAvatars();
+        requestNotificationPermission(); // Minta izin notifikasi
         
         if(!navigator.onLine) showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
         else syncOfflineData(); 
@@ -516,22 +467,92 @@
         }, 2000);
 
         loadList();
-        // JAM RANDIK: Update setiap 1 saat
         setInterval(updateLiveTimers, 1000);
     };
 
-    // --- LOGIK LOCK NAMA & AUTO SYNC ---
+    // --- NOTIFICATION HELPER ---
+    function requestNotificationPermission() {
+        if ('Notification' in window) {
+            Notification.requestPermission();
+        }
+    }
+
+    function sendNotification(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body: body, icon: 'logo.png' });
+        }
+    }
+
+    // --- AVATAR LOGIC ---
+    function generateAvatars() {
+        const grid = document.getElementById('avatarGrid');
+        grid.innerHTML = '';
+        // Pautan Avatar 30 Jenis (Mix Laki/Perempuan)
+        const avatars = [
+            "https://cdn-icons-png.flaticon.com/128/149/149071.png", "https://cdn-icons-png.flaticon.com/128/4140/4140048.png",
+            "https://cdn-icons-png.flaticon.com/128/4140/4140047.png", "https://cdn-icons-png.flaticon.com/128/4140/4140037.png",
+            "https://cdn-icons-png.flaticon.com/128/4140/4140051.png", "https://cdn-icons-png.flaticon.com/128/1999/1999625.png",
+            "https://cdn-icons-png.flaticon.com/128/2922/2922510.png", "https://cdn-icons-png.flaticon.com/128/2922/2922561.png",
+            "https://cdn-icons-png.flaticon.com/128/3135/3135715.png", "https://cdn-icons-png.flaticon.com/128/3135/3135768.png",
+            "https://cdn-icons-png.flaticon.com/128/6997/6997662.png", "https://cdn-icons-png.flaticon.com/128/4333/4333609.png",
+            "https://cdn-icons-png.flaticon.com/128/219/219969.png", "https://cdn-icons-png.flaticon.com/128/4140/4140061.png",
+            "https://cdn-icons-png.flaticon.com/128/4128/4128176.png", "https://cdn-icons-png.flaticon.com/128/147/147144.png",
+            "https://cdn-icons-png.flaticon.com/128/3011/3011270.png", "https://cdn-icons-png.flaticon.com/128/168/168734.png",
+            "https://cdn-icons-png.flaticon.com/128/4140/4140055.png", "https://cdn-icons-png.flaticon.com/128/4140/4140077.png",
+            "https://cdn-icons-png.flaticon.com/128/924/924874.png", "https://cdn-icons-png.flaticon.com/128/924/924915.png",
+            "https://cdn-icons-png.flaticon.com/128/219/219970.png", "https://cdn-icons-png.flaticon.com/128/1308/1308491.png",
+            "https://cdn-icons-png.flaticon.com/128/145/145867.png", "https://cdn-icons-png.flaticon.com/128/2922/2922506.png",
+            "https://cdn-icons-png.flaticon.com/128/3001/3001764.png", "https://cdn-icons-png.flaticon.com/128/3001/3001758.png",
+            "https://cdn-icons-png.flaticon.com/128/9308/9308228.png", "https://cdn-icons-png.flaticon.com/128/706/706807.png"
+        ];
+
+        avatars.forEach(url => {
+            let div = document.createElement('div');
+            div.className = 'avatar-option';
+            div.innerHTML = `<img src="${url}">`;
+            div.onclick = () => selectAvatar(url);
+            grid.appendChild(div);
+        });
+    }
+
+    function openAvatarModal() {
+        document.getElementById('avatarPickerModal').style.display = 'flex';
+    }
+
+    function closeAvatarModal() {
+        document.getElementById('avatarPickerModal').style.display = 'none';
+    }
+
+    function selectAvatar(url) {
+        currentAvatar = url;
+        document.getElementById('selectedAvatarImg').src = url;
+        // Jika sedang lock, update storage juga
+        if(document.getElementById('nama').readOnly) {
+            localStorage.setItem('ehadir_avatar', url);
+        }
+        closeAvatarModal();
+    }
+
+    // --- LOGIK LOCK NAMA & JAWATAN & AVATAR ---
     function initLockName() {
         let locked = localStorage.getItem('ehadir_locked_name');
+        let lockedCat = localStorage.getItem('ehadir_locked_cat');
+        let lockedAvt = localStorage.getItem('ehadir_locked_avt');
+        
         let input = document.getElementById('nama');
+        let cat = document.getElementById('kategori');
         let btnImg = document.getElementById('lockIconImg');
         
         if (locked) {
             input.value = locked;
             input.readOnly = true;
             input.style.background = "#fff8e1"; 
+            if(lockedCat) { cat.value = lockedCat; cat.disabled = true; cat.style.background = "#fff8e1"; }
+            if(lockedAvt) { currentAvatar = lockedAvt; document.getElementById('selectedAvatarImg').src = lockedAvt; }
+            
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/2889/2889676.png"; 
             btnImg.style.filter = "opacity(1)";
+            updateScheduleInfo();
         } else {
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/149/149463.png"; 
             btnImg.style.filter = "opacity(0.4)";
@@ -540,23 +561,29 @@
 
     function toggleLockName() {
         let input = document.getElementById('nama');
+        let cat = document.getElementById('kategori');
         let current = input.value.trim().toUpperCase();
+        let currentCat = cat.value;
         
-        if(!current) { showModernAlert("Kosong", "Sila taip nama dahulu sebelum kunci.", "error"); return; }
+        if(!current || !currentCat) { showModernAlert("Kosong", "Sila pilih Kategori dan Nama dahulu.", "error"); return; }
         
         if (input.readOnly) {
             // UNLOCK
-            input.readOnly = false;
-            input.style.background = "#f8f9fa";
+            input.readOnly = false; cat.disabled = false;
+            input.style.background = "#f8f9fa"; cat.style.background = "#f8f9fa";
             localStorage.removeItem('ehadir_locked_name');
-            showModernAlert("Nyah-Kunci", "Nama tidak lagi disimpan.", "info");
+            localStorage.removeItem('ehadir_locked_cat');
+            localStorage.removeItem('ehadir_locked_avt');
+            showModernAlert("Nyah-Kunci", "Data tidak lagi disimpan.", "info");
             initLockName();
         } else {
             // LOCK
-            input.readOnly = true;
-            input.style.background = "#fff8e1";
+            input.readOnly = true; cat.disabled = true;
+            input.style.background = "#fff8e1"; cat.style.background = "#fff8e1";
             localStorage.setItem('ehadir_locked_name', current);
-            showModernAlert("Disimpan", "Nama anda telah dikunci. Ia akan automatik diisi setiap hari.", "success");
+            localStorage.setItem('ehadir_locked_cat', currentCat);
+            localStorage.setItem('ehadir_locked_avt', currentAvatar);
+            showModernAlert("Disimpan", "Nama & Jawatan dikunci untuk auto-hadir.", "success");
             initLockName();
         }
     }
@@ -565,12 +592,9 @@
         let locked = localStorage.getItem('ehadir_locked_name');
         if(!locked) return;
         
-        // Cari rekod hari ini yang sepadan dengan nama yang dikunci
         let userRecord = list.find(item => item.nama === locked);
         
         if (userRecord) {
-            // Jika jumpa, semak COLUMN F (Waktu Keluar)
-            // Jika 'keluar' masih kosong/null -> Force Masuk Sesi (Dashboard)
             if (!userRecord.keluar || userRecord.keluar === "") {
                  let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
                  if (!currentSess) {
@@ -583,7 +607,6 @@
                      location.reload(); 
                  }
             } else {
-                // Jika 'keluar' dah ada isi -> Clear Session (User dah balik)
                 let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
                 if (currentSess && currentSess.nama === locked) {
                     console.log("Auto-Sync: User sudah keluar. Clear session.");
@@ -606,7 +629,7 @@
             jamConfig = (res.status === "SUCCESS" && res.data) ? res.data : res;
             if(jamConfig) {
                 document.getElementById('loadingConfig').style.display = 'none';
-                updateScheduleInfo(); triggerAlasanMasuk();
+                updateScheduleInfo();
             }
         }).catch(err => document.getElementById('loadingConfig').innerHTML = "<img src='https://cdn-icons-png.flaticon.com/128/189/189792.png' class='icon-3d-mini'> Ralat sambungan.");
     }
@@ -632,27 +655,6 @@
         }
     }
 
-    function triggerAlasanMasuk() {
-        let kat = document.getElementById('kategori').value;
-        let area = document.getElementById('alasanMasuk');
-        let now = new Date();
-        if (jamConfig && kat && kat !== "PELAWAT" && jamConfig[kat]) {
-            let limitMasuk = parseTime(jamConfig[kat].masuk, now);
-            let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-            
-            // LOGIK BARU: Jika masuk SELEPAS waktu keluar (kerja lebih masa/datang semula), 
-            // JANGAN minta alasan.
-            let isAfterHours = (limitKeluar && now > limitKeluar);
-
-            if (limitMasuk && now > limitMasuk && !isAfterHours) {
-                area.style.display = "block";
-                area.placeholder = `Lewat hadir. Mohon nyatakan sebab...`;
-                return;
-            }
-        }
-        area.style.display = "none"; area.value = ""; 
-    }
-
     function updateDashboardInfo() {
         let s = JSON.parse(localStorage.getItem('ehadir_session'));
         let dashboardSchedule = document.getElementById('dashboardSchedule');
@@ -662,9 +664,6 @@
             let displayKeluar = cleanTimeDisplay(jamConfig[s.kategori].keluar);
             dashboardSchedule.style.display = "block";
             userExitTime.innerText = displayKeluar;
-
-            let now = new Date();
-            let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
         }
     }
 
@@ -693,74 +692,84 @@
     }
 
     function saveToQueue(data) {
-        // FIX: Pastikan kategori wujud sebelum simpan ke queue
         if (!data.kategori) data.kategori = "PELAWAT";
-        
         let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         queue.push(data);
         localStorage.setItem('ehadir_offline_queue', JSON.stringify(queue));
     }
 
-    async function hantarMasuk() {
+    // --- AUTO CHECK-IN/OUT LOGIC ---
+    async function hantarMasuk(isAuto = false) {
         if(isSubmitting) return; 
 
-        if(!isInZone) { showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); return; }
+        if(!isInZone) { 
+            if(!isAuto) showModernAlert("Luar Kawasan", "Sila masuk ke kawasan sekolah.", "error"); 
+            return; 
+        }
         
-        if(!jamConfig && navigator.onLine) { showModernAlert("Sabar", "Sedang memuatkan jadual...", "info"); return; }
+        if(!jamConfig && navigator.onLine && !isAuto) { showModernAlert("Sabar", "Sedang memuatkan jadual...", "info"); return; }
 
+        // Jika auto, ambil dari localStorage kalau input kosong
         let nama = document.getElementById('nama').value.toUpperCase().trim();
         let kat = document.getElementById('kategori').value;
-        let alasan = document.getElementById('alasanMasuk').value;
-        let now = new Date();
+        if(isAuto) {
+            nama = localStorage.getItem('ehadir_locked_name');
+            kat = localStorage.getItem('ehadir_locked_cat');
+        }
 
-        if (!nama || !kat) { showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); return; }
+        if (!nama || !kat) { 
+            if(!isAuto) showModernAlert("Data Tidak Lengkap", "Isi Nama dan Kategori.", "error"); 
+            return; 
+        }
         
         kat = kat.trim();
+        let now = new Date();
+        let alasan = "-"; // DEFAULT KOSONG, GANTIKAN DENGAN AUTO JIKA PERLU
 
-        // CHECK RESTORE SESSION: Jika nama wujud, offer untuk sambung sesi
+        // CHECK RESTORE SESSION
         let existingRec = currentList.find(item => item.nama === nama);
-        if(existingRec) {
-            showModernAlert("Sambung Sesi?", "Nama <b>" + nama + "</b> dikesan aktif. Ingin sambung sesi untuk Daftar Keluar?", "confirm", () => {
+        if(existingRec && !isAuto) {
+            showModernAlert("Sambung Sesi?", "Nama <b>" + nama + "</b> dikesan aktif. Ingin sambung sesi?", "confirm", () => {
                 localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: existingRec.kategori, date: new Date().toISOString().slice(0,10)}));
                 location.reload();
             });
             return;
         }
 
+        // LOGIK NOTIFIKASI AUTO
         if (jamConfig && jamConfig[kat]) {
             let limitMasuk = parseTime(jamConfig[kat].masuk, now);
             let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-            
-            // LOGIK BARU: Jika masuk SELEPAS waktu keluar, abaikan amaran lewat.
             let isAfterHours = (limitKeluar && now > limitKeluar);
 
-            if (limitMasuk && now > limitMasuk && !isAfterHours && alasan.trim() === "") {
-                document.getElementById('alasanMasuk').style.display = "block";
-                showModernAlert("Lewat Hadir", "Sila isi sebab kelewatan.", "error");
-                return; 
-            }
-        }
-
-        if (document.getElementById('alasanMasuk').style.display === "none") {
-            if (jamConfig && jamConfig[kat]) {
-                let limitKeluar = parseTime(jamConfig[kat].keluar, now);
-                if (limitKeluar && now > limitKeluar) alasan = "KERJA LEBIH MASA / PROGRAM";
+            if (limitMasuk && now > limitMasuk && !isAfterHours) {
+                if(isAuto) {
+                    sendNotification("Hadir Lewat", "Anda lewat hadir, tetapi telah didaftarkan masuk secara automatik.");
+                    alasan = "AUTO (LEWAT)";
+                } else {
+                    // Manual mode: Tak minta alasan dah (Rules #3)
+                    alasan = "MANUAL (LEWAT)";
+                }
+            } else if(isAuto) {
+                sendNotification("Hadir", "Selamat datang! Anda telah didaftar masuk secara automatik.");
+                alasan = "AUTO (GEOFENCE)";
             }
         }
 
         isSubmitting = true;
-        document.getElementById('btnMainSubmit').disabled = true;
-        document.getElementById('btnMainSubmit').innerHTML = '<img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> SEDANG HANTAR...';
+        if(!isAuto) {
+            document.getElementById('btnMainSubmit').disabled = true;
+            document.getElementById('btnMainSubmit').innerHTML = '<img src="https://cdn-icons-png.flaticon.com/128/189/189792.png" class="icon-3d-mini spin-3d"> SEDANG HANTAR...';
+        }
 
         try {
             const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() };
             
             const result = await sendData(payload);
 
-            if (result.offline) {
-                alert("?? Mod Offline: Data telah disimpan dalam telefon. Ia akan dihantar automatik bila ada internet.");
-            } else {
-                alert("? Data berjaya dihantar ke server!");
+            if(!isAuto) {
+                if (result.offline) alert("?? Mod Offline: Data disimpan.");
+                else alert("? Data berjaya dihantar!");
             }
 
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
@@ -769,7 +778,7 @@
         } catch (error) {
             console.error("Ralat:", error);
             isSubmitting = false;
-            document.getElementById('btnMainSubmit').disabled = false;
+            if(!isAuto) document.getElementById('btnMainSubmit').disabled = false;
         }
     }
 
@@ -778,35 +787,22 @@
 
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
         if (!session || !session.nama) { if(!isAuto) showModernAlert("Ralat", "Sila reset sistem.", "error"); return; }
-        if (lastLat === 0 || lastLng === 0) { if(!isAuto) showModernAlert("GPS", "Sedang cari lokasi...", "info"); return; }
+        
+        let alasanValue = "-";
 
-        let alasanInput = document.getElementById('alasanKeluar');
-        let alasanValue = alasanInput.value.trim();
-        let now = new Date();
-        let limitKeluar = null;
-        
-        if (jamConfig && jamConfig[session.kategori]) {
-            limitKeluar = parseTime(jamConfig[session.kategori].keluar, now);
-            
-            // FIX: BENARKAN CHECKOUT LUAR KAWASAN (User Request)
-            // Kita tidak lagi menyekat jika jauh, cuma pastikan alasan jika awal
-            if (!isAuto && limitKeluar && now < limitKeluar && alasanValue === "") {
-                alasanInput.style.display = "block";
-                showModernAlert("Pulang Awal", "Sila nyatakan sebab pulang awal.", "error");
-                return; 
-            }
-        }
-        
         if (isAuto) {
-            alasanValue = "AUTO CHECKOUT (LUPA DAFTAR KELUAR)";
-        } else if (alasanValue === "") {
-            alasanValue = "PULANG MENGIKUT WAKTU";
+            alasanValue = "AUTO CHECKOUT (KELUAR KAWASAN)";
+            sendNotification("Amaran Zon", "Anda keluar >1KM. Sistem telah mendaftar keluar automatik.");
+        } else {
+            alasanValue = "MANUAL CHECKOUT";
         }
 
         let proceed = async () => {
             isSubmitting = true; 
-            document.getElementById('btnKeluar').disabled = true;
-            document.getElementById('btnKeluar').innerText = isAuto ? "AUTO KELUAR..." : "SEDANG PROSES...";
+            if(!isAuto) {
+                document.getElementById('btnKeluar').disabled = true;
+                document.getElementById('btnKeluar').innerText = "SEDANG PROSES...";
+            }
 
             try {
                 const payload = { action: "KELUAR", passcode: PASSCODE, nama: session.nama.toUpperCase(), alasan: alasanValue, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() };
@@ -814,16 +810,9 @@
                 const result = await sendData(payload);
 
                 if(!isAuto) {
-                    if (result.offline) {
-                        alert("?? Mod Offline: Data keluar disimpan. Akan dihantar bila ada internet.");
-                    } else {
-                        // Jika ada mesej khas dari server (cth: kata semangat), paparkan
-                        if(result.data && result.data.msg) {
-                            alert("? " + result.data.msg);
-                        } else {
-                            alert("? Berjaya daftar keluar!");
-                        }
-                    }
+                    if (result.offline) alert("?? Mod Offline: Data keluar disimpan.");
+                    else if(result.data && result.data.msg) alert("? " + result.data.msg);
+                    else alert("? Berjaya daftar keluar!");
                 }
                 
                 localStorage.removeItem('ehadir_session');
@@ -836,7 +825,7 @@
         };
 
         if(!isAuto) {
-            let extraMsg = (currentDist > 1000) ? "<br><small>(Info: Anda berada di luar kawasan. Lokasi direkod.)</small>" : "";
+            let extraMsg = (currentDist > 1000) ? "<br><small>(Info: Luar kawasan.)</small>" : "";
             showModernAlert("Pengesahan", "Daftar keluar sekarang?" + extraMsg, "confirm", proceed);
         } else {
             proceed();
@@ -872,14 +861,9 @@
             const payload = { action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() };
             
             const result = await sendData(payload);
-
-            if (result.offline) {
-                alert("?? Mod Offline: Data pelawat disimpan. Akan dihantar bila ada internet.");
-            } else {
-                alert("? Data pelawat berjaya dihantar!");
-            }
+            if (result.offline) alert("?? Mod Offline: Data pelawat disimpan.");
+            else alert("? Data pelawat berjaya dihantar!");
             location.reload();
-
         } catch (error) {
             console.error(error);
             isSubmitting = false;
@@ -904,11 +888,8 @@
         return null; 
     }
 
-    // FUNGSI BARU: Parse masa dari string (contoh: "8:00:00 AM") ke Date hari ini
     function parseTimeLocal(timeStr) {
         if (!timeStr) return null;
-        
-        // Jika format ISO/Date string
         if (timeStr.toString().length > 15) {
              let tempD = new Date(timeStr);
              if(!isNaN(tempD.getTime())) { 
@@ -917,45 +898,23 @@
                  return now; 
              }
         }
-        
-        // Regex untuk format "HH:MM:SS AM/PM"
         let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
         if (!parts) return null;
-        
-        let h = parseInt(parts[1]);
-        let m = parseInt(parts[2]);
-        let s = parts[3] ? parseInt(parts[3]) : 0;
-        let ampm = parts[4] ? parts[4].toUpperCase() : null;
-        
+        let h = parseInt(parts[1]), m = parseInt(parts[2]), s = parts[3] ? parseInt(parts[3]) : 0, ampm = parts[4] ? parts[4].toUpperCase() : null;
         if (ampm === "PM" && h < 12) h += 12; 
         if (ampm === "AM" && h === 12) h = 0;
-        
-        let d = new Date(); 
-        d.setHours(h, m, s, 0); 
-        return d;
+        let d = new Date(); d.setHours(h, m, s, 0); return d;
     }
 
-    // FUNGSI BARU: JAM RANDIK (Jam & Minit Sahaja)
     function updateLiveTimers() {
         let now = new Date();
         document.querySelectorAll('.live-timer').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
-            if (!masukStr || masukStr === "undefined") { 
-                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; 
-                return; 
-            }
-            
+            if (!masukStr || masukStr === "undefined") { el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; return; }
             let masukDate = parseTimeLocal(masukStr);
-            
             if (masukDate) {
-                let diff = Math.floor((now - masukDate) / 1000); // Beza dalam saat
-                if (diff < 0) diff = 0;
-                
-                let h = Math.floor(diff / 3600);
-                let m = Math.floor((diff % 3600) / 60);
-                
-                // FORMAT: Jam dan Minit sahaja (HURUF BESAR H & M) + ICON GAMBAR
-                // Guna innerHTML sebab nak masukkan image
+                let diff = Math.floor((now - masukDate) / 1000); if (diff < 0) diff = 0;
+                let h = Math.floor(diff / 3600); let m = Math.floor((diff % 3600) / 60);
                 el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> ${h}H ${m}M`;
             } else { 
                 el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M`; 
@@ -968,26 +927,56 @@
             navigator.geolocation.watchPosition(pos => {
                 lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
                 currentDist = calcDist(lastLat, lastLng, SCHOOL_LAT, SCHOOL_LNG); 
+                
+                // Logic Geofence
+                let prevZone = isInZone;
                 isInZone = (currentDist <= RADIUS_METER);
+                
+                // Status UI
                 let icon = isInZone ? "<img src='https://cdn-icons-png.flaticon.com/128/190/190411.png' class='icon-3d-mini'>" : "<img src='https://cdn-icons-png.flaticon.com/128/190/190406.png' class='icon-3d-mini'>";
                 let textStatus = isInZone ? " DALAM KAWASAN" : " LUAR KAWASAN";
                 document.getElementById('statusText').innerHTML = icon + textStatus + " (" + Math.round(currentDist) + "m)";
                 document.getElementById('statusText').style.color = isInZone ? "#27ae60" : "#c0392b";
                 document.getElementById('statusText').style.background = isInZone ? "#e8f5e9" : "#fdeea5";
+                
+                // === AUTO ENTRY / EXIT LOGIC ===
                 let session = JSON.parse(localStorage.getItem('ehadir_session'));
+                
+                if (isInZone && !session && !isSubmitting) {
+                    // Masuk Kawasan & Tiada Sesi -> Auto Daftar Masuk
+                    // Syarat: Mesti dah lock nama/kategori
+                    let lockedN = localStorage.getItem('ehadir_locked_name');
+                    let lockedC = localStorage.getItem('ehadir_locked_cat');
+                    if(lockedN && lockedC) {
+                        if(!wasInZone) { // Elak loop, hanya trigger bila baru masuk state 'in'
+                            hantarMasuk(true);
+                            wasInZone = true;
+                        }
+                    }
+                } 
+                else if (!isInZone && session && !isSubmitting) {
+                    // Keluar Kawasan (>1km dari radius) & Ada Sesi -> Auto Daftar Keluar
+                    if (currentDist > 1000) {
+                        // Pastikan betul-betul jauh baru trigger (elak drift gps tepi pagar)
+                        hantarKeluar(true);
+                        wasInZone = false;
+                    }
+                }
+                else {
+                    // Update state tracking
+                    if(isInZone) wasInZone = true;
+                    if(!isInZone && currentDist > 1000) wasInZone = false;
+                }
+
                 document.getElementById('warningBox').style.display = (!session && !isInZone) ? "block" : "none";
-            }, null, {enableHighAccuracy: true});
+            }, null, {enableHighAccuracy: true, maximumAge: 10000, timeout: 5000});
         }
     }
 
     function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
     
     function startClock(){
-        setInterval(()=>{
-            let n = new Date();
-            document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit", timeZone: 'Asia/Kuala_Lumpur' });
-            document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur' });
-        }, 1000);
+        setInterval(()=>{ let n = new Date(); document.getElementById('clockDisplay').innerText = n.toLocaleTimeString('en-US', { hour12: true, hour: "2-digit", minute: "2-digit", timeZone: 'Asia/Kuala_Lumpur' }); document.getElementById('dateDisplay').innerText = n.toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur' }); }, 1000);
     }
     
     function getHijriDate(){
@@ -1009,9 +998,11 @@
             document.getElementById('dashboardPanel').style.display = 'block'; 
             document.getElementById('sessionName').innerText = s.nama; 
             document.getElementById('dynamicStatus').innerText = "STATUS: " + s.kategori + " (SEDANG BERTUGAS)";
-            // PAPARKAN AVATAR PADA DASHBOARD JIKA ADA
-            let savedAvatar = localStorage.getItem('ehadir_avatar');
-            if(savedAvatar) document.getElementById('dashAvatar').src = savedAvatar;
+            
+            // Load avatar yang disimpan
+            let savedAvt = localStorage.getItem('ehadir_locked_avt') || localStorage.getItem('ehadir_avatar');
+            if(savedAvt) document.getElementById('userAvatarDash').src = savedAvt;
+            
             updateDashboardInfo(); 
         }
     }
@@ -1019,27 +1010,18 @@
     function loadList() { 
         let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
         let offlineItems = offlineQueue.filter(q => q.action === "MASUK").map(q => ({
-            nama: q.nama,
-            kategori: q.kategori,
-            jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'}),
-            isOffline: true
+            nama: q.nama, kategori: q.kategori, jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'}), isOffline: true
         }));
 
-        if(!navigator.onLine) {
-            renderList(offlineItems);
-            return;
-        }
+        if(!navigator.onLine) { renderList(offlineItems); return; }
 
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
         .then(r => r.json()).then(res => { 
             let serverItems = res.data || res; 
             currentList = [...offlineItems, ...serverItems];
             renderList(currentList);
-            // --- SINKRONISASI STATUS (NAMA LOCK & COLUMN F) ---
             checkAutoStatus(currentList);
-        }).catch(() => {
-            renderList(offlineItems);
-        });
+        }).catch(() => { renderList(offlineItems); });
     }
 
     function renderList(items) {
@@ -1048,11 +1030,8 @@
         items.forEach((i, idx) => { 
             let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
             let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
-            
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
-
-            // JAM RANDIK: Ditambah ikon IMAGE (bukan emoji) dan format H M
             h += `<div class="user-card ${offlineClass}">
                     <div class="user-info">
                         <strong>${offlineIcon}${i.nama}</strong>
@@ -1067,13 +1046,10 @@
                   </div>`; 
         }); 
         document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
-        updateLiveTimers(); // Jalankan sekali selepas render
+        updateLiveTimers(); 
     }
 
-    function viewImage(index) {
-        let data = currentList[index];
-        if(data && data.foto) { document.getElementById('imgFull').src = data.foto; document.getElementById('imageModal').style.display = "flex"; }
-    }
+    function viewImage(index) { let data = currentList[index]; if(data && data.foto) { document.getElementById('imgFull').src = data.foto; document.getElementById('imageModal').style.display = "flex"; } }
     function closeModal() { document.getElementById('imageModal').style.display = "none"; }
     function processImage(i){if(i.files&&i.files[0]){let r=new FileReader();r.onload=function(e){let im=new Image();im.src=e.target.result;im.onload=function(){let cv=document.createElement("canvas");let ctx=cv.getContext("2d");cv.width=400;cv.height=400*(im.height/im.width);ctx.drawImage(im,0,0,cv.width,cv.height);let d=cv.toDataURL("image/jpeg",0.7);document.getElementById('previewImg').src=d;document.getElementById('previewImg').style.display='block';document.getElementById('base64Foto').value=d;};};r.readAsDataURL(i.files[0]);}}
     function checkKategori(){ if(document.getElementById('kategori').value==='PELAWAT') showPelawatForm(); }
