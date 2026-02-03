@@ -17,7 +17,7 @@
         
         // 3. Koordinat Lokasi (Ambil dari Google Maps)
         const SCHOOL_LAT = 5.227932478937475; 
-        const SCHOOL_LNG = 100.69901604319402; 
+        const SCHOOL_LNG = 100.6834597944874; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
         const RADIUS_METER = 1000; 
@@ -43,6 +43,14 @@
         select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
         select:focus, input:focus { border-color: #1e3c72; background: #fff; }
         textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
+
+        /* === NEW CSS FOR NAME LOCK === */
+        .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 12px; }
+        .input-group input { margin-bottom: 0; padding-right: 50px; }
+        .lock-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; z-index: 5; padding: 5px; border-radius: 50%; transition: 0.2s; }
+        .lock-btn:hover { background: rgba(0,0,0,0.05); }
+        .lock-btn:active { transform: translateY(-50%) scale(0.9); }
+        /* ============================== */
 
         .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
@@ -224,7 +232,15 @@
                     <option value="KEBERSIHAN">KEBERSIHAN</option>
                     <option value="PELAWAT">?? PELAWAT (AWAM)</option>
                 </select>
-                <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
+                
+                <!-- INPUT NAMA WITH LOCK BUTTON -->
+                <div class="input-group">
+                    <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
+                    <button id="lockBtn" class="lock-btn" onclick="toggleLockName()" title="Kunci Nama">
+                        <img src="https://cdn-icons-png.flaticon.com/128/149/149463.png" class="icon-3d-mini" id="lockIconImg" style="filter:opacity(0.4)">
+                    </button>
+                </div>
+
                 <textarea id="alasanMasuk" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
                 <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">
                     <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> DAFTAR MASUK
@@ -411,6 +427,7 @@
         startRadar();
         fetchConfig(); 
         getHijriDate();
+        initLockName(); // Initialize Name Lock Logic
         
         if(!navigator.onLine) showSyncBar("MOD OFFLINE: Data akan disimpan dalam telefon.", "#e74c3c");
         else syncOfflineData(); 
@@ -424,6 +441,81 @@
         // JAM RANDIK: Update setiap 1 saat (walaupun paparan minit, supaya responsif)
         setInterval(updateLiveTimers, 1000);
     };
+
+    // --- LOGIK LOCK NAMA & AUTO SYNC ---
+    function initLockName() {
+        let locked = localStorage.getItem('ehadir_locked_name');
+        let input = document.getElementById('nama');
+        let btnImg = document.getElementById('lockIconImg');
+        
+        if (locked) {
+            input.value = locked;
+            input.readOnly = true;
+            input.style.background = "#fff8e1"; 
+            btnImg.src = "https://cdn-icons-png.flaticon.com/128/2889/2889676.png"; 
+            btnImg.style.filter = "opacity(1)";
+        } else {
+            btnImg.src = "https://cdn-icons-png.flaticon.com/128/149/149463.png"; 
+            btnImg.style.filter = "opacity(0.4)";
+        }
+    }
+
+    function toggleLockName() {
+        let input = document.getElementById('nama');
+        let current = input.value.trim().toUpperCase();
+        
+        if(!current) { showModernAlert("Kosong", "Sila taip nama dahulu sebelum kunci.", "error"); return; }
+        
+        if (input.readOnly) {
+            // UNLOCK
+            input.readOnly = false;
+            input.style.background = "#f8f9fa";
+            localStorage.removeItem('ehadir_locked_name');
+            showModernAlert("Nyah-Kunci", "Nama tidak lagi disimpan.", "info");
+            initLockName();
+        } else {
+            // LOCK
+            input.readOnly = true;
+            input.style.background = "#fff8e1";
+            localStorage.setItem('ehadir_locked_name', current);
+            showModernAlert("Disimpan", "Nama anda telah dikunci. Ia akan automatik diisi setiap hari.", "success");
+            initLockName();
+        }
+    }
+
+    function checkAutoStatus(list) {
+        let locked = localStorage.getItem('ehadir_locked_name');
+        if(!locked) return;
+        
+        // Cari rekod hari ini yang sepadan dengan nama yang dikunci
+        let userRecord = list.find(item => item.nama === locked);
+        
+        if (userRecord) {
+            // Jika jumpa, semak COLUMN F (Waktu Keluar)
+            // Jika 'keluar' masih kosong/null -> Force Masuk Sesi (Dashboard)
+            if (!userRecord.keluar || userRecord.keluar === "") {
+                 let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
+                 if (!currentSess) {
+                     console.log("Auto-Sync: User belum keluar. Restore session.");
+                     localStorage.setItem('ehadir_session', JSON.stringify({
+                         nama: locked,
+                         kategori: userRecord.kategori || "GURU", 
+                         date: new Date().toISOString().slice(0,10)
+                     }));
+                     location.reload(); 
+                 }
+            } else {
+                // Jika 'keluar' dah ada isi -> Clear Session (User dah balik)
+                let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
+                if (currentSess && currentSess.nama === locked) {
+                    console.log("Auto-Sync: User sudah keluar. Clear session.");
+                    localStorage.removeItem('ehadir_session');
+                    location.reload();
+                }
+            }
+        }
+    }
+    // -----------------------------------
 
     function fetchConfig() {
         if(!navigator.onLine) {
@@ -495,13 +587,6 @@
 
             let now = new Date();
             let limitKeluar = parseTime(jamConfig[s.kategori].keluar, now);
-            
-            // FIX: AUTO CHECKOUT DISABLED (USER REQUEST)
-            // Jangan auto-keluarkan pengguna supaya butang sentiasa ada
-            // if (!isSubmitting && currentDist > 1000 && limitKeluar && now > limitKeluar) {
-            //    console.log("Auto Checkout Triggered");
-            //    hantarKeluar(true); 
-            // }
         }
     }
 
@@ -847,7 +932,7 @@
             document.getElementById('sessionName').innerText = s.nama; 
             document.getElementById('dynamicStatus').innerText = "STATUS: " + s.kategori + " (SEDANG BERTUGAS)";
             updateDashboardInfo(); 
-        } 
+        }
     }
     
     function loadList() { 
@@ -869,6 +954,8 @@
             let serverItems = res.data || res; 
             currentList = [...offlineItems, ...serverItems];
             renderList(currentList);
+            // --- SINKRONISASI STATUS (NAMA LOCK & COLUMN F) ---
+            checkAutoStatus(currentList);
         }).catch(() => {
             renderList(offlineItems);
         });
@@ -890,7 +977,7 @@
                         <strong>${offlineIcon}${i.nama}</strong>
                         <div class="user-details">
                             <span>${i.kategori}</span>
-                            <span class="live-timer" data-masuk="${i.jam||""}">
+                            <span class="live-timer" data-masuk="${i.jam||("undefined")}">
                                 <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M
                             </span>
                         </div>
