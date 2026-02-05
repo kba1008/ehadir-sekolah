@@ -20,7 +20,7 @@
         const SCHOOL_LNG = 100.6833620808224; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 50; 
+        const RADIUS_METER = 300; 
 
         // 5. Anti-Spam Check-Check: Berapa minit dalam kawasan baru auto-masuk? (Elak spam)
         const MINIT_ANTI_SPAM_MASUK = 0.0001;
@@ -520,15 +520,30 @@
         let sel = document.getElementById('kategori');
         let btnImg = document.getElementById('lockIconImg');
         
-        if (locked) {
+        // --- MOD EDIT: STRICT VALIDATION ---
+        // Jika salah satu tiada (tidak lengkap), anggap data rosak -> Buka Kunci
+        if (!locked || !lockedKat) {
+            if(locked || lockedKat) { // Jika separa ada
+                localStorage.removeItem('ehadir_locked_name');
+                localStorage.removeItem('ehadir_locked_kat');
+            }
+            locked = null; 
+            lockedKat = null;
+        }
+        // -----------------------------------
+
+        if (locked && lockedKat) {
             input.value = locked;
-            if(lockedKat) sel.value = lockedKat;
+            sel.value = lockedKat;
             input.readOnly = true;
             sel.disabled = true; // Lock category
             input.style.background = "#fff8e1"; 
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/2889/2889676.png"; 
             btnImg.style.filter = "opacity(1)";
         } else {
+            input.readOnly = false;
+            sel.disabled = false;
+            input.style.background = "#f8f9fa";
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/149/149463.png"; 
             btnImg.style.filter = "opacity(0.4)";
         }
@@ -876,13 +891,13 @@
             hasNotifiedExit = false; // Reset Exit Notification
             
             // 1. Trigger Notification: "ANDA SUDAH SAMPAI!"
-            if (!session && locked && !hasNotifiedEntry) {
+            if (!session && locked && lockedKat && !hasNotifiedEntry) {
                 hasNotifiedEntry = true;
                 sendNotification("ANDA SUDAH SAMPAI!", "Sila klik di sini untuk buka aplikasi", "wake-up-entry");
             }
 
             // 2. Logic Countdown Auto-Masuk (Jalan bila App Terbuka)
-            if (!session && locked && !isSubmitting) {
+            if (!session && locked && lockedKat && !isSubmitting) {
                 if (inZoneStart > 0) {
                     let elapsed = now - inZoneStart;
                     let remainingSec = Math.ceil((MS_IN_DELAY - elapsed) / 1000);
@@ -1028,10 +1043,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
