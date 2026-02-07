@@ -376,7 +376,7 @@
                  }
                  
                  if (isBlocked) {
-                     if(statusEl) statusEl.innerHTML += `<br><span style="font-size:9px; color:#e67e22;">AUTO-IN DIGANTUNG (KELUAR > ${RADIUS_RESET_AUTO_IN}M UNTUK RESET)</span>`;
+                     if(statusEl) statusEl.innerHTML += `<br><span style="font-size:9px; color:#e67e22;">AUTO-IN OFF (KELUAR > ${RADIUS_RESET_AUTO_IN}M UNTUK RESET)</span>`;
                      return; 
                  }
             } else {
@@ -902,7 +902,7 @@
                 offlineQueue.shift(); 
                 localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
                 if (offlineQueue.length > 0) { syncOfflineData(); } 
-                else { showSyncBar("?? Semua data offline telah berjaya dihantar!", "#27ae60"); loadList(); }
+                else { showSyncBar("Semua data offline telah berjaya dihantar!", "#27ae60"); loadList(); }
             } else { showSyncBar("Ralat Server: " + res.msg, "#c0392b"); }
         })
         .catch(err => { showSyncBar("Ralat Network. Akan cuba sebentar lagi.", "#e67e22"); });
@@ -1285,6 +1285,7 @@
 </script>
 </body>
 </html>
+
 
 
 
