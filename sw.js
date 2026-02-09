@@ -1,82 +1,112 @@
-// sw.js - Versi Fix Masalah Cache & Butang Hilang (v46)
-const CACHE_NAME = 'ehadir-v46-FIX-DATA';
-const DB_NAME = 'E-Hadir-Offline-DB';
-const STORE_NAME = 'attendance_queue';
+// sw.js - Versi Ultra-Hybrid v50 (Online/Offline Ready)
+// Dibuat untuk: E-HADIR PWA
+// Strategi: Network First (Data Terkini) -> Fallback Cache (Offline)
 
-// Pastikan SEMUA fail (CSS/JS) didaftarkan di sini supaya app tak 'pecah' masa offline
-const assetsToCache = [
+const CACHE_NAME = 'ehadir-hybrid-v50';
+const URLS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './logo.png',
-  // './style.css', // Tambah jika ada
-  // './script.js'  // Tambah jika ada
+  './logo.png'
+  // Tambah fail css/js lain jika ada, contoh: './style.css'
 ];
 
-// 1. Install: Simpan aset 'seketul' dalam telefon
-self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Paksa SW baru aktif segera
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(assetsToCache))
+// 1. INSTALL: Simpan 'kulit' aplikasi (fail asas) ke dalam telefon
+self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Paksa SW baru ambil alih segera
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Opened cache');
+        return cache.addAll(URLS_TO_CACHE);
+      })
   );
 });
 
-// 2. Activate: Buang cache versi lama supaya tak serabut
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
-          return caches.delete(key);
-        }
-      }));
+// 2. ACTIVATE: Buang cache versi lama (bersihkan memori telefon)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Memadam cache lama:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
     })
   );
   return self.clients.claim();
 });
 
-// 3. Fetch: Strategi HYBRID (Penting untuk fix masalah anda)
+// 3. FETCH: "Otak" yang menentukan guna Internet atau Cache
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
+  const request = event.request;
   const url = new URL(request.url);
 
-  // --- BAHAGIAN PENTING: FIX MASALAH BUTANG HILANG ---
-  // Jika request ke Google Script (Data) -> WAJIB AMBIL DARI INTERNET (Network Only)
-  // Jangan benarkan cache untuk data kehadiran!
-  if (url.hostname.includes('script.googleusercontent.com') || 
-      url.hostname.includes('script.google.com') ||
-      request.method === 'POST') {
-        
+  // A. JIKA HANTAR DATA (POST) - Cth: Tekan Butang Masuk/Keluar
+  if (request.method === 'POST') {
     event.respondWith(
-      fetch(request).catch(async () => {
-        // Jika tiada internet, baru return offline response
-        return new Response(JSON.stringify({ offline: true }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      })
-    );
-    return; // Berhenti di sini, jangan guna kod cache di bawah
-  }
-
-  // --- BAHAGIAN LAIN: ASET APP (HTML/GAMBAR) ---
-  
-  // Jika navigate (buka app), cuba ambil online dulu, kalau tak dapat baru ambil index.html dalam cache
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => caches.match('./index.html'))
+      fetch(request.clone())
+        .catch(() => {
+          // Jika internet tiada, pulangkan isyarat 'Offline'
+          // Kod di index.html akan terima ini dan simpan data dalam LocalStorage
+          return new Response(JSON.stringify({ offline: true }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
     );
     return;
   }
 
-  // Untuk gambar/logo/file lain -> Guna Cache dulu baru Network (Laju)
-  event.respondWith(
-    caches.match(request).then((res) => res || fetch(request))
-  );
-});
-
-// 4. Background Sync (Pilihan Tambahan)
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-attendance') {
-    console.log("Background Sync Triggered!");
+  // B. JIKA MINTA DATA LIST (GET dari Google Script)
+  if (url.hostname.includes('script.google.com') || url.hostname.includes('googleusercontent.com')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Jika BERJAYA dapat internet:
+          // 1. Clone response (sebab stream cuma boleh baca sekali)
+          const resClone = response.clone();
+          // 2. Simpan copy data terkini dalam Cache (untuk backup masa depan)
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, resClone);
+          });
+          // 3. Bagi data fresh kepada pengguna
+          return response;
+        })
+        .catch(() => {
+          // Jika GAGAL (Tiada Internet):
+          // Cari data lama dalam cache. Kalau ada, bagi je (supaya app tak kosong).
+          return caches.match(request).then((cachedRes) => {
+            if (cachedRes) return cachedRes;
+            
+            // Jika cache pun tiada, bagi JSON kosong supaya tak error
+            return new Response(JSON.stringify([]), {
+              headers: { 'Content-Type': 'application/json' }
+            });
+          });
+        })
+    );
+    return;
   }
+
+  // C. JIKA MINTA FAIL BIASA (HTML, Gambar, Logo)
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      // Guna cache dulu (laju), kalau tiada baru cari internet
+      return cachedResponse || fetch(request).then((networkResponse) => {
+         return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, networkResponse.clone());
+            return networkResponse;
+         });
+      });
+    }).catch(() => {
+       // Jika semua gagal (offline & tiada cache), tapi user cuba buka app
+       // Paksa buka index.html (supaya user tak nampak Dinosaur Chrome)
+       if (request.mode === 'navigate') {
+         return caches.match('./index.html');
+       }
+    })
+  );
 });
