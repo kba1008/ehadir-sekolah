@@ -1,5 +1,5 @@
-// sw.js - Versi Ultra-Offline v45 (Sync Ready)
-const CACHE_NAME = 'ehadir-v45';
+// sw.js - Versi Fix Masalah Cache & Butang Hilang (v46)
+const CACHE_NAME = 'ehadir-v46-FIX-DATA';
 const DB_NAME = 'E-Hadir-Offline-DB';
 const STORE_NAME = 'attendance_queue';
 
@@ -13,32 +13,54 @@ const assetsToCache = [
   // './script.js'  // Tambah jika ada
 ];
 
-// Install: Simpan aset 'seketul' dalam telefon
+// 1. Install: Simpan aset 'seketul' dalam telefon
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
+  self.skipWaiting(); // Paksa SW baru aktif segera
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(assetsToCache))
   );
 });
 
-// Fetch: Strategi Cache-First untuk aset agar laju
+// 2. Activate: Buang cache versi lama supaya tak serabut
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+      }));
+    })
+  );
+  return self.clients.claim();
+});
+
+// 3. Fetch: Strategi HYBRID (Penting untuk fix masalah anda)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
-  if (request.method === 'POST') {
+  // --- BAHAGIAN PENTING: FIX MASALAH BUTANG HILANG ---
+  // Jika request ke Google Script (Data) -> WAJIB AMBIL DARI INTERNET (Network Only)
+  // Jangan benarkan cache untuk data kehadiran!
+  if (url.hostname.includes('script.googleusercontent.com') || 
+      url.hostname.includes('script.google.com') ||
+      request.method === 'POST') {
+        
     event.respondWith(
-      fetch(request.clone()).catch(async () => {
-        // Jika POST gagal (offline), kita return JSON offline
-        // Data sebenar disimpan di localStorage client-side (index.html)
+      fetch(request).catch(async () => {
+        // Jika tiada internet, baru return offline response
         return new Response(JSON.stringify({ offline: true }), {
           headers: { 'Content-Type': 'application/json' }
         });
       })
     );
-    return;
+    return; // Berhenti di sini, jangan guna kod cache di bawah
   }
 
-  // Navigasi sentiasa ke index.html jika offline
+  // --- BAHAGIAN LAIN: ASET APP (HTML/GAMBAR) ---
+  
+  // Jika navigate (buka app), cuba ambil online dulu, kalau tak dapat baru ambil index.html dalam cache
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() => caches.match('./index.html'))
@@ -46,17 +68,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Untuk gambar/logo/file lain -> Guna Cache dulu baru Network (Laju)
   event.respondWith(
     caches.match(request).then((res) => res || fetch(request))
   );
 });
 
-// Background Sync (Hanya Android/Chrome sokong penuh buat masa ini)
+// 4. Background Sync (Pilihan Tambahan)
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-attendance') {
     console.log("Background Sync Triggered!");
-    // Nota: SW tidak boleh akses localStorage. 
-    // Logik sync sebenar diuruskan oleh window.addEventListener('online') di index.html
-    // Event ini hanya untuk 'wake up' browser jika perlu.
   }
 });
