@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycby7EZT41FWLpDMh27qGfpfJYZEnJPs2mMqN0lS8UYSVogiofK0Xu8tG3ucX2FDybABI/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzlPQfx4SzIob5kiKmnVCHUaxKLbIVzMiIOOqCX-xPUmdR9DaB_Iyf1QV7OgjoQF-7S/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -20,7 +20,7 @@
         const SCHOOL_LNG = 100.68326009281644; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 20000; 
+        const RADIUS_METER = 200; 
 
         // 5. Anti-Spam Check-Check: Berapa minit dalam kawasan baru auto-masuk? (Elak spam)
         const MINIT_ANTI_SPAM_MASUK = 1;
@@ -42,9 +42,9 @@
 
         // --------------------------------------------------------------------------------------- 
         //       ZON KOD KRITIKAL & LOGIK PENTING (SILA HANTAR BAHAGIAN INI KE OBFUSCATOR)
-        // ---------------------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------- 
         
-        let jamConfig = JADUAL_BERTUGAS; // Guna config local (Pantas & Bebas Data Luar)
+        let jamConfig = JADUAL_BERTUGAS; 
         let isInZone = false; 
         let currentDist = 0; 
         let lastLat = 0, lastLng = 0;
@@ -63,10 +63,9 @@
                 if (!navigator.onLine) {
                     saveToQueue(data); resolve({ offline: true }); return;
                 }
-                // EDIT SURGICAL: Tambah 'nocache' unik & paksa 'no-store' supaya browser tidak guna respon lama (Isu Kali Kedua Fail)
                 fetch(API_URL + "?t=" + new Date().getTime(), { 
                     method: "POST", 
-                    cache: "no-store", // PENTING: Halang caching response sukses terdahulu
+                    cache: "no-store", 
                     body: JSON.stringify(data) 
                 })
                 .then(response => response.json()).then(result => { resolve({ offline: false, data: result }); })
@@ -82,33 +81,30 @@
         }
 
         function fetchConfig() {
-            // FUNGSI DIUBAH SUAI: Guna data tempatan (JADUAL_BERTUGAS) terus tanpa fetch API.
-            // Ini mempercepatkan loading dan membuang kebergantungan pada Google Sheets untuk config.
             let loadEl = document.getElementById('loadingConfig');
             if(loadEl) loadEl.style.display = 'none';
-            
-            // Kemaskini dropdown pilihan kategori jika perlu (Pilihan)
-            // updateCategoryOptions(); 
-            
             if(typeof updateScheduleInfo === 'function') updateScheduleInfo(); 
         }
 
         function checkAutoStatus(list) {
-            let locked = localStorage.getItem('ehadir_locked_name');
-            if(!locked) return;
-            
-            let userRecord = list.find(item => item.nama === locked);
             let currentSess = JSON.parse(localStorage.getItem('ehadir_session'));
+            let locked = localStorage.getItem('ehadir_locked_name');
+            
+            // Semak nama berdasarkan input 'locked' atau sesi semasa.
+            let checkName = locked || (currentSess ? currentSess.nama : null);
+            if(!checkName) return;
+            
+            let userRecord = list.find(item => item.nama === checkName);
 
             // LOGIK DOUBLE CHECK: Pastikan butang keluar konsisten dengan DB
             if (userRecord) {
                 // Nama ADA dalam senarai (BELUM KELUAR) -> Paksa Session Ada
-                if (!currentSess) {
+                if (!currentSess || currentSess.nama !== checkName) {
                      localStorage.setItem('ehadir_session', JSON.stringify({
-                         nama: locked,
+                         nama: userRecord.nama,
                          kategori: userRecord.kategori || "GURU", 
                          date: new Date().toISOString().slice(0,10),
-                         avatar: userRecord.avatar // Kekalkan avatar jika ada
+                         avatar: userRecord.avatar || localStorage.getItem('ehadir_user_avatar') || ""
                      }));
                      location.reload(); 
                 }
@@ -116,7 +112,7 @@
                 // Nama TIADA dalam senarai (SUDAH KELUAR) -> Paksa Session Tiada
                 // *Kecuali jika ada data offline yang belum sync
                 let queue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
-                let isPending = queue.some(q => q.nama === locked && q.action === "MASUK");
+                let isPending = queue.some(q => q.nama === checkName && q.action === "MASUK");
                 
                 if (currentSess && !isPending) {
                     localStorage.removeItem('ehadir_session');
@@ -128,15 +124,13 @@
         async function hantarMasuk(isAuto = false) {
             if(isSubmitting) return; 
 
-            // LOGIK BARU: RESET SESSION DAHULU (Permintaan Murid)
             if(!isAuto) {
                 localStorage.removeItem('ehadir_session');
                 localStorage.removeItem('ehadir_auto_in_blocked');
             }
 
-            // EDIT SURGICAL: STRICT FILTER & ANTI-FAKE GPS (TIADA LAGI MANUAL OVERRIDE)
             if(!isInZone) { 
-                if(isAuto) return; // Auto diam jika luar kawasan
+                if(isAuto) return; 
                 showModernAlert("Luar Kawasan", "Anda berada di luar zon yang dibenarkan (" + Math.round(currentDist) + "m).", "error");
                 return;
             }
@@ -161,7 +155,6 @@
 
             isSubmitting = true;
             if(!isAuto) { 
-                // STEP: FILTER ANTI-FAKE GPS (SAMPLING)
                 document.getElementById('btnMainSubmit').disabled = true; 
                 document.getElementById('btnMainSubmit').innerHTML = 'MENYEMAK GPS...'; 
 
@@ -175,17 +168,15 @@
                             
                             if(samples.length >= required) {
                                 navigator.geolocation.clearWatch(w);
-                                // A. Cek Static (Fake GPS selalunya statik)
                                 let first = JSON.stringify(samples[0]);
                                 let isStatic = samples.every(s => JSON.stringify(s) === first);
-                                // B. Cek Jarak Terkini
                                 let last = samples[samples.length-1];
                                 let d = calcDist(last.lat, last.lng, SCHOOL_LAT, SCHOOL_LNG);
                                 
                                 if(d > RADIUS_METER) reject(`Lokasi tidak sah! Jarak: ${Math.round(d)}m`);
                                 else if(isStatic) reject("GPS Statik Dikesan (Anti-Fake). Sila bergerak sedikit.");
                                 else {
-                                    lastLat = last.lat; lastLng = last.lng; // Update global
+                                    lastLat = last.lat; lastLng = last.lng; 
                                     resolve();
                                 }
                             }
@@ -206,33 +197,26 @@
 
             try {
                 let savedAvatar = localStorage.getItem('ehadir_user_avatar') || "";
-                // Generate NEW uniqueID setiap kali masuk untuk elak duplicate reject
                 let uniqueID = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
                 const payload = { action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString(), uuid: uniqueID, avatar: savedAvatar };
                 
                 const result = await sendData(payload);
 
                 if (result.offline) {
-                    // ALERT REMOVED: Guna modern alert untuk privacy & smooth flow
                     if(!isAuto) showModernAlert("Mod Offline", "Data disimpan dalam telefon.", "info");
-                    // Offline mode diteruskan macam biasa
                     localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10), uuid: uniqueID, avatar: savedAvatar}));
                     localStorage.removeItem('ehadir_auto_in_blocked');
                     location.reload();
                 } else {
-                    // STRICT CHECK: Double Check Google Sheet (Column E Logic)
                     if (result.data && result.data.result === "success") {
                         if(isAuto) {
-                            // KEMASKINI SURGICAL: Auto-In kini wajib semak DB sebelum sahkan kejayaan
                             showSyncBar("MENGESAHKAN DATA DI PANGKALAN DATA...", "#f39c12");
                             await verifyAndFinalize(nama, kat, uniqueID, savedAvatar, 1, true);
                         } else {
-                             // MANUAL MODE: VERIFY DAHULU SEBELUM SUCCESS
                              document.getElementById('btnMainSubmit').innerHTML = 'SAHKAN DATA (DB)...';
                              await verifyAndFinalize(nama, kat, uniqueID, savedAvatar);
                         }
                     } else {
-                         // Jika server return error atau unknown status
                          let msg = (result.data && result.data.msg) ? result.data.msg : "Data gagal masuk ke Google Sheet. Sila cuba lagi.";
                          if(!isAuto) showModernAlert("Gagal", msg, "error");
                          isSubmitting = false;
@@ -251,7 +235,6 @@
         async function verifyAndFinalize(nama, kat, uuid, avatar, attempt = 1, isAuto = false) {
              if(attempt > 5) {
                  if(isAuto) {
-                     // Jika auto gagal sahkan, reset submitting supaya boleh cuba lagi nanti
                      showSyncBar("GAGAL SAHKAN DATA. AKAN CUBA SEMULA.", "#c0392b");
                      isSubmitting = false;
                  } else {
@@ -269,7 +252,6 @@
                  let response = await fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) });
                  let json = await response.json();
                  let list = json.data || json;
-                 // Cek jika nama ada DAN masa (Kolum E/jam) wujud
                  let record = list.find(item => item.nama === nama && item.jam && item.jam !== "");
                  
                  if (record) {
@@ -300,9 +282,6 @@
             let session = JSON.parse(localStorage.getItem('ehadir_session'));
             let namaVal, katVal, uuidVal;
 
-            // --- SECURITY & INTEGRITY ENHANCEMENT (Pembedahan Tepat) ---
-            // HALANG DAFTAR KELUAR MANUAL TANPA SESI SAH. 
-            // Ini memaksa pengguna mengesahkan identiti melalui DB sebelum dibenarkan keluar.
             if (!isAuto && !session) {
                 let iName = document.getElementById('nama') ? document.getElementById('nama').value.toUpperCase().trim() : "";
                 if (!iName) { showModernAlert("Tiada Nama", "Sila isi Nama dahulu.", "error"); return; }
@@ -315,12 +294,9 @@
                     let response = await fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) });
                     let json = await response.json();
                     let list = json.data || json;
-                    // Hanya cari user yang aktif (wujud dalam senarai server)
                     let record = list.find(item => item.nama === iName);
                     
                     if (record) {
-                        // JIKA REKOD WUJUD -> PULIHKAN SESI (RESTORE)
-                        // Ini membuktikan user memang ada di sekolah, bukan spoofing kosong.
                         localStorage.setItem('ehadir_session', JSON.stringify({
                              nama: record.nama,
                              kategori: record.kategori,
@@ -330,7 +306,7 @@
                          
                         showModernAlert("Sesi Dipulihkan", "Rekod kehadiran ditemui. Sila tekan butang <b>DAFTAR KELUAR</b> di papan pemuka sekarang.", "success");
                         setTimeout(() => location.reload(), 2000);
-                        return; // STOP DI SINI. JANGAN TERUSKAN KELUAR.
+                        return; 
                     } else {
                         showModernAlert("Gagal", "Tiada rekod masuk aktif untuk nama ini. Sila Daftar Masuk dahulu.", "error");
                         isSubmitting = false;
@@ -344,14 +320,12 @@
                     return;
                 }
             }
-            // ----------------------------------------------------------------------
 
             if (session && session.nama) {
                 namaVal = session.nama;
                 katVal = session.kategori;
                 uuidVal = session.uuid || "";
             } else {
-                // Fallback (Hanya berlaku jika Auto triggered without full session)
                 let lName = localStorage.getItem('ehadir_locked_name');
                 let lKat = localStorage.getItem('ehadir_locked_kat');
                 if (lName && lKat) { namaVal = lName; katVal = lKat; }
@@ -375,25 +349,20 @@
                 try {
                     const payload = { action: "KELUAR", passcode: PASSCODE, nama: namaVal.toUpperCase(), alasan: alasanValue, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString(), uuid: sessionUUID };
                     
-                    // EDIT SURGICAL: KELUAR TIDAK PERLU CEK SERVER. Fire & Forget.
                     await sendData(payload);
                     
-                    // Terus reset local session tanpa menunggu 'success' server.
                     if(isAuto) {
                         showSyncBar("SEMOGA SELAMAT DALAM PERJALANAN ANDA", "#c0392b");
                     } else {
                         showModernAlert("Selesai", "Daftar Keluar Berjaya.", "success");
                     }
                     
-                    // Reset Total Session
                     localStorage.setItem('ehadir_auto_in_blocked', 'true');
                     localStorage.removeItem('ehadir_session');
                     
-                    // Delay sedikit untuk pastikan storage clear sebelum reload
                     setTimeout(() => location.reload(), 500);
 
                 } catch (error) {
-                    // Jika error rangkaian pun, force logout tetap jalan
                     console.error(error);
                     localStorage.removeItem('ehadir_session');
                     location.reload();
@@ -576,9 +545,7 @@
                 });
             }
         }
-        // ------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
     </script>
-    <!-- ====================================================================== -->
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
@@ -598,11 +565,9 @@
         .content-padding { padding: 0 20px; }
         select, input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #f1f3f5; background: #f8f9fa; border-radius: 12px; font-size: 14px; box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; color: #333; }
         select:focus, input:focus { border-color: #1e3c72; background: #fff; }
-        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; } /* HIDDEN ALASAN */
+        textarea { resize: vertical; min-height: 80px; display: none; border: 2px solid #f39c12; background: #fffcf5; }
 
-        /* === NEW CSS FOR NAME LOCK & AVATAR === */
         .input-group { position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 12px; }
-        /* Tambah padding right supaya dua butang muat */
         .input-group input { margin-bottom: 0; padding-right: 90px; }
         
         .lock-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; background: #ecf0f1; border: none; z-index: 5; padding: 6px; border-radius: 50%; transition: 0.2s; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
@@ -610,18 +575,15 @@
         .lock-btn:active { transform: translateY(-50%) scale(0.9); }
         .lock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        .avatar-btn { right: 48px; background: transparent; } /* Butang avatar sebelah butang lock */
+        .avatar-btn { right: 48px; background: transparent; }
 
-        /* Style Khas bila lock aktif (Kuning) */
         .btn-yellow { background: #f1c40f !important; box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); border: 2px solid #f39c12; }
 
-        /* Style Modal Avatar Grid */
         .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-height: 300px; overflow-y: auto; padding: 10px; }
         .avatar-option { width: 100%; aspect-ratio: 1/1; cursor: pointer; border-radius: 50%; border: 2px solid transparent; transition: 0.2s; padding: 2px; background: #f8f9fa; }
         .avatar-option:hover { border-color: #1e3c72; background: #e8f5e9; transform: scale(1.1); }
         .avatar-option.selected { border-color: #27ae60; background: #d4edda; box-shadow: 0 0 10px rgba(39, 174, 96, 0.3); }
         .avatar-option img { width: 100%; height: 100%; object-fit: contain; }
-        /* ============================== */
 
         .btn { width: 100%; padding: 16px; background: #1e3c72; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2); transition: 0.2s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
@@ -636,7 +598,6 @@
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         
-        /* STYLO GIANT CAMERA CSS */
         .giant-cam-btn { 
             width: 100%; height: 160px; 
             background: linear-gradient(135deg, #134e5e, #71b280); 
@@ -664,7 +625,6 @@
         .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
         
-        /* STYLE JAM RANDIK */
         .live-timer { 
             color: #d35400; 
             font-weight: 700; 
@@ -688,7 +648,6 @@
         #scheduleInfo { display: none; background: transparent; padding: 0; margin-bottom: 15px; text-align: center; }
         .schedule-minimal { display: flex; justify-content: center; gap: 10px; align-items: center; }
         
-        /* UBAH SUAI UI: Time Pill yang lebih moden dan canggih */
         .time-pill { 
             background: rgba(255, 255, 255, 0.95); 
             padding: 10px 18px; 
@@ -705,7 +664,6 @@
         }
         .time-pill:hover { transform: translateY(-2px); }
         
-        /* Animasi Pop-In untuk visual canggih */
         .pop-in { animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         @keyframes popIn { 
             0% { opacity: 0; transform: scale(0.8) translateY(-10px); } 
@@ -722,7 +680,6 @@
         #loadingConfig { font-size: 11px; color: #e67e22; display: none; margin-bottom: 5px; font-style: italic; }
         #statusText { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: #95a5a6; background: #f8f9fa; display: inline-block; padding: 4px 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* --- 3D ICONS STYLES --- */
         .icon-3d-mini { width: 16px; height: 16px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
         .icon-3d-std { width: 22px; height: 22px; vertical-align: middle; margin-right: 5px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
         .icon-3d-lg { width: 32px; height: 32px; vertical-align: middle; }
@@ -742,7 +699,6 @@
         .btn-ok { background: #1e3c72; color: white; }
         .btn-cancel-modal { background: #ecf0f1; color: #7f8c8d; }
 
-        /* Status Bar untuk Offline/Sync */
         #syncStatusBar { display: none; position: fixed; top: 0; left: 0; width: 100%; padding: 10px; text-align: center; z-index: 10001; font-size: 12px; font-weight: 600; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         
         #autoModeIndicator { background: linear-gradient(to right, #6a11cb, #2575fc); color: white; padding: 5px; font-size: 10px; font-weight: 700; text-align: center; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); display: none; }
@@ -765,13 +721,11 @@
         </div>
     </div>
 
-    <!-- MODAL PILIH AVATAR -->
     <div id="avatarModalContainer">
         <div class="custom-modal-content">
             <div class="modal-title">PILIH AVATAR ANDA</div>
             <div class="modal-msg">Pilih ikon yang sesuai dengan gaya anda.</div>
             <div id="avatarGrid" class="avatar-grid">
-                <!-- ICONS INJECTED VIA JS -->
             </div>
             <div class="modal-btn-row" style="margin-top:15px;">
                 <button class="modal-btn btn-cancel-modal" onclick="closeAvatarModal()">Tutup</button>
@@ -789,17 +743,17 @@
         <div class="header-bg">
             <div class="top-bar-row">
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/2370/2370264.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/3652/3652191.png" class="icon-3d-mini"> 
                     <span id="dateDisplay">--/--/--</span>
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/2784/2784459.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/3103/3103446.png" class="icon-3d-mini"> 
                     <span id="clockDisplay">--:--</span>
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/5067/5067170.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/3389/3389803.png" class="icon-3d-mini"> 
                     <span id="hijriDisplay">...</span>
                 </span>
             </div>
@@ -832,7 +786,6 @@
 
                 <p id="dynamicStatus" style="margin:0 0 15px 0; font-size:11px; color:#27ae60; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">STATUS: SEDANG BERTUGAS</p>
                 
-                <!-- HIDDEN ALASAN INPUT FOR AUTO MODE -->
                 <textarea id="alasanKeluar" style="display:none;" placeholder="Mohon nyatakan sebab pulang awal untuk makluman pentadbir..."></textarea>
                 
                 <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar(false)">
@@ -859,22 +812,18 @@
                     <option value="PELAWAT">PELAWAT (AWAM)</option>
                 </select>
                 
-                <!-- INPUT NAMA WITH LOCK & AVATAR BUTTONS -->
                 <div class="input-group">
                     <input type="text" id="nama" placeholder="NAMA PENUH (HURUF BESAR)" style="text-transform:uppercase">
                     
-                    <!-- AVATAR BUTTON -->
                     <button id="avatarBtn" class="lock-btn avatar-btn" onclick="openAvatarModal()" title="Pilih Avatar">
                         <img id="currentAvatarMini" src="https://cdn-icons-png.flaticon.com/128/4140/4140048.png" class="icon-3d-mini">
                     </button>
 
-                    <!-- LOCK BUTTON -->
                     <button id="lockBtn" class="lock-btn" onclick="toggleLockName()" title="Kunci Nama">
                         <img src="https://cdn-icons-png.flaticon.com/128/2550/2550226.png" class="icon-3d-mini" id="lockIconImg" style="filter:opacity(0.6)">
                     </button>
                 </div>
                 
-                <!-- HIDDEN ALASAN INPUT FOR AUTO MODE -->
                 <textarea id="alasanMasuk" style="display:none;" placeholder="Maaf, anda lewat sedikit. Mohon nyatakan sebab:"></textarea>
                 
                 <div style="font-size:10px; color:#e67e22; margin-bottom:10px;">Sila tekan 'KUNCI' Nama & Kategori </div>
@@ -883,7 +832,6 @@
                     <img src="https://cdn-icons-png.flaticon.com/128/9402/9402342.png" class="icon-3d-std"> DAFTAR MASUK
                 </button>
 
-                <!-- 3 BUTTON LAYOUT FIX: ADDED KELUAR AND PELAWAT BUTTONS HERE -->
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
                     <button id="btnKeluarMain" class="btn btn-keluar" onclick="hantarKeluar(false)" style="margin-top:0;">
                         <img src="https://cdn-icons-png.flaticon.com/128/3580/3580154.png" class="icon-3d-std"> KELUAR
@@ -924,11 +872,17 @@
             <div class="list-header">
                 <span>
                     <img src="https://cdn-icons-png.flaticon.com/128/942/942799.png" class="icon-3d-std"> 
-                    Rekod Hari Ini (<span id="count">0</span>)
+                    <span id="recordTitleText">Rekod Hari Ini</span> (<span id="count">0</span>)
                 </span>
-                <button onclick="loadList()" style="border:none; background:none; cursor:pointer;">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3031/3031718.png" class="icon-3d-std">
-                </button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div style="position:relative; display:inline-block; width:22px; height:22px;">
+                        <input type="date" id="historyDate" onchange="loadList()" style="position:absolute; opacity:0; width:100%; height:100%; top:0; left:0; cursor:pointer;" title="Pilih Tarikh Sejarah">
+                        <img src="https://cdn-icons-png.flaticon.com/128/3652/3652191.png" class="icon-3d-std" style="width:22px; height:22px; margin:0;">
+                    </div>
+                    <button onclick="loadList()" style="border:none; background:none; cursor:pointer; padding:0;">
+                        <img src="https://cdn-icons-png.flaticon.com/128/3031/3031718.png" class="icon-3d-std" style="width:22px; height:22px; margin:0;">
+                    </button>
+                </div>
             </div>
             <div id="listContainer" class="list-container">
                 <div style="padding:20px; color:#999; font-size:12px;">Memuatkan data...</div>
@@ -938,10 +892,6 @@
     </div>
 
 <script>
-    // ==========================================
-    //       LOGIK UI & EVENT LISTENERS
-    // ==========================================
-    
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(reg => {
@@ -981,7 +931,10 @@
     function syncOfflineData() {
         if (!navigator.onLine) return;
         let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
-        if (offlineQueue.length === 0) return; 
+        if (offlineQueue.length === 0) {
+            localStorage.removeItem('ehadir_offline_queue'); 
+            return; 
+        }
 
         showSyncBar("Menghantar " + offlineQueue.length + " data tertangguh...", "#3498db");
         let itemToSync = offlineQueue[0];
@@ -992,12 +945,23 @@
         fetch(API_URL, { method: "POST", body: JSON.stringify(itemToSync) })
         .then(response => response.json())
         .then(res => {
-            if (res.result === "success") {
-                offlineQueue.shift(); 
+            offlineQueue.shift(); 
+            
+            if (offlineQueue.length > 0) { 
                 localStorage.setItem('ehadir_offline_queue', JSON.stringify(offlineQueue));
-                if (offlineQueue.length > 0) { syncOfflineData(); } 
-                else { showSyncBar("👍 Semua data offline telah berjaya dihantar!", "#27ae60"); loadList(); }
-            } else { showSyncBar("Ralat Server: " + res.msg, "#c0392b"); }
+                syncOfflineData(); 
+            } else { 
+                localStorage.removeItem('ehadir_offline_queue'); 
+                showSyncBar("👍 Semua data offline telah berjaya dihantar!", "#27ae60"); 
+                loadList(); 
+                
+                setTimeout(() => {
+                    fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
+                    .then(r => r.json()).then(resData => { 
+                        checkAutoStatus(resData.data || resData); 
+                    });
+                }, 1500);
+            }
         })
         .catch(err => { showSyncBar("Ralat Network. Akan cuba sebentar lagi.", "#e67e22"); });
     }
@@ -1080,7 +1044,6 @@
         worker.postMessage("start");
     };
 
-    // --- AVATAR LOGIC (10 OFFICE THEMED) ---
     const AVATARS = [
         "https://cdn-icons-png.flaticon.com/128/4140/4140048.png", 
         "https://cdn-icons-png.flaticon.com/128/4140/4140047.png", 
@@ -1143,10 +1106,9 @@
             input.readOnly = true;
             sel.disabled = true; 
             avatarBtn.disabled = true; 
-            input.style.background = "#fff8e1"; // Kuning apabila dikunci
+            input.style.background = "#fff8e1"; 
             sel.style.background = "#fff8e1";
             
-            // ICON KUNCI: LOCKED (Solid/Round)
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/3064/3064155.png"; 
             btnImg.style.filter = "opacity(1)";
             btnLock.classList.add('btn-yellow');
@@ -1154,10 +1116,9 @@
             input.readOnly = false;
             sel.disabled = false;
             avatarBtn.disabled = false; 
-            input.style.background = "#f8f9fa"; // Warna asal
+            input.style.background = "#f8f9fa"; 
             sel.style.background = "#f8f9fa";
             
-            // ICON KUNCI: UNLOCKED (Line/Round)
             btnImg.src = "https://cdn-icons-png.flaticon.com/128/3064/3064197.png"; 
             btnImg.style.filter = "opacity(0.6)";
             btnLock.classList.remove('btn-yellow');
@@ -1172,7 +1133,6 @@
         let currentKat = sel.value;
         let currentAvatar = localStorage.getItem('ehadir_user_avatar');
         
-        // Jika sedang terkunci, buka kunci
         if (input.readOnly) {
             input.readOnly = false;
             sel.disabled = false;
@@ -1186,12 +1146,10 @@
             return;
         }
 
-        // Validasi sebelum kunci
         if(!current) { showModernAlert("Tiada Nama", "Sila isi Nama anda dahulu.", "error"); return; }
         if(!currentKat) { showModernAlert("Tiada Kategori", "Sila pilih Kategori dahulu.", "error"); return; }
         if(!currentAvatar) { showModernAlert("Tiada Avatar", "Sila pilih Avatar anda dahulu.", "error"); return; }
 
-        // Kunci Data
         input.readOnly = true;
         sel.disabled = true;
         avatarBtn.disabled = true;
@@ -1217,13 +1175,11 @@
         if (kat && jamConfig[kat]) {
             let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
             let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
-            // UPDATE ICON MENGIKUT PERMINTAAN (NEW 3D CLOCKS) + ANIMATION
             infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda;"><span><img src="https://cdn-icons-png.flaticon.com/128/3233/3233497.png" class="icon-3d-mini"> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8;"><span><img src="https://cdn-icons-png.flaticon.com/128/3233/3233513.png" class="icon-3d-mini"> ${keluar}</span></div></div>`;
             infoBox.style.display = "block";
             
-            // Trigger Re-Animation
             infoBox.classList.remove('pop-in');
-            void infoBox.offsetWidth; // Force Reflow
+            void infoBox.offsetWidth; 
             infoBox.classList.add('pop-in');
         }
     }
@@ -1304,7 +1260,6 @@
             document.getElementById('dashboardPanel').style.display = 'block'; 
             document.getElementById('sessionName').innerText = s.nama; 
             document.getElementById('dynamicStatus').innerText = "STATUS: " + s.kategori + " (SEDANG BERTUGAS)";
-            // FIX: GUNA AVATAR DALAM SESSION JIKA ADA
             let savedAvatar = s.avatar || localStorage.getItem('ehadir_user_avatar');
             if(savedAvatar) document.getElementById('userAvatarDash').src = savedAvatar;
             updateDashboardInfo(); 
@@ -1312,54 +1267,79 @@
     }
     
     function loadList() { 
+        let dateInput = document.getElementById('historyDate');
+        let dateVal = dateInput ? dateInput.value : "";
+        let todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }); 
+        let isHistory = dateVal && dateVal !== todayStr;
+
+        let titleText = document.getElementById('recordTitleText');
+        if (titleText) {
+            if (isHistory) {
+                let parts = dateVal.split('-');
+                titleText.innerText = "Rekod (" + parts[2] + "/" + parts[1] + ")";
+            } else {
+                titleText.innerText = "Rekod Hari Ini";
+            }
+        }
+
         let offlineQueue = JSON.parse(localStorage.getItem('ehadir_offline_queue') || "[]");
-        let offlineItems = offlineQueue.filter(q => q.action === "MASUK").map(q => ({
+        let offlineItems = isHistory ? [] : offlineQueue.filter(q => q.action === "MASUK").map(q => ({
             nama: q.nama, kategori: q.kategori, jam: new Date(q.clientTime).toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'}), avatar: q.avatar, isOffline: true
         }));
         if(!navigator.onLine) { renderList(offlineItems); return; }
-        fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
+        
+        let payload = {action: "GET_LIST", passcode: PASSCODE};
+        if (dateVal) payload.targetDate = dateVal;
+
+        fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
         .then(r => r.json()).then(res => { 
             let serverItems = res.data || res; 
             currentList = [...offlineItems, ...serverItems];
             renderList(currentList);
-            checkAutoStatus(currentList);
+            if (!isHistory) checkAutoStatus(currentList);
         }).catch(() => { renderList(offlineItems); });
     }
 
     function renderList(items) {
+        let dateInput = document.getElementById('historyDate');
+        let dateVal = dateInput ? dateInput.value : "";
+        let todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+        let isHistory = dateVal && dateVal !== todayStr;
+
         document.getElementById('count').innerText = items.length; 
         let h = ""; 
         
-        // MAPPING WARNA KATEGORI
         const catColors = {
-            "GURU": "#2980b9",      // Biru
-            "AKP": "#d35400",       // Oren Gelap
-            "KEBERSIHAN": "#27ae60", // Hijau
-            "PELAWAT": "#8e44ad"    // Ungu
+            "GURU": "#2980b9",      
+            "AKP": "#d35400",       
+            "KEBERSIHAN": "#27ae60", 
+            "PELAWAT": "#8e44ad"    
         };
 
         items.forEach((i, idx) => { 
             let imgBtn = (i.kategori === "PELAWAT" && i.foto) ? `<span class="icon-btn" onclick="viewImage(${idx})"><img src="https://cdn-icons-png.flaticon.com/128/3342/3342137.png" class="icon-3d-mini"></span>` : "";
-            let xBtn = `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
+            let xBtn = isHistory ? "" : `<span class="icon-btn" style="border-color:#fadbd8;" onclick="keluarManual('${i.nama}')"><img src="https://cdn-icons-png.flaticon.com/128/6861/6861362.png" class="icon-3d-mini"></span>`;
             let offlineClass = i.isOffline ? "offline-item" : "";
             let offlineIcon = i.isOffline ? `<img src="https://cdn-icons-png.flaticon.com/128/159/159604.png" class="icon-3d-mini" title="Menunggu Sync"> ` : "";
             
-            // Warna teks nama ikut kategori
             let nameColor = catColors[i.kategori] || "#2c3e50";
+
+            let timerDisplay = isHistory 
+                ? `<span class="live-timer" style="color:#2c3e50; border-color:#e1e4e8; background:#f8f9fa;">Masuk: ${i.jam||"--"} ${i.keluar ? '| Keluar: '+i.keluar : ''}</span>`
+                : `<span class="live-timer" data-masuk="${i.jam||("undefined")}"><img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M</span>`;
 
             h += `<div class="user-card ${offlineClass}">
                     <div style="display:flex; align-items:center; width:100%;">
-                        
                         <div class="user-info">
                             <strong style="color:${nameColor}">${offlineIcon}${i.nama}</strong>
-                            <div class="user-details"><span>${i.kategori}</span><span class="live-timer" data-masuk="${i.jam||("undefined")}"><img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M</span></div>
+                            <div class="user-details"><span>${i.kategori}</span>${timerDisplay}</div>
                         </div>
                     </div>
                     <div class="list-actions">${imgBtn}${xBtn}</div>
                   </div>`; 
         }); 
-        document.getElementById('listContainer').innerHTML = h || "<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod hari ini.</div>"; 
-        updateLiveTimers();
+        document.getElementById('listContainer').innerHTML = h || `<div style='padding:20px; color:#999; font-size:12px;'>Tiada rekod ${isHistory ? 'pada tarikh ini' : 'hari ini'}.</div>`; 
+        if (!isHistory) updateLiveTimers();
     }
 
     function viewImage(index) { let data = currentList[index]; if(data && data.foto) { document.getElementById('imgFull').src = data.foto; document.getElementById('imageModal').style.display = "flex"; } }
