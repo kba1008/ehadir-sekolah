@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzkQrFesaPEqHzaoF3KPKNAgt6_fPfIDId8yE07o_GLb-HNYDkOUc3SAtyt1taD55AX/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_a07EcXCi9_tyzXwHWqeAvFbvqp6nrzZ_1s6b9_iR4J_axWXg6VKetLmSjZ88sigJ/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -751,12 +751,12 @@
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/3103/3103446.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/2088/2088617.png" class="icon-3d-mini"> 
                     <span id="clockDisplay">--:--</span>
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/3389/3389803.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/2387/2387718.png" class="icon-3d-mini"> 
                     <span id="hijriDisplay">...</span>
                 </span>
             </div>
@@ -899,10 +899,23 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(reg => {
                 console.log('SW Berjaya:', reg.scope);
+                
+                // Paksa semak versi terkini di background
+                reg.update();
+                
                 if ('SyncManager' in window) {
                     reg.sync.register('sync-attendance').catch(err => console.log("Sync bg gagal", err));
                 }
             }).catch(err => console.log('SW Gagal:', err));
+        });
+
+        // Reload secara automatik bila SW baru mengambil alih (Admin Update Kod)
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
         });
     }
 
@@ -1172,12 +1185,12 @@
     }
 
     function updateScheduleInfo() {
-        let kat = document.getElementById('kategori').value;
+        let kat = document.getElementById('kategori');
         let infoBox = document.getElementById('scheduleInfo');
         if (!jamConfig) return;
-        if (kat && jamConfig[kat]) {
-            let masuk = cleanTimeDisplay(jamConfig[kat].masuk);
-            let keluar = cleanTimeDisplay(jamConfig[kat].keluar);
+        if (kat && jamConfig[kat.value]) {
+            let masuk = cleanTimeDisplay(jamConfig[kat.value].masuk);
+            let keluar = cleanTimeDisplay(jamConfig[kat.value].keluar);
             infoBox.innerHTML = `<div class="schedule-minimal"><div class="time-pill" style="color:#27ae60; border-color:#d4edda;"><span><img src="https://cdn-icons-png.flaticon.com/128/3233/3233497.png" class="icon-3d-mini"> ${masuk}</span></div><div class="time-pill" style="color:#c0392b; border-color:#fadbd8;"><span><img src="https://cdn-icons-png.flaticon.com/128/3233/3233513.png" class="icon-3d-mini"> ${keluar}</span></div></div>`;
             infoBox.style.display = "block";
             
@@ -1224,7 +1237,7 @@
 
     function updateLiveTimers() {
         let now = new Date();
-        document.querySelectorAll('.live-timer').forEach(el => {
+        document.querySelectorAll('.live-timer[data-masuk]').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
             if (!masukStr || masukStr === "undefined") { el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; return; }
             let masukDate = parseTimeLocal(masukStr);
