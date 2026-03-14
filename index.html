@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzlPQfx4SzIob5kiKmnVCHUaxKLbIVzMiIOOqCX-xPUmdR9DaB_Iyf1QV7OgjoQF-7S/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzkQrFesaPEqHzaoF3KPKNAgt6_fPfIDId8yE07o_GLb-HNYDkOUc3SAtyt1taD55AX/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -20,7 +20,7 @@
         const SCHOOL_LNG = 100.68326009281644; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 20000; 
+        const RADIUS_METER = 200; 
 
         // 5. Anti-Spam Check-Check: Berapa minit dalam kawasan baru auto-masuk? (Elak spam)
         const MINIT_ANTI_SPAM_MASUK = 1;
@@ -596,6 +596,9 @@
         .user-welcome { font-size: 18px; font-weight: 700; color: #1e3c72; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px;}
         .locked-msg { font-size: 11px; color: #95a5a6; margin-bottom: 15px; }
         
+        #dashboardSchedule { font-size:12px; color:#2c3e50; background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:15px; display:none; border: 1px solid #ffeeba; }
+        .userExitTime { font-weight:bold; }
+
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         
         .giant-cam-btn { 
@@ -1265,6 +1268,15 @@
             updateDashboardInfo(); 
         } 
     }
+
+    function formatAppTime(val) {
+        if (!val || val === "" || val === "undefined") return "--:--";
+        if (typeof val === 'string' && val.includes('T') && val.length > 15) {
+            let d = new Date(val);
+            if (!isNaN(d.getTime())) return d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:true});
+        }
+        return val;
+    }
     
     function loadList() { 
         let dateInput = document.getElementById('historyDate');
@@ -1324,15 +1336,22 @@
             
             let nameColor = catColors[i.kategori] || "#2c3e50";
 
+            let displayMasuk = formatAppTime(i.jam);
+            let displayKeluar = formatAppTime(i.keluar);
+
             let timerDisplay = isHistory 
-                ? `<span class="live-timer" style="color:#2c3e50; border-color:#e1e4e8; background:#f8f9fa;">Masuk: ${i.jam||"--"} ${i.keluar ? '| Keluar: '+i.keluar : ''}</span>`
+                ? `<span class="live-timer" style="color:#2c3e50; border-color:#e1e4e8; background:#f8f9fa;">Masuk: ${displayMasuk} | Keluar: ${displayKeluar}</span>`
                 : `<span class="live-timer" data-masuk="${i.jam||("undefined")}"><img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M</span>`;
+
+            let detailsHTML = isHistory 
+                ? `${timerDisplay}`
+                : `<span>${i.kategori}</span>${timerDisplay}`;
 
             h += `<div class="user-card ${offlineClass}">
                     <div style="display:flex; align-items:center; width:100%;">
                         <div class="user-info">
                             <strong style="color:${nameColor}">${offlineIcon}${i.nama}</strong>
-                            <div class="user-details"><span>${i.kategori}</span>${timerDisplay}</div>
+                            <div class="user-details">${detailsHTML}</div>
                         </div>
                     </div>
                     <div class="list-actions">${imgBtn}${xBtn}</div>
