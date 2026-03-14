@@ -20,7 +20,7 @@
         const SCHOOL_LNG = 100.68326009281644; 
         
         // 4. Jarak Radius yang dibenarkan (dalam meter)
-        const RADIUS_METER = 200; 
+        const RADIUS_METER = 20000; 
 
         // 5. Anti-Spam Check-Check: Berapa minit dalam kawasan baru auto-masuk? (Elak spam)
         const MINIT_ANTI_SPAM_MASUK = 1;
