@@ -756,7 +756,7 @@
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/3448/3448113.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/2282/2282208.png" class="icon-3d-mini"> 
                     <span id="hijriDisplay">...</span>
                 </span>
             </div>
@@ -1265,6 +1265,7 @@
     function getHijriDate(){
         const monthNames = ["Muharram", "Safar", "Rabiulawal", "Rabiulakhir", "Jamadilawal", "Jamadilakhir", "Rejab", "Syaaban", "Ramadan", "Syawal", "Zulkaedah", "Zulhijjah"];
         let t = new Date();
+        t.setDate(t.getDate() - 1); // Penyelarasan -1 hari untuk kalendar Hijrah Malaysia (JAKIM)
         try {
             let parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur' }).formatToParts(t);
             let hDay = parts.find(p => p.type === 'day').value;
