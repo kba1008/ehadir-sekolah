@@ -10,7 +10,7 @@
     <!-- ====================================================================== -->
     <script>
         // 1. Masukkan Link Google Apps Script (Web App URL) di sini
-        const API_URL = 'https://script.google.com/macros/s/AKfycby_a07EcXCi9_tyzXwHWqeAvFbvqp6nrzZ_1s6b9_iR4J_axWXg6VKetLmSjZ88sigJ/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxqcmMVlmz7UvCWa8jFvzDcam3-sjsg31JmP3Og6vd8uZCsUYuDkZJplOJY1PkBB17E/exec'; 
         
         // 2. Kata Laluan untuk Admin / Manual Override
         const PASSCODE = "101010";
@@ -626,7 +626,7 @@
         .user-card.offline-item { border-left: 4px solid #e67e22; background: #fffcf5; }
         .user-info { flex-grow: 1; min-width: 0; padding-right: 8px; display: flex; flex-direction: column; justify-content: center; }
         .user-info strong { font-size: 13px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+        .user-details { font-size: 11px; color: #7f8c8d; margin-top: 3px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
         
         .live-timer { 
             color: #d35400; 
@@ -751,12 +751,12 @@
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/2088/2088617.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" class="icon-3d-mini"> 
                     <span id="clockDisplay">--:--</span>
                 </span> 
                 <span>|</span> 
                 <span>
-                    <img src="https://cdn-icons-png.flaticon.com/128/2387/2387718.png" class="icon-3d-mini"> 
+                    <img src="https://cdn-icons-png.flaticon.com/128/3448/3448113.png" class="icon-3d-mini"> 
                     <span id="hijriDisplay">...</span>
                 </span>
             </div>
@@ -1239,13 +1239,18 @@
         let now = new Date();
         document.querySelectorAll('.live-timer[data-masuk]').forEach(el => {
             let masukStr = el.getAttribute('data-masuk');
-            if (!masukStr || masukStr === "undefined") { el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> --`; return; }
+            if (!masukStr || masukStr === "undefined") { 
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> Sedang Bertugas: --`; 
+                return; 
+            }
             let masukDate = parseTimeLocal(masukStr);
             if (masukDate) {
                 let diff = Math.floor((now - masukDate) / 1000); if (diff < 0) diff = 0;
                 let h = Math.floor(diff / 3600); let m = Math.floor((diff % 3600) / 60);
-                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> ${h}H ${m}M`;
-            } else { el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M`; }
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> Sedang Bertugas: ${h}J ${m}M`;
+            } else { 
+                el.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> Sedang Bertugas: 0J 0M`; 
+            }
         });
     }
 
@@ -1352,13 +1357,24 @@
             let displayMasuk = formatAppTime(i.jam);
             let displayKeluar = formatAppTime(i.keluar);
 
-            let timerDisplay = isHistory 
-                ? `<span class="live-timer" style="color:#2c3e50; border-color:#e1e4e8; background:#f8f9fa;">Masuk: ${displayMasuk} | Keluar: ${displayKeluar}</span>`
-                : `<span class="live-timer" data-masuk="${i.jam||("undefined")}"><img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> 0H 0M</span>`;
+            let durationHTML = "";
+            if (i.jam && i.keluar && i.keluar !== "" && i.keluar !== "undefined") {
+                let dMasuk = parseTimeLocal(i.jam);
+                let dKeluar = parseTimeLocal(i.keluar);
+                if (dMasuk && dKeluar) {
+                    let diff = Math.floor((dKeluar - dMasuk) / 1000); 
+                    if (diff < 0) diff += 86400; 
+                    let h = Math.floor(diff / 3600); 
+                    let m = Math.floor((diff % 3600) / 60);
+                    durationHTML = `<span class="live-timer" style="background:#e8f5e9; color:#27ae60; border-color:#c3e6cb; margin-top:2px;"><img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> Jumlah Bertugas: ${h}J ${m}M</span>`;
+                }
+            } else if (!isHistory && i.jam && i.jam !== "undefined") {
+                durationHTML = `<span class="live-timer" data-masuk="${i.jam}" style="margin-top:2px;"><img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" style="width:12px;height:12px;vertical-align:middle"> Sedang Bertugas: 0J 0M</span>`;
+            }
 
-            let detailsHTML = isHistory 
-                ? `${timerDisplay}`
-                : `<span>${i.kategori}</span>${timerDisplay}`;
+            let detailsHTML = `<div style="display:flex; align-items:center; gap:5px;"><span style="font-weight:600; color:#1e3c72;">${i.kategori}</span></div>
+                               <div style="font-size:11px; color:#555; background:#f8f9fa; padding:2px 6px; border-radius:4px; border:1px solid #eee;">Masuk: <b>${displayMasuk}</b> | Keluar: <b>${displayKeluar}</b></div>
+                               ${durationHTML}`;
 
             h += `<div class="user-card ${offlineClass}">
                     <div style="display:flex; align-items:center; width:100%;">
