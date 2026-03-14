@@ -1,8 +1,8 @@
-// sw.js - Versi Ultra-Hybrid v50 (Online/Offline Ready)
+// sw.js - Versi Ultra-Hybrid v51 (Auto-Update Version)
 // Dibuat untuk: E-HADIR PWA
 // Strategi: Network First (Data Terkini) -> Fallback Cache (Offline)
 
-const CACHE_NAME = 'ehadir-hybrid-v50';
+const CACHE_NAME = 'ehadir-hybrid-v51-autoupdate';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -91,10 +91,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // C. JIKA MINTA FAIL BIASA (HTML, Gambar, Logo)
+  // C. JIKA MINTA FAIL HTML (Network First - Pastikan sentiasa dapat kod terkini)
+  if (request.mode === 'navigate' || request.url.includes('.html')) {
+    event.respondWith(
+      fetch(request).then((networkResponse) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, networkResponse.clone());
+          return networkResponse;
+        });
+      }).catch(() => {
+        return caches.match('./index.html');
+      })
+    );
+    return;
+  }
+
+  // D. JIKA MINTA FAIL BIASA LAIN (Gambar, Logo dll - Cache First)
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      // Guna cache dulu (laju), kalau tiada baru cari internet
       return cachedResponse || fetch(request).then((networkResponse) => {
          return caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, networkResponse.clone());
@@ -102,11 +116,7 @@ self.addEventListener('fetch', (event) => {
          });
       });
     }).catch(() => {
-       // Jika semua gagal (offline & tiada cache), tapi user cuba buka app
-       // Paksa buka index.html (supaya user tak nampak Dinosaur Chrome)
-       if (request.mode === 'navigate') {
-         return caches.match('./index.html');
-       }
+       // Abaikan error untuk fail statik
     })
   );
 });
