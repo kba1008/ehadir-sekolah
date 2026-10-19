@@ -17,7 +17,7 @@
  * ============================================================
  */
 
-var ID_FOLDER_FOTO = "1Ia26pk1bhT1GZCRuTqzE7rLu0cSX8IRJ";
+var ID_FOLDER_FOTO = "17bN3qRKyryr2sRorPkCbrPmbgRzL8A4W";
 var PASSCODE_RAHSIA = "101010";
 var idSheet = SpreadsheetApp.getActiveSpreadsheet().getId();
 var SHEETS_LIST = ["GURU", "AKP", "KEBERSIHAN", "PELAWAT", "TIDAK HADIR"];
@@ -28,7 +28,7 @@ var TAIL_SCAN_ROWS = 500;
 
 // ===== TETAPAN LOG MASUK GOOGLE (v40) =====
 // Masukkan OAuth Client ID (Web) dari Google Cloud Console. MESTI sama dengan index.html
-var GOOGLE_CLIENT_ID = "MASUKKAN_CLIENT_ID_ANDA.apps.googleusercontent.com";
+var GOOGLE_CLIENT_ID = "https://195095139195-vknkcc0h9b8pp75n4ej2c7jpdc5r62br.apps.googleusercontent.com";
 // Domain email yang dibenarkan (Gmail & DELIMa KPM)
 var ALLOWED_EMAIL_DOMAINS = ["gmail.com", "moe-dl.edu.my", "moe.gov.my"];
 var SHEET_PENGGUNA = "PENGGUNA";
