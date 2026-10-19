@@ -1,12 +1,12 @@
 {
   "name": "E-HADIR",
   "short_name": "E-HADIR",
-  "id": "/ehadir-app/", 
+  "id": "/ehadir-app/",
   "description": "Sistem Kehadiran Digital SMK SUNGAI BAYOR",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1e3c72",
+  "background_color": "#f0faf8",
+  "theme_color": "#087e78",
   "orientation": "portrait",
   "icons": [
     {
