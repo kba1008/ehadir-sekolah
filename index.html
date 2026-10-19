@@ -1229,6 +1229,7 @@
         <div id="ggBtn" class="gg-btnwrap"></div>
         <div id="ggLoading" class="gg-note" style="display:none;">Sedang mengesahkan akaun...</div>
         <div class="gg-note">Log masuk sekali sahaja. Nama anda akan dikunci secara automatik untuk Punch In / Punch Out.</div>
+        <button class="gg-submit" style="background:linear-gradient(145deg,#27ae60,#1e8449);" onclick="daftarPenggunaBaharu()">➕ DAFTAR PENGGUNA BAHARU</button>
         <button class="gg-link" onclick="masukSebagaiPelawat()">Saya PELAWAT (tanpa akaun)</button>
       </div>
 
@@ -1787,6 +1788,13 @@
     try { initLockName(); } catch(e) {}
     document.getElementById('googleGate').style.display = 'flex';
     renderGoogleButton();
+  }
+
+  function daftarPenggunaBaharu() {
+    showModernAlert("Daftar Pengguna Baharu", "1. Tekan butang <b>Sign in with Google</b> di atas.<br>2. Pilih akaun Gmail / DELIMa anda.<br>3. Borang pendaftaran (Nama, Telefon, Pekerjaan) akan dipaparkan.<br>4. Isi dan tekan <b>DAFTAR & MASUK</b>.", "success");
+    try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.prompt(); } catch(e) {}
+    let b = document.getElementById('ggBtn');
+    if (b) { b.style.transition = "box-shadow .3s"; b.style.boxShadow = "0 0 0 4px #27ae60"; b.style.borderRadius = "30px"; setTimeout(() => b.style.boxShadow = "", 4000); }
   }
 
   function masukSebagaiPelawat() {

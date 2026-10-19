@@ -177,7 +177,8 @@ function sahkanTokenGoogle(idToken) {
     var res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken), { muteHttpExceptions: true });
     if (res.getResponseCode() !== 200) return { ok: false, msg: "Token Google tidak sah / tamat tempoh. Sila log masuk semula." };
     var info = JSON.parse(res.getContentText());
-    if (GOOGLE_CLIENT_ID.indexOf("MASUKKAN_") === -1 && info.aud !== GOOGLE_CLIENT_ID) return { ok: false, msg: "Token bukan untuk aplikasi ini." };
+    var cid = String(GOOGLE_CLIENT_ID).replace(/^https?:\/\//, "").trim();
+    if (cid.indexOf("MASUKKAN_") === -1 && info.aud !== cid && info.azp !== cid) return { ok: false, msg: "Token bukan untuk aplikasi ini. (ID dalam token: " + info.aud + ")" };
     if (String(info.email_verified) !== "true") return { ok: false, msg: "Email Google belum disahkan." };
     var email = String(info.email).toLowerCase().trim();
     var domain = email.split("@")[1] || "";
