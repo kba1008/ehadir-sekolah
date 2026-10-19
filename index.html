@@ -1754,7 +1754,8 @@
         document.getElementById('ggEmail').innerText = res.email;
         if (res.gname) document.getElementById('ggNama').value = String(res.gname).toUpperCase();
         showModernAlert("Belum Berdaftar", "Email " + res.email + " belum didaftarkan. Sila lengkapkan pendaftaran pengguna baharu dahulu.", "info");
-      } else { showModernAlert("Log Masuk Gagal", res.msg || "Ralat.", "error"); }
+      } else if (res.result === "retry") { ulangLogMasukGoogle(res.msg); }
+      else { showModernAlert("Log Masuk Gagal", res.msg || "Ralat.", "error"); }
     } catch (e) {
       document.getElementById('ggLoading').style.display = 'none';
       showModernAlert("Tiada Sambungan", "Sila semak internet dan cuba lagi.", "error");
@@ -1774,9 +1775,23 @@
       let r = await fetch(API_URL + "?t=" + Date.now(), { method: "POST", cache: "no-store", body: JSON.stringify({ action: "DAFTAR_PENGGUNA", passcode: PASSCODE, idToken: ggPendingToken, nama: nama, telefon: tel, pekerjaan: kerja }) });
       let res = await r.json();
       if (res.result === "success") simpanGoogleUser(res);
+      else if (res.result === "retry") ulangLogMasukGoogle(res.msg);
       else showModernAlert("Pendaftaran Gagal", res.msg || "Ralat.", "error");
     } catch (e) { showModernAlert("Tiada Sambungan", "Sila semak internet dan cuba lagi.", "error"); }
     btn.disabled = false; btn.innerText = "DAFTAR & MASUK";
+  }
+
+  // v41: Jika sesi Google tamat/tidak sepadan, terus minta pilih akaun semula (tiada mesej teknikal)
+  function ulangLogMasukGoogle(msg) {
+    ggPendingToken = null;
+    document.getElementById('ggLoading').style.display = 'none';
+    document.getElementById('ggStepDaftar').style.display = 'none';
+    document.getElementById('ggStepManual').style.display = 'none';
+    document.getElementById('ggStepLogin').style.display = 'block';
+    document.getElementById('googleGate').style.display = 'flex';
+    renderGoogleButton();
+    try { google.accounts.id.prompt(); } catch(e) {}
+    showModernAlert("Sila Cuba Sekali Lagi", msg || "Sila tekan butang Google sekali lagi.", "info");
   }
 
   function simpanGoogleUser(res) {
@@ -1801,7 +1816,7 @@
     localStorage.removeItem('ehadir_locked_name');
     localStorage.removeItem('ehadir_locked_kat');
     sessionStorage.removeItem('ehadir_mode_pelawat');
-    try { if (window.google && google.accounts) { google.accounts.id.disableAutoSelect(); if (gu && gu.email) google.accounts.id.revoke(gu.email, function(){}); } } catch(e) {}
+    try { if (window.google && google.accounts) { google.accounts.id.disableAutoSelect(); } } catch(e) {}
     ggPendingToken = null;
     document.getElementById('ggStepDaftar').style.display = 'none';
     document.getElementById('ggStepManual').style.display = 'none';

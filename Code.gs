@@ -177,20 +177,28 @@ function sendJson(obj) {
 }
 
 function sahkanTokenGoogle(idToken) {
-  if (!idToken) return { ok: false, msg: "Token Google tiada." };
+  if (!idToken) return { ok: false, retry: true, msg: "Sila tekan butang Google untuk log masuk." };
   try {
     var res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken), { muteHttpExceptions: true });
-    if (res.getResponseCode() !== 200) return { ok: false, msg: "Token Google tidak sah / tamat tempoh. Sila log masuk semula." };
+    if (res.getResponseCode() !== 200) return { ok: false, retry: true, msg: "Sesi Google telah tamat. Sila tekan butang Google sekali lagi." };
     var info = JSON.parse(res.getContentText());
+    // v41: Semakan ID aplikasi yang lebih fleksibel.
+    // Terima token jika ID sama tepat, ATAU dari projek Google Cloud yang sama (nombor projek sama).
     var cid = String(GOOGLE_CLIENT_ID).replace(/^https?:\/\//, "").trim();
-    if (cid.indexOf("MASUKKAN_") === -1 && info.aud !== cid && info.azp !== cid) return { ok: false, msg: "Token bukan untuk aplikasi ini. (ID dalam token: " + info.aud + ")" };
+    var projNo = cid.split("-")[0];
+    var aud = String(info.aud || ""), azp = String(info.azp || "");
+    var idSah = (cid.indexOf("MASUKKAN_") !== -1) || aud === cid || azp === cid ||
+                (projNo && (aud.indexOf(projNo + "-") === 0 || azp.indexOf(projNo + "-") === 0));
+    if (!idSah) return { ok: false, retry: true, msg: "Sesi Google tidak sepadan. Sila tekan butang Google sekali lagi." };
+    var iss = String(info.iss || "");
+    if (iss && iss !== "accounts.google.com" && iss !== "https://accounts.google.com") return { ok: false, retry: true, msg: "Sesi Google tidak sah. Sila cuba sekali lagi." };
     if (String(info.email_verified) !== "true") return { ok: false, msg: "Email Google belum disahkan." };
     var email = String(info.email).toLowerCase().trim();
     var domain = email.split("@")[1] || "";
     if (ALLOWED_EMAIL_DOMAINS.indexOf(domain) === -1) return { ok: false, msg: "Hanya akaun Gmail atau DELIMa dibenarkan." };
     return { ok: true, email: email, gname: info.name || "", picture: info.picture || "" };
   } catch (e) {
-    return { ok: false, msg: "Gagal sahkan Google: " + e.toString() };
+    return { ok: false, retry: true, msg: "Tidak dapat menghubungi Google. Sila cuba sekali lagi." };
   }
 }
 
@@ -229,7 +237,7 @@ function cariPenggunaByEmail(email) {
 
 function googleLogin(data) {
   var t = sahkanTokenGoogle(data.idToken);
-  if (!t.ok) return sendJson({ result: "error", msg: t.msg });
+  if (!t.ok) return sendJson({ result: t.retry ? "retry" : "error", msg: t.msg });
   var u = cariPenggunaByEmail(t.email);
   if (!u) return sendJson({ result: "register", email: t.email, gname: t.gname || "", msg: "Email " + t.email + " belum didaftarkan dalam sistem. Sila daftar pengguna baharu terlebih dahulu." });
   if (u.status === "DISEKAT") return sendJson({ result: "error", msg: "Akaun anda telah disekat. Sila hubungi pentadbir." });
@@ -239,7 +247,7 @@ function googleLogin(data) {
 
 function daftarPengguna(data) {
   var t = sahkanTokenGoogle(data.idToken);
-  if (!t.ok) return sendJson({ result: "error", msg: t.msg });
+  if (!t.ok) return sendJson({ result: t.retry ? "retry" : "error", msg: t.msg });
   var nama = String(data.nama || "").toUpperCase().trim();
   var tel = String(data.telefon || "").replace(/[^0-9+]/g, "");
   var kerja = String(data.pekerjaan || "").toUpperCase().trim();

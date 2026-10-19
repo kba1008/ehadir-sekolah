@@ -2,7 +2,7 @@
 // Dibuat untuk: E-HADIR PWA
 // Strategi: Network First (Data Terkini) -> Fallback Cache (Offline)
 
-const CACHE_NAME = 'ehadir-hybrid-v55-googlelogin';
+const CACHE_NAME = 'ehadir-hybrid-v56-loginfix';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache v55-googlelogin');
+        console.log('Opened cache v56-loginfix');
         return cache.addAll(URLS_TO_CACHE);
       })
   );
