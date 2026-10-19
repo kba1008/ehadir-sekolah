@@ -1233,6 +1233,25 @@
         <button class="gg-link" onclick="masukSebagaiPelawat()">Saya PELAWAT (tanpa akaun)</button>
       </div>
 
+      <div id="ggStepManual" style="display:none;">
+        <div class="gg-email">DAFTAR PENGGUNA BAHARU</div>
+        <label class="gg-label">Nama Penuh</label>
+        <input type="text" id="mNama" maxlength="100" placeholder="NAMA PENUH (SEPERTI KAD PENGENALAN)" style="text-transform:uppercase">
+        <label class="gg-label">Email (untuk log masuk)</label>
+        <input type="email" id="mEmail" maxlength="120" placeholder="contoh@gmail.com / @moe-dl.edu.my">
+        <label class="gg-label">Jawatan</label>
+        <select id="mKerja">
+          <option value="" disabled selected>-- PILIH JAWATAN --</option>
+          <option value="GURU">GURU</option>
+          <option value="AKP">AKP</option>
+          <option value="KEBERSIHAN">KEBERSIHAN</option>
+        </select>
+        <label class="gg-label">No Telefon</label>
+        <input type="tel" id="mTel" maxlength="15" placeholder="Contoh: 0123456789" inputmode="numeric">
+        <button class="gg-submit" id="mSubmitBtn" onclick="hantarDaftarManual()">HANTAR PENDAFTARAN</button>
+        <button class="gg-link" onclick="tutupDaftarManual()">← Kembali ke Log Masuk</button>
+      </div>
+
       <div id="ggStepDaftar" style="display:none;">
         <div class="gg-email" id="ggEmail"></div>
         <label class="gg-label">Nama Penuh</label>
@@ -1784,6 +1803,7 @@
     try { if (window.google && google.accounts) { google.accounts.id.disableAutoSelect(); if (gu && gu.email) google.accounts.id.revoke(gu.email, function(){}); } } catch(e) {}
     ggPendingToken = null;
     document.getElementById('ggStepDaftar').style.display = 'none';
+    document.getElementById('ggStepManual').style.display = 'none';
     document.getElementById('ggStepLogin').style.display = 'block';
     try { initLockName(); } catch(e) {}
     document.getElementById('googleGate').style.display = 'flex';
@@ -1791,10 +1811,37 @@
   }
 
   function daftarPenggunaBaharu() {
-    showModernAlert("Daftar Pengguna Baharu", "1. Tekan butang <b>Sign in with Google</b> di atas.<br>2. Pilih akaun Gmail / DELIMa anda.<br>3. Borang pendaftaran (Nama, Telefon, Pekerjaan) akan dipaparkan.<br>4. Isi dan tekan <b>DAFTAR & MASUK</b>.", "success");
-    try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.prompt(); } catch(e) {}
-    let b = document.getElementById('ggBtn');
-    if (b) { b.style.transition = "box-shadow .3s"; b.style.boxShadow = "0 0 0 4px #27ae60"; b.style.borderRadius = "30px"; setTimeout(() => b.style.boxShadow = "", 4000); }
+    document.getElementById('ggStepLogin').style.display = 'none';
+    document.getElementById('ggStepManual').style.display = 'block';
+  }
+
+  function tutupDaftarManual() {
+    document.getElementById('ggStepManual').style.display = 'none';
+    document.getElementById('ggStepLogin').style.display = 'block';
+  }
+
+  async function hantarDaftarManual() {
+    let nama = document.getElementById('mNama').value.toUpperCase().trim();
+    let email = document.getElementById('mEmail').value.toLowerCase().trim();
+    let kerja = document.getElementById('mKerja').value;
+    let tel = document.getElementById('mTel').value.trim();
+    if (nama.length < 3) { showModernAlert("Nama", "Sila isi nama penuh.", "error"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showModernAlert("Email", "Sila isi email yang sah.", "error"); return; }
+    if (!kerja) { showModernAlert("Jawatan", "Sila pilih jawatan.", "error"); return; }
+    if (tel.replace(/[^0-9]/g, "").length < 9) { showModernAlert("No Telefon", "Sila isi no telefon yang sah.", "error"); return; }
+    let btn = document.getElementById('mSubmitBtn');
+    btn.disabled = true; btn.innerText = "MENGHANTAR...";
+    try {
+      let r = await fetch(API_URL + "?t=" + Date.now(), { method: "POST", cache: "no-store", body: JSON.stringify({ action: "DAFTAR_MANUAL", passcode: PASSCODE, nama: nama, email: email, pekerjaan: kerja, telefon: tel }) });
+      let res = await r.json();
+      if (res.result === "success") {
+        ['mNama','mEmail','mTel'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('mKerja').value = "";
+        tutupDaftarManual();
+        showModernAlert("Pendaftaran Berjaya", res.msg, "success");
+      } else showModernAlert("Pendaftaran Gagal", res.msg || "Ralat.", "error");
+    } catch (e) { showModernAlert("Tiada Sambungan", "Sila semak internet dan cuba lagi.", "error"); }
+    btn.disabled = false; btn.innerText = "HANTAR PENDAFTARAN";
   }
 
   function masukSebagaiPelawat() {

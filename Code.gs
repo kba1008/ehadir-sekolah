@@ -111,7 +111,7 @@ function doPost(e) {
     var isWrite = (action === "MASUK" || action === "KELUAR" ||
                    action === "CHECKOUT_VISITOR" || action === "MOHON_CUTI" ||
                    action === "BATAL_CUTI" || action === "SAH_CUTI" ||
-                   action === "DAFTAR_PENGGUNA");
+                   action === "DAFTAR_PENGGUNA" || action === "DAFTAR_MANUAL");
 
     if (isWrite) {
       var lock = LockService.getScriptLock();
@@ -138,6 +138,7 @@ function dispatchAction(action, data) {
   // --- LOG MASUK GOOGLE (v40) ---
   if (action == "GOOGLE_LOGIN") return googleLogin(data);
   if (action == "DAFTAR_PENGGUNA") return daftarPengguna(data);
+  if (action == "DAFTAR_MANUAL") return daftarPenggunaManual(data);
 
   // Staf berdaftar: guna nama/pekerjaan rasmi dari sheet PENGGUNA
   if ((action == "MASUK" || action == "KELUAR") && data.email) {
@@ -226,7 +227,7 @@ function googleLogin(data) {
   var t = sahkanTokenGoogle(data.idToken);
   if (!t.ok) return sendJson({ result: "error", msg: t.msg });
   var u = cariPenggunaByEmail(t.email);
-  if (!u) return sendJson({ result: "register", email: t.email, gname: t.gname, picture: t.picture });
+  if (!u) return sendJson({ result: "error", msg: "Email " + t.email + " belum didaftarkan dalam sistem. Sila tekan DAFTAR PENGGUNA BAHARU dahulu." });
   if (u.status === "DISEKAT") return sendJson({ result: "error", msg: "Akaun anda telah disekat. Sila hubungi pentadbir." });
   try { getPenggunaSheet().getRange(u.row, 7).setValue(getMalaysiaTime()); } catch(e) {}
   return sendJson({ result: "success", email: u.email, nama: u.nama, telefon: u.telefon, pekerjaan: u.pekerjaan, picture: t.picture });
@@ -250,6 +251,25 @@ function daftarPengguna(data) {
   sh.appendRow([now, t.email, nama, "'" + tel, kerja, "AKTIF", now]);
   try { CacheService.getScriptCache().remove("usr_" + t.email); } catch(e) {}
   return sendJson({ result: "success", email: t.email, nama: nama, telefon: tel, pekerjaan: kerja, picture: t.picture });
+}
+
+// Pendaftaran manual (tanpa token): Nama, Email, Jawatan, Telefon
+function daftarPenggunaManual(data) {
+  var email = String(data.email || "").toLowerCase().trim();
+  var nama = String(data.nama || "").toUpperCase().trim();
+  var tel = String(data.telefon || "").replace(/[^0-9+]/g, "");
+  var kerja = String(data.pekerjaan || "").toUpperCase().trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return sendJson({ result: "error", msg: "Email tidak sah." });
+  var domain = email.split("@")[1] || "";
+  if (ALLOWED_EMAIL_DOMAINS.indexOf(domain) === -1) return sendJson({ result: "error", msg: "Hanya email Gmail atau DELIMa dibenarkan." });
+  if (nama.length < 3 || nama.length > 100) return sendJson({ result: "error", msg: "Sila isi nama penuh." });
+  if (tel.length < 9 || tel.length > 15) return sendJson({ result: "error", msg: "No telefon tidak sah." });
+  if (SENARAI_PEKERJAAN.indexOf(kerja) === -1) return sendJson({ result: "error", msg: "Sila pilih jawatan." });
+  if (cariPenggunaByEmail(email)) return sendJson({ result: "error", msg: "Email ini sudah berdaftar. Sila log masuk dengan Google." });
+  var now = getMalaysiaTime();
+  getPenggunaSheet().appendRow([now, email, nama, "'" + tel, kerja, "AKTIF", ""]);
+  try { CacheService.getScriptCache().remove("usr_" + email); } catch(e) {}
+  return sendJson({ result: "success", msg: "Pendaftaran berjaya. Sila log masuk dengan Google menggunakan " + email });
 }
 
 // Cache helpers
