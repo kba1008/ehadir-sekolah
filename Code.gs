@@ -17,7 +17,7 @@
  * ============================================================
  */
 
-var ID_FOLDER_FOTO = "17bN3qRKyryr2sRorPkCbrPmbgRzL8A4W";
+var ID_FOLDER_FOTO = "1Ia26pk1bhT1GZCRuTqzE7rLu0cSX8IRJ";
 var PASSCODE_RAHSIA = "101010";
 var idSheet = "1lCOMvYQjTE6spEv0-c_yP_fhJ0yczFHB20BWPwTyXXQ"; // ID Google Sheet
 var SHEETS_LIST = ["GURU", "AKP", "KEBERSIHAN", "PELAWAT", "TIDAK HADIR"];
@@ -28,7 +28,7 @@ var TAIL_SCAN_ROWS = 500;
 
 // ===== TETAPAN LOG MASUK GOOGLE (v40) =====
 // Masukkan OAuth Client ID (Web) dari Google Cloud Console. MESTI sama dengan index.html
-var GOOGLE_CLIENT_ID = "https://195095139195-vknkcc0h9b8pp75n4ej2c7jpdc5r62br.apps.googleusercontent.com";
+var GOOGLE_CLIENT_ID = "MASUKKAN_CLIENT_ID_ANDA.apps.googleusercontent.com";
 // Domain email yang dibenarkan (Gmail & DELIMa KPM)
 var ALLOWED_EMAIL_DOMAINS = ["gmail.com", "moe-dl.edu.my", "moe.gov.my"];
 var SHEET_PENGGUNA = "PENGGUNA";
@@ -735,3 +735,32 @@ function parseTime(t,r){
 }
 
 function sendResponse(s,m) { return ContentService.createTextOutput(JSON.stringify({"result":s,"msg":m})).setMimeType(ContentService.MimeType.JSON); }
+
+// ===== SETUP SHEET (jalankan SEKALI dari editor Apps Script) =====
+function setupSheet() {
+  var ss = SpreadsheetApp.openById(idSheet);
+  var headers = ["Timestamp", "Nama", "Pekerjaan", "Plat", "Jam Masuk", "Jam Keluar",
+                 "Status", "Alasan", "Lokasi", "Foto", "Catatan", "DeviceId", "Status Lokasi"];
+  var kategori = ["GURU", "AKP", "KEBERSIHAN", "PELAWAT"];
+  for (var i = 0; i < kategori.length; i++) {
+    var sh = ss.getSheetByName(kategori[i]);
+    if (!sh) sh = ss.insertSheet(kategori[i]);
+    if (sh.getLastRow() === 0) {
+      sh.appendRow(headers);
+      sh.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#d9e2f3");
+      sh.setFrozenRows(1);
+    }
+  }
+  checkAndCreateCutiSheet();
+  var jam = ss.getSheetByName("JAM");
+  if (!jam) {
+    jam = ss.insertSheet("JAM");
+    jam.getRange(1, 1, 1, 5).setValues([["Keterangan", "GURU", "AKP", "KEBERSIHAN", "PELAWAT"]]);
+    jam.getRange(2, 1).setValue("Masa Masuk");
+    jam.getRange(3, 1).setValue("Masa Keluar");
+    jam.getRange(2, 2, 2, 4).setValue("BEBAS");
+    jam.getRange(1, 1, 3, 5).setFontWeight("bold").setBackground("#fff2cc");
+  }
+  if (typeof getPenggunaSheet === "function") getPenggunaSheet();
+  Logger.log("SETUP SIAP: Semua sheet sedia.");
+}
