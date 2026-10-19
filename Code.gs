@@ -231,7 +231,7 @@ function googleLogin(data) {
   var t = sahkanTokenGoogle(data.idToken);
   if (!t.ok) return sendJson({ result: "error", msg: t.msg });
   var u = cariPenggunaByEmail(t.email);
-  if (!u) return sendJson({ result: "error", msg: "Email " + t.email + " belum didaftarkan dalam sistem. Sila tekan DAFTAR PENGGUNA BAHARU dahulu." });
+  if (!u) return sendJson({ result: "register", email: t.email, gname: t.gname || "", msg: "Email " + t.email + " belum didaftarkan dalam sistem. Sila daftar pengguna baharu terlebih dahulu." });
   if (u.status === "DISEKAT") return sendJson({ result: "error", msg: "Akaun anda telah disekat. Sila hubungi pentadbir." });
   try { getPenggunaSheet().getRange(u.row, 7).setValue(getMalaysiaTime()); } catch(e) {}
   return sendJson({ result: "success", email: u.email, nama: u.nama, telefon: u.telefon, pekerjaan: u.pekerjaan, picture: t.picture });

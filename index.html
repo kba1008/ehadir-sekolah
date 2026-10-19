@@ -16,7 +16,7 @@
         window.location.reload();
     }
 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxEu5U8mdg3Td5289m9TIhTFsy-Vo56puGQZWqJAUAIKCNQSUbihyZxxXfHDNm0DeG8/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxgHkLIKndXMscu_mg7HKusyYy4DuOy0UyJ2GEaSSvv_PmuLDddzUrXvmWfbR9Q2QCQeg/exec'; 
     const PASSCODE = "101010";
     // v40: OAuth Client ID (Web) - MESTI sama dengan GOOGLE_CLIENT_ID dalam Code.gs
     const GOOGLE_CLIENT_ID = "195095139195-vknkcc0h9b8pp75n4ej2c7jpdc5r62br.apps.googleusercontent.com";
@@ -1753,6 +1753,7 @@
         document.getElementById('ggStepDaftar').style.display = 'block';
         document.getElementById('ggEmail').innerText = res.email;
         if (res.gname) document.getElementById('ggNama').value = String(res.gname).toUpperCase();
+        showModernAlert("Belum Berdaftar", "Email " + res.email + " belum didaftarkan. Sila lengkapkan pendaftaran pengguna baharu dahulu.", "info");
       } else { showModernAlert("Log Masuk Gagal", res.msg || "Ralat.", "error"); }
     } catch (e) {
       document.getElementById('ggLoading').style.display = 'none';
