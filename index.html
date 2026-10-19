@@ -16,7 +16,7 @@
         window.location.reload();
     }
 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyXNUEzKvR0ECusquOT18mzcGMGlpxnXE9uHT4KgmWPn6XZSIAGYaWd6fWbYSWy9iUvhA/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxgHkLIKndXMscu_mg7HKusyYy4DuOy0UyJ2GEaSSvv_PmuLDddzUrXvmWfbR9Q2QCQeg/exec'; 
     const PASSCODE = "101010";
     // v40: OAuth Client ID (Web) - MESTI sama dengan GOOGLE_CLIENT_ID dalam Code.gs
     const GOOGLE_CLIENT_ID = "195095139195-vknkcc0h9b8pp75n4ej2c7jpdc5r62br.apps.googleusercontent.com";
@@ -1830,7 +1830,18 @@
     if (!kerja) { showModernAlert("Jawatan", "Sila pilih jawatan.", "error"); return; }
     if (tel.replace(/[^0-9]/g, "").length < 9) { showModernAlert("No Telefon", "Sila isi no telefon yang sah.", "error"); return; }
     let btn = document.getElementById('mSubmitBtn');
-    btn.disabled = true; btn.innerText = "MENGHANTAR...";
+    btn.disabled = true; btn.innerText = "MENYEMAK EMAIL...";
+    try {
+      let rc = await fetch(API_URL + "?t=" + Date.now(), { method: "POST", cache: "no-store", body: JSON.stringify({ action: "SEMAK_EMAIL", passcode: PASSCODE, email: email }) });
+      let sc = await rc.json();
+      if (sc.result === "success" && sc.wujud) {
+        tutupDaftarManual();
+        showModernAlert("Sudah Berdaftar", "Email " + email + " sudah didaftarkan. Sila log masuk dengan Google menggunakan email ini.", "success");
+        btn.disabled = false; btn.innerText = "HANTAR PENDAFTARAN";
+        return;
+      }
+    } catch (e) {}
+    btn.innerText = "MENGHANTAR...";
     try {
       let r = await fetch(API_URL + "?t=" + Date.now(), { method: "POST", cache: "no-store", body: JSON.stringify({ action: "DAFTAR_MANUAL", passcode: PASSCODE, nama: nama, email: email, pekerjaan: kerja, telefon: tel }) });
       let res = await r.json();

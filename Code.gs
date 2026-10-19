@@ -139,6 +139,10 @@ function dispatchAction(action, data) {
   if (action == "GOOGLE_LOGIN") return googleLogin(data);
   if (action == "DAFTAR_PENGGUNA") return daftarPengguna(data);
   if (action == "DAFTAR_MANUAL") return daftarPenggunaManual(data);
+  if (action == "SEMAK_EMAIL") {
+    var em = String(data.email || "").toLowerCase().trim();
+    return sendJson({ result: "success", wujud: !!cariPenggunaByEmail(em) });
+  }
 
   // Staf berdaftar: guna nama/pekerjaan rasmi dari sheet PENGGUNA
   if ((action == "MASUK" || action == "KELUAR") && data.email) {
