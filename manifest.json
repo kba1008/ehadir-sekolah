@@ -2,7 +2,7 @@
   "name": "E-HADIR",
   "short_name": "E-HADIR",
   "id": "/ehadir-app/", 
-  "description": "Sistem Kehadiran Digital SK Selama (K)",
+  "description": "Sistem Kehadiran Digital SMK SUNGAI BAYOR",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",

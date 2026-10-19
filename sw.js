@@ -1,36 +1,35 @@
-// sw.js - Versi Ultra-Hybrid v51 (Auto-Update Version)
+// sw.js - Versi Ultra-Hybrid v53 (Auto-Force Update / Fixed Date Issue)
 // Dibuat untuk: E-HADIR PWA
 // Strategi: Network First (Data Terkini) -> Fallback Cache (Offline)
 
-const CACHE_NAME = 'ehadir-hybrid-v51-autoupdate';
+const CACHE_NAME = 'ehadir-hybrid-v55-googlelogin';
 const URLS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './logo.png'
-  // Tambah fail css/js lain jika ada, contoh: './style.css'
 ];
 
 // 1. INSTALL: Simpan 'kulit' aplikasi (fail asas) ke dalam telefon
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Paksa SW baru ambil alih segera
+  self.skipWaiting(); // Paksa SW baru ambil alih segera tanpa lengah
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Opened cache v55-googlelogin');
         return cache.addAll(URLS_TO_CACHE);
       })
   );
 });
 
-// 2. ACTIVATE: Buang cache versi lama (bersihkan memori telefon)
+// 2. ACTIVATE: Buang cache versi lama sepenuhnya (bersihkan memori telefon)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Memadam cache lama:', cacheName);
+            console.log('Memadam cache memori lama secara mandatori:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -40,7 +39,7 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// 3. FETCH: "Otak" yang menentukan guna Internet atau Cache
+// 3. FETCH: Strategi menapis akses ke internet atau cache
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
@@ -51,7 +50,6 @@ self.addEventListener('fetch', (event) => {
       fetch(request.clone())
         .catch(() => {
           // Jika internet tiada, pulangkan isyarat 'Offline'
-          // Kod di index.html akan terima ini dan simpan data dalam LocalStorage
           return new Response(JSON.stringify({ offline: true }), {
             headers: { 'Content-Type': 'application/json' }
           });
@@ -60,28 +58,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // B. JIKA MINTA DATA LIST (GET dari Google Script)
+  // B. JIKA MINTA DATA LIST DARI GOOGLE APPS SCRIPT (GET List)
   if (url.hostname.includes('script.google.com') || url.hostname.includes('googleusercontent.com')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Jika BERJAYA dapat internet:
-          // 1. Clone response (sebab stream cuma boleh baca sekali)
           const resClone = response.clone();
-          // 2. Simpan copy data terkini dalam Cache (untuk backup masa depan)
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, resClone);
           });
-          // 3. Bagi data fresh kepada pengguna
           return response;
         })
         .catch(() => {
-          // Jika GAGAL (Tiada Internet):
-          // Cari data lama dalam cache. Kalau ada, bagi je (supaya app tak kosong).
+          // Fallback offline cache jika tiada internet
           return caches.match(request).then((cachedRes) => {
             if (cachedRes) return cachedRes;
-            
-            // Jika cache pun tiada, bagi JSON kosong supaya tak error
             return new Response(JSON.stringify([]), {
               headers: { 'Content-Type': 'application/json' }
             });
@@ -91,32 +82,31 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // C. JIKA MINTA FAIL HTML (Network First - Pastikan sentiasa dapat kod terkini)
+  // C. JIKA MINTA FAIL HTML UTAMA (Network First + Paksa bypass Cache HTTP Browser)
   if (request.mode === 'navigate' || request.url.includes('.html')) {
     event.respondWith(
-      fetch(request).then((networkResponse) => {
+      // fetch dengan { cache: 'no-store' } memaksa enjin mendapatkan fail terus dari pelayan hosting, mengabaikan sekatan cache lama
+      fetch(request, { cache: 'no-store' }).then((networkResponse) => {
         return caches.open(CACHE_NAME).then((cache) => {
           cache.put(request, networkResponse.clone());
           return networkResponse;
         });
       }).catch(() => {
-        return caches.match('./index.html');
+        return caches.match('./index.html'); // Mod offline fallback
       })
     );
     return;
   }
 
-  // D. JIKA MINTA FAIL BIASA LAIN (Gambar, Logo dll - Cache First)
+  // D. JIKA MINTA FAIL BIASA LAIN (Gambar, Logo dll)
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      return cachedResponse || fetch(request).then((networkResponse) => {
+      return cachedResponse || fetch(request, { cache: 'no-store' }).then((networkResponse) => {
          return caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, networkResponse.clone());
             return networkResponse;
          });
       });
-    }).catch(() => {
-       // Abaikan error untuk fail statik
-    })
+    }).catch(() => {})
   );
 });
